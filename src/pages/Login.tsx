@@ -1,26 +1,42 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Building2, UserCog } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'super_admin' | 'company_admin' | ''>('super_admin');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  const navigate = useNavigate();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    const success = await login(email, password);
+    const loggedInUser = await login(email, password); // user object or null
+    console.log('loggedInUser', loggedInUser);
 
-    if (!success) {
+
+    if (!loggedInUser) {
       setError('Invalid email or password');
       setIsLoading(false);
+      return;
     }
+
+    // Navigate immediately using the returned user
+    if (loggedInUser.role === 'super_admin') {
+      navigate('/app/super-admin/dashboard');
+    } else {
+      navigate('/app/company/dashboard');
+    }
+
+
   };
 
   return (
@@ -34,6 +50,8 @@ export function Login() {
       }}
     >
       <div className="w-full max-w-md relative z-10">
+
+        {/* Header Section */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <Logo size="lg" />
@@ -42,8 +60,12 @@ export function Login() {
           <p className="text-text-muted">Sign in to your BusinessOS account</p>
         </div>
 
+        {/* Login Card */}
         <div className="card p-8 shadow-xl">
+
           <form onSubmit={handleSubmit} className="space-y-6">
+
+            {/* Error Message */}
             {error && (
               <div className="bg-danger-soft border border-danger text-danger px-4 py-3 rounded-lg flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -51,6 +73,44 @@ export function Login() {
               </div>
             )}
 
+
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-medium text-text-main mb-2">
+                Select Role
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRole('super_admin')}
+                  className={`flex items-center justify-center gap-2 border rounded-lg py-3 transition-all 
+                    ${role === 'super_admin'
+                      ? 'bg-primary-soft text-black border-primary shadow-sm'
+                      : 'border-border-muted text-text-muted hover:bg-surface'
+                    }`}
+                >
+                  <UserCog className="w-4 h-4" />
+                  <span className="text-sm font-medium">Super Admin</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRole('company_admin')}
+                  className={`flex items-center justify-center gap-2 border rounded-lg transition-all 
+                    ${role === 'company_admin'
+                      ? 'bg-primary-soft text-black border-primary shadow-sm'
+                      : 'border-border-muted text-text-muted hover:bg-surface'
+                    }`}
+                >
+                  <Building2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">Company Admin</span>
+                </button>
+              </div>
+            </div>
+
+
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-text-main mb-2">
                 Email
@@ -67,6 +127,7 @@ export function Login() {
               />
             </div>
 
+            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-text-main mb-2">
                 Password
@@ -82,6 +143,9 @@ export function Login() {
               />
             </div>
 
+
+
+            {/* Submit */}
             <button
               type="submit"
               disabled={isLoading}
@@ -89,8 +153,8 @@ export function Login() {
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
-          </form>
 
+          </form>
           <div className="mt-6 pt-6 border-t border-border-subtle">
             <p className="text-xs text-text-muted text-center">
               Demo credentials:<br />
@@ -99,6 +163,7 @@ export function Login() {
             </p>
           </div>
         </div>
+
       </div>
     </div>
   );
