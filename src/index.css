@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-bg text-text-main font-sans antialiased text-sm;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-text-main font-semibold;
+  }
+
+  h1 {
+    @apply text-2xl;
+  }
+
+  h2 {
+    @apply text-lg;
+  }
+
+  h3 {
+    @apply text-base;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-[#E55A1E] focus:ring-primary;
+  }
+
+  .btn-secondary {
+    @apply bg-surface text-text-main hover:bg-bg focus:ring-primary;
+  }
+
+  .input {
+    @apply w-full px-2.5 py-1.5 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:ring-1 hover:ring-primary bg-gray-50 border border-transparent text-text-main placeholder:text-text-muted transition-all;
+  }
+
+  select, textarea {
+    @apply w-full px-2.5 py-1.5 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:ring-1 hover:ring-primary bg-gray-50 border border-transparent text-text-main placeholder:text-text-muted transition-all;
+  }
+
+  input[type="date"], input[type="datetime-local"], input[type="time"] {
+    @apply w-full px-2.5 py-1.5 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:ring-1 hover:ring-primary bg-gray-50 border border-transparent text-text-main transition-all;
+  }
+
+  .card {
+    @apply bg-surface rounded-lg;
+  }
+
+  .badge {
+    @apply px-2 py-0.5 rounded text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-primary-soft text-primary;
+  }
+
+  .badge-success {
+    @apply bg-success-soft text-success;
+  }
+
+  .badge-danger {
+    @apply bg-danger-soft text-danger;
+  }
+
+  .badge-warning {
+    @apply bg-warning-soft text-warning;
+  }
+
+  .react-datepicker-wrapper {
+    @apply w-full;
+  }
+
+  .react-datepicker__input-container input {
+    @apply w-full px-2.5 py-1.5 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:ring-1 hover:ring-primary bg-gray-50 border border-transparent text-text-main placeholder:text-text-muted transition-all;
+  }
+
+  .react-datepicker {
+    @apply font-sans border-border-subtle shadow-lg;
+  }
+
+  .react-datepicker__header {
+    @apply bg-bg border-b border-border-subtle;
+  }
+
+  .react-datepicker__current-month {
+    @apply text-text-main text-sm font-semibold;
+  }
+
+  .react-datepicker__day-name {
+    @apply text-text-muted text-xs;
+  }
+
+  .react-datepicker__day {
+    @apply text-text-main hover:bg-primary-soft hover:text-primary rounded-md;
+  }
+
+  .react-datepicker__day--selected {
+    @apply bg-primary text-white hover:bg-primary;
+  }
+
+  .react-datepicker__day--keyboard-selected {
+    @apply bg-primary-soft text-primary;
+  }
+
+  .react-datepicker__day--today {
+    @apply font-bold;
+  }
+
+  .react-datepicker__day--disabled {
+    @apply text-text-muted opacity-30;
+  }
+}
