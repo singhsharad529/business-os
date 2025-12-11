@@ -6,6 +6,7 @@ import { SideSheet } from '../../components/SideSheet';
 import { EntityForm } from '../../components/EntityForm';
 import { EntityDetail } from './EntityDetail';
 import type { Entity } from '../../types';
+import { mockCompanies } from '../../data/mockData';
 
 interface EntityListProps {
   templateName: string;
@@ -20,15 +21,17 @@ export function EntityList({ templateName }: EntityListProps) {
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
   const [editingEntity, setEditingEntity] = useState<Entity | null>(null);
 
+
   const entities = user?.companyId
     ? getEntitiesByCompany(user.companyId, templateName)
-    : [];
+    : getEntitiesByCompany(mockCompanies[0].id, templateName);
 
   const filteredEntities = entities.filter((entity) => {
     const matchesSearch = entity.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || entity.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
 
   const statuses = Array.from(new Set(entities.map((e) => e.status)));
 

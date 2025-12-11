@@ -3,8 +3,6 @@ import { useAuth } from "../contexts/AuthContext";
 
 export const CompanyRoute = () => {
     const { user, isLoading } = useAuth();
-    console.log("company user is loading", isLoading);
-    console.log("company user", user);
 
     if (isLoading) {
         return (
@@ -17,7 +15,7 @@ export const CompanyRoute = () => {
         );
     }
 
-    if (!user || user.role !== "company_admin") {
+    if (!user || (user.role !== "company_admin" && user.role !== "super_admin")) {
         return <Navigate to="/login" replace />;
     }
 
