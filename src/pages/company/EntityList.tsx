@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
-import { Search, Plus, Filter, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, Filter, Edit, Trash2, RotateCcw, X } from 'lucide-react';
 import { SideSheet } from '../../components/SideSheet';
 import { EntityForm } from '../../components/EntityForm';
 import { EntityDetail } from './EntityDetail';
@@ -14,26 +14,34 @@ interface EntityListProps {
 
 export function EntityList({ templateName }: EntityListProps) {
   const { user } = useAuth();
-  const { getEntitiesByCompany, deleteEntity } = useData();
+  const { getEntitiesByCompany, getAllEntitiesByName, deleteEntity } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [showCreateSheet, setShowCreateSheet] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
   const [editingEntity, setEditingEntity] = useState<Entity | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
 
   const entities = user?.companyId
     ? getEntitiesByCompany(user.companyId, templateName)
-    : getEntitiesByCompany(mockCompanies[0].id, templateName);
+    : getAllEntitiesByName(templateName);
+
 
   const filteredEntities = entities.filter((entity) => {
     const matchesSearch = entity.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || entity.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const category = (entity.data?.category || '').toString();
+    const matchesCategory = categoryFilter.length === 0 || categoryFilter.includes(category);
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
 
   const statuses = Array.from(new Set(entities.map((e) => e.status)));
+
+  const categories = Array.from(new Set(
+    entities.map((e) => (e.data?.category || '').toString()).filter((c) => c.trim().length > 0))).sort();
 
   const statusColors: Record<string, string> = {
     draft: 'badge',
@@ -95,7 +103,7 @@ export function EntityList({ templateName }: EntityListProps) {
               className="input pl-8 w-full"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 relative">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -108,10 +116,63 @@ export function EntityList({ templateName }: EntityListProps) {
                 </option>
               ))}
             </select>
-            <button className="btn btn-secondary flex items-center gap-1.5">
+            <button className="btn btn-secondary flex items-center gap-1.5"
+              onClick={() => setIsFilterOpen((v) => !v)}
+            >
               <Filter className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Filter</span>
             </button>
+
+            {isFilterOpen && (
+              <div className="absolute right-0 top-10 z-10 w-64 rounded-md border border-border bg-white shadow-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-text-main">Categories</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      className="p-1 rounded hover:bg-bg"
+                      title="Clear categories"
+                      onClick={() => setCategoryFilter([])}
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-primary" />
+                    </button>
+                    <button
+                      type="button"
+                      className="p-1 rounded hover:bg-bg"
+                      title="Close"
+                      onClick={() => setIsFilterOpen(false)}
+                    >
+                      <X className="w-3.5 h-3.5 text-text-muted" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-56 overflow-auto space-y-2">
+                  {categories.length === 0 && (
+                    <div className="text-[12px] text-text-muted">No categories</div>
+                  )}
+
+                  {categories.map((category) => {
+                    const checked = categoryFilter.includes(category);
+                    return (
+                      <label key={category} className="flex items-center gap-2 text-xs text-text-main">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            setCategoryFilter((prev) =>
+                              checked ? prev.filter((c) => c !== category) : [...prev, category]
+                            );
+                          }}
+                        />
+                        <span>{category}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 

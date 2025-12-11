@@ -9,6 +9,7 @@ import { useState } from "react";
 import { mockCompanies } from "../data/mockData";
 
 
+
 export const ProtectedLayout = () => {
     const { user, isLoading } = useAuth();
     const [collapsed, setCollapsed] = useState<boolean>(false);
@@ -31,29 +32,49 @@ export const ProtectedLayout = () => {
         return <Navigate to="/login" replace />;
     }
 
-    const company = user.companyId ? getCompany(user.companyId) : mockCompanies[0];
+    const company = user.companyId ? getCompany(user.companyId) : null;
 
     const superAdminNavItems = [
         { label: "Dashboard", icon: LayoutDashboard, to: "/app/super-admin/dashboard" },
         { label: "Companies", icon: Building2, to: "/app/super-admin/companies" },
     ];
 
-    const getCompanyNavItems = () => {
-        if (!company) return [
-            { label: "Dashboard", icon: LayoutDashboard, to: "/app/company/dashboard" },
-        ];
+    const moduleIcons: Record<string, any> = {
+        contacts: Users,
+        vendors: Package,
+        borrowers: Users,
+        customers: Users,
+        quotes: FileText,
+        invoices: DollarSign,
+        loans: Briefcase,
+        policies: ClipboardList,
+        jobs: ClipboardList,
+    };
 
-        const moduleIcons: Record<string, any> = {
-            contacts: Users,
-            vendors: Package,
-            borrowers: Users,
-            customers: Users,
-            quotes: FileText,
-            invoices: DollarSign,
-            loans: Briefcase,
-            policies: ClipboardList,
-            jobs: ClipboardList,
-        };
+
+
+    const getCompanyNavItems = () => {
+        if (!company) {
+            if (user.role === "super_admin") {
+                const allModules = Array.from(
+                    new Set(
+                        mockCompanies.flatMap((c) => c.enabledModules)
+                    )
+                );
+
+                const entityItems = allModules.map((module) => ({
+                    label: module.charAt(0).toUpperCase() + module.slice(1),
+                    icon: moduleIcons[module] || FileText,
+                    to: `/app/company/entities/${module}`,
+                }));
+
+                return entityItems;
+            }
+
+            return [
+                { label: "Dashboard", icon: LayoutDashboard, to: "/app/company/dashboard" },
+            ];
+        }
 
         const entityItems = company.enabledModules.map((module) => ({
             label: module.charAt(0).toUpperCase() + module.slice(1),
@@ -68,7 +89,10 @@ export const ProtectedLayout = () => {
     };
 
     const companyNavItems = getCompanyNavItems();
-    const navItems = user.role === "super_admin" ? [...superAdminNavItems, ...companyNavItems.filter((item) => item.to !== "/app/company/dashboard")] : getCompanyNavItems();
+    const navItems =
+        user.role === "super_admin"
+            ? [...superAdminNavItems, ...companyNavItems.filter((item) => item.to !== "/app/company/dashboard")]
+            : getCompanyNavItems();
 
     return (
         <div className="flex min-h-screen bg-bg">

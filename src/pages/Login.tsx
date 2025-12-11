@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
-import { AlertCircle, Building2, UserCog } from 'lucide-react';
+import { AlertCircle, Building2, User, UserCog, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'super_admin' | 'company_admin' | ''>('super_admin');
+  const [role, setRole] = useState<'super_admin' | 'company_admin' | 'standard_user' | ''>('super_admin');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, user } = useAuth();
@@ -80,12 +80,13 @@ export function Login() {
                 Select Role
               </label>
 
-              <div className="grid grid-cols-2 gap-3">
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setRole('super_admin')}
-                  className={`flex items-center justify-center gap-2 border rounded-lg py-3 transition-all 
-                    ${role === 'super_admin'
+                  className={`flex items-center flex-col justify-center gap-2 border rounded-lg py-3 transition-all
+        ${role === 'super_admin'
                       ? 'bg-primary-soft text-black border-primary shadow-sm'
                       : 'border-border-muted text-text-muted hover:bg-surface'
                     }`}
@@ -97,14 +98,27 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setRole('company_admin')}
-                  className={`flex items-center justify-center gap-2 border rounded-lg transition-all 
-                    ${role === 'company_admin'
+                  className={`flex items-center flex-col justify-center gap-2 border rounded-lg py-3 px-1 transition-all
+        ${role === 'company_admin'
                       ? 'bg-primary-soft text-black border-primary shadow-sm'
                       : 'border-border-muted text-text-muted hover:bg-surface'
                     }`}
                 >
                   <Building2 className="w-4 h-4" />
                   <span className="text-sm font-medium">Company Admin</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRole('standard_user')}
+                  className={`flex items-center flex-col justify-center gap-2 border rounded-lg py-3 transition-all
+        ${role === 'standard_user'
+                      ? 'bg-primary-soft text-black border-primary shadow-sm'
+                      : 'border-border-muted text-text-muted hover:bg-surface'
+                    }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">User</span>
                 </button>
               </div>
             </div>
