@@ -32,11 +32,11 @@ export function SideSheet({ isOpen, onClose, title, children, size = 'md' }: Sid
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/20 z-50 transition-opacity"
+        className="fixed top-0 left-0 right-0 bottom-0 inset-0 bg-black/20 z-50 transition-opacity"
         onClick={onClose}
       />
       <div
-        className={`fixed right-0 top-6 bottom-0 ${widthClasses[size]} bg-surface z-50 shadow-2xl transform transition-transform duration-300 flex flex-col`}
+        className={`fixed right-0 top-0 bottom-0 ${widthClasses[size]} bg-surface z-50 shadow-2xl transform transition-transform duration-300 flex flex-col`}
       >
         <div className="flex items-center justify-between px-6 py-4 bg-bg">
           <h2 className="text-lg font-semibold text-text-main">{title}</h2>
