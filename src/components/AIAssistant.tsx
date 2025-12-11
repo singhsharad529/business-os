@@ -43,13 +43,13 @@ export function AIAssistant() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#E55A1E] transition-all z-50 hover:scale-110"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#E55A1E] transition-all z-40 hover:scale-110"
       >
         {isOpen ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-surface rounded-lg shadow-xl flex flex-col z-50">
+        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-surface rounded-lg shadow-xl flex flex-col z-40">
           <div className="p-4 bg-primary text-white rounded-t-lg">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
@@ -65,11 +65,10 @@ export function AIAssistant() {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] p-2.5 rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-primary text-white'
-                      : 'bg-bg text-text-main'
-                  }`}
+                  className={`max-w-[80%] p-2.5 rounded-lg ${message.role === 'user'
+                    ? 'bg-primary text-white'
+                    : 'bg-bg text-text-main'
+                    }`}
                 >
                   <p className="text-xs whitespace-pre-line">{message.content}</p>
                 </div>

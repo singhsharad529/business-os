@@ -6,6 +6,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { useData } from "../contexts/DataContext";
 import { LayoutDashboard, Building2, Users, Package, FileText, DollarSign, Briefcase, ClipboardList } from "lucide-react";
 import { useState } from "react";
+import { mockCompanies } from "../data/mockData";
+
 
 export const ProtectedLayout = () => {
     const { user, isLoading } = useAuth();
@@ -29,7 +31,7 @@ export const ProtectedLayout = () => {
         return <Navigate to="/login" replace />;
     }
 
-    const company = user.companyId ? getCompany(user.companyId) : null;
+    const company = user.companyId ? getCompany(user.companyId) : mockCompanies[0];
 
     const superAdminNavItems = [
         { label: "Dashboard", icon: LayoutDashboard, to: "/app/super-admin/dashboard" },
@@ -65,7 +67,8 @@ export const ProtectedLayout = () => {
         ];
     };
 
-    const navItems = user.role === "super_admin" ? superAdminNavItems : getCompanyNavItems();
+    const companyNavItems = getCompanyNavItems();
+    const navItems = user.role === "super_admin" ? [...superAdminNavItems, ...companyNavItems.filter((item) => item.to !== "/app/company/dashboard")] : getCompanyNavItems();
 
     return (
         <div className="flex min-h-screen bg-bg">
@@ -85,7 +88,7 @@ export const ProtectedLayout = () => {
                 </main>
             </div>
 
-            {user.role !== "super_admin" && <AIAssistant />}
+            {(user.role == "super_admin" || user.role == "company_admin") && <AIAssistant />}
         </div>
     );
 };
