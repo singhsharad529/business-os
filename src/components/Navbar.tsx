@@ -1,16 +1,22 @@
-import { LogOut, User, Settings } from 'lucide-react';
+import { LogOut, PanelLeft, User, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 
-export function Navbar() {
+export function Navbar({ setCollapsed }: { setCollapsed: React.Dispatch<React.SetStateAction<boolean>> }) {
   const { user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
 
   return (
-    <nav className="bg-surface h-12 flex items-center px-4 sticky top-0 z-40">
-      <div className="flex-1" />
+    <nav className="bg-surface h-14 flex items-center px-4 sticky top-0 z-40">
 
-      <div className="flex items-center gap-3">
+
+      <div className="flex justify-between w-full items-center gap-3">
+        <button
+          onClick={() => setCollapsed((prev) => !prev)}
+          className="p-2 rounded-md hover:bg-bg transition-colors"
+        >
+          <PanelLeft className="w-5 h-5" />
+        </button>
         <div className="relative">
           <button
             onClick={() => setShowDropdown(!showDropdown)}
@@ -33,7 +39,7 @@ export function Navbar() {
                 className="fixed inset-0 z-10"
                 onClick={() => setShowDropdown(false)}
               />
-              <div className="absolute right-0 mt-1 w-48 bg-surface rounded-lg shadow-xl py-1 z-20">
+              <div className="absolute right-0 w-48 bg-surface rounded-lg shadow-xl py-1 z-20">
                 <div className="px-3 py-2 bg-bg">
                   <div className="text-xs font-medium text-text-main">{user?.name}</div>
                   <div className="text-[10px] text-text-muted">{user?.email}</div>

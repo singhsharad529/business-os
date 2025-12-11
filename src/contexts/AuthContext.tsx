@@ -4,7 +4,7 @@ import { mockUsers } from '../data/mockData';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<User | null>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -23,7 +23,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<User | null> => {
+
     const foundUser = mockUsers.find(
       (u) => u.email === email && u.password === password
     );
@@ -32,10 +33,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userWithoutPassword = { ...foundUser, password: '' };
       setUser(userWithoutPassword);
       localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
-      return true;
+      return userWithoutPassword;
     }
 
-    return false;
+    return null;
   };
 
   const logout = () => {
