@@ -3,11 +3,23 @@
 @tailwind utilities;
 
 @layer base {
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
   body {
     @apply bg-bg text-text-main font-sans antialiased text-sm;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply text-text-main font-semibold;
   }
 
@@ -41,11 +53,14 @@
     @apply w-full px-2.5 py-1.5 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:ring-1 hover:ring-primary bg-gray-50 border border-transparent text-text-main placeholder:text-text-muted transition-all;
   }
 
-  select, textarea {
+  select,
+  textarea {
     @apply w-full px-2.5 py-1.5 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:ring-1 hover:ring-primary bg-gray-50 border border-transparent text-text-main placeholder:text-text-muted transition-all;
   }
 
-  input[type="date"], input[type="datetime-local"], input[type="time"] {
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"] {
     @apply w-full px-2.5 py-1.5 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-primary hover:ring-1 hover:ring-primary bg-gray-50 border border-transparent text-text-main transition-all;
   }
 
