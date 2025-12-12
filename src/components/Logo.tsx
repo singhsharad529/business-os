@@ -20,7 +20,7 @@ export function Logo({ size = 'md', showText = true }: LogoProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="bg-primary rounded-lg p-1.5 flex items-center justify-center">
+      <div className="bg-gradient-to-r from-primary to-accent rounded-xl p-1.5 flex items-center justify-center shadow-glow">
         <Boxes className={`${sizes[size]} text-white`} />
       </div>
       {showText && (

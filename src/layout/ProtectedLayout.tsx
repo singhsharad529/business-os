@@ -103,7 +103,7 @@ export const ProtectedLayout = () => {
                 className={`
                     flex-1
           transition-all duration-300
-          ${collapsed ? "pl-0" : "pl-56"}
+          ${collapsed ? "pl-0" : "pl-60"}
         `}
             >
                 <Navbar setCollapsed={setCollapsed} />

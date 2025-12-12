@@ -62,10 +62,10 @@ export function CompanyDashboard() {
           {moduleCounts.map(({ module, templateName, count, icon: Icon }) => (
             <div
               key={module}
-              className="card p-6 hover:shadow-md transition-shadow cursor-pointer"
+              className="card p-6 hover:shadow-glow hover:-translate-y-0.5 transition-all cursor-pointer"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 bg-primary-soft rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary-soft rounded-lg flex items-center justify-center ring-1 ring-primary/10">
                   <Icon className="text-primary" size={24} />
                 </div>
                 <button

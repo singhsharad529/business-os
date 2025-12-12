@@ -1,47 +1,64 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
       },
       colors: {
         primary: {
-          DEFAULT: '#FF6321',
-          soft: '#FFE1D0',
+          DEFAULT: "#F29AAE", // soft coral/pink
+          soft: "#FCE4EA",
+          strong: "#E87D99",
+        },
+        accent: {
+          DEFAULT: "#7132CA", // deep violet
+          soft: "#EFE4FB",
+          strong: "#301CA0",
+        },
+        highlight: {
+          DEFAULT: "#C47BE4", // lavender highlight
+          soft: "#F4E7FB",
         },
         steel: {
-          DEFAULT: '#1A1B25',
-          light: '#2A2B35',
+          DEFAULT: "#1A1B25",
+          light: "#2A2B35",
         },
-        bg: '#F9FAFB',
-        surface: '#FFFFFF',
+        bg: "#F6F7FB",
+        surface: "#FFFFFF",
         border: {
-          subtle: '#E5E7EB',
+          DEFAULT: "#D9E1EC",
+          subtle: "#E6EAF2",
+          muted: "#EEF2F7",
         },
         text: {
-          main: '#1A1B25',
-          muted: '#4B5563',
+          main: "#0F172A",
+          muted: "#475467",
         },
         success: {
-          DEFAULT: '#16A34A',
-          soft: '#DCFCE7',
+          DEFAULT: "#16A34A",
+          soft: "#E8F7EE",
         },
         danger: {
-          DEFAULT: '#DC2626',
-          soft: '#FEE2E2',
+          DEFAULT: "#EF4444",
+          soft: "#FEEBEB",
         },
         warning: {
-          DEFAULT: '#F59E0B',
-          soft: '#FEF3C7',
+          DEFAULT: "#F59E0B",
+          soft: "#FFF4E5",
         },
       },
       borderRadius: {
-        md: '8px',
+        md: "10px",
+        lg: "14px",
+        xl: "18px",
       },
       boxShadow: {
-        sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        sm: "0 1px 2px 0 rgba(15, 23, 42, 0.06)",
+        soft: "0 4px 18px rgba(15, 23, 42, 0.08)",
+        card: "0 10px 40px rgba(15, 23, 42, 0.08)",
+        glow: "0 10px 30px rgba(37, 99, 235, 0.18)",
       },
     },
   },

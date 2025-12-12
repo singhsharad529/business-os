@@ -41,7 +41,7 @@ export function Login() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 relative"
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
         backgroundImage: 'url(/images/screenshot_2025-12-10_at_10.39.06_am.png)',
         backgroundSize: 'cover',
@@ -49,6 +49,7 @@ export function Login() {
         backgroundRepeat: 'no-repeat'
       }}
     >
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-white/80 to-bg/90 backdrop-blur-[2px]" />
       <div className="w-full max-w-md relative z-10">
 
         {/* Header Section */}

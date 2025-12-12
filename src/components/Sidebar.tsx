@@ -15,8 +15,8 @@ interface SidebarProps {
 export function Sidebar({ navItems, collapsed }: SidebarProps) {
   return (
     <aside
-      className={`bg-bg min-h-screen fixed top-0 left-0 flex flex-col transition-all duration-300 border-r border-border 
-      overflow-hidden ${collapsed ? "w-0" : "w-56"}`}
+      className={`bg-white/80 backdrop-blur-xl min-h-screen fixed top-0 left-0 flex flex-col transition-all duration-300 border-r border-border-subtle shadow-soft
+      overflow-hidden ${collapsed ? "w-0" : "w-60"}`}
     >
       {!collapsed && (
         <div className="px-4 py-3">
@@ -25,7 +25,7 @@ export function Sidebar({ navItems, collapsed }: SidebarProps) {
       )}
 
       <nav className="flex-1 p-3">
-        <ul className="space-y-1.5">
+        <ul className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -33,14 +33,14 @@ export function Sidebar({ navItems, collapsed }: SidebarProps) {
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
-                    `flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-all 
+                    `group flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent
                       ${isActive
-                      ? "bg-surface text-primary shadow-sm"
-                      : "text-text-muted hover:bg-surface hover:text-text-main hover:shadow-sm"
+                      ? "bg-gradient-to-r from-primary/15 to-accent/10 text-primary shadow-glow border-primary/30"
+                      : "text-text-muted hover:text-text-main hover:bg-white hover:border-border-subtle hover:shadow-soft"
                     }`
                   }
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 transition-colors group-hover:text-primary" />
 
                   {/* Label hides gracefully when collapsed */}
                   <span
