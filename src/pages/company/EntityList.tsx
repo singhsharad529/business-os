@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
-import { Search, Plus, Filter, Edit, Trash2, RotateCcw, X } from 'lucide-react';
+import { Search, Plus, Filter, Edit, Trash2, RotateCcw, X, Database, Tag, Clock, Activity } from 'lucide-react';
 import { SideSheet } from '../../components/SideSheet';
 import { EntityForm } from '../../components/EntityForm';
 import { EntityDetail } from './EntityDetail';
 import type { Entity } from '../../types';
-import { mockCompanies } from '../../data/mockData';
 
 interface EntityListProps {
   templateName: string;
@@ -43,6 +42,27 @@ export function EntityList({ templateName }: EntityListProps) {
   const categories = Array.from(new Set(
     entities.map((e) => (e.data?.category || '').toString()).filter((c) => c.trim().length > 0))).sort();
 
+  // Calculate statistics for meta cards
+  const totalItems = entities.length;
+  const filteredItems = filteredEntities.length;
+  const categoriesCount = categories.length;
+
+  // Calculate most common status
+  const statusCounts = entities.reduce((acc, entity) => {
+    acc[entity.status] = (acc[entity.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const mostCommonStatus = Object.entries(statusCounts).sort((a, b) => b[1] - a[1])[0];
+  const topStatusCount = mostCommonStatus ? mostCommonStatus[1] : 0;
+  const topStatusLabel = mostCommonStatus ? mostCommonStatus[0] : 'N/A';
+
+  // Calculate recently added (last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentlyAdded = entities.filter(
+    (entity) => new Date(entity.createdAt) >= sevenDaysAgo
+  ).length;
+
   const statusColors: Record<string, string> = {
     draft: 'badge',
     sent: 'badge-warning',
@@ -77,10 +97,8 @@ export function EntityList({ templateName }: EntityListProps) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-semibold text-text-main">{templateName}</h1>
-          <p className="text-xs text-text-muted mt-0.5">
-            {filteredEntities.length} {filteredEntities.length === 1 ? 'item' : 'items'}
-          </p>
+          <h1 className="text-3xl font-bold text-text-main">{templateName}</h1>
+          <p className="text-text-muted mt-1">Manage and track all your {templateName.toLowerCase()}</p>
         </div>
         <button
           onClick={() => setShowCreateSheet(true)}
@@ -89,6 +107,66 @@ export function EntityList({ templateName }: EntityListProps) {
           <Plus className="w-3.5 h-3.5" />
           Add {templateName.slice(0, -1)}
         </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        {/* Total Items / Filtered Items Card */}
+        <div className="card p-6 hover:shadow-glow hover:-translate-y-0.5 transition-all">
+          <div className="flex items-start justify-between mb-4">
+            <div className="bg-primary-soft text-primary w-12 h-12 rounded-lg flex items-center justify-center ring-1 ring-primary/10">
+              <Database size={24} />
+            </div>
+          </div>
+          <div className="text-3xl font-bold text-text-main mb-1">{filteredItems}</div>
+          <div className="text-sm text-text-muted">
+            {filteredItems === totalItems ? (
+              `Total ${templateName.toLowerCase()}`
+            ) : (
+              <>
+                {filteredItems} of {totalItems} {templateName.toLowerCase()}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Status Breakdown Card */}
+        <div className="card p-6 hover:shadow-glow hover:-translate-y-0.5 transition-all">
+          <div className="flex items-start justify-between mb-4">
+            <div className="bg-success-soft text-success w-12 h-12 rounded-lg flex items-center justify-center ring-1 ring-primary/10">
+              <Activity size={24} />
+            </div>
+          </div>
+          <div className="text-3xl font-bold text-text-main mb-1">{topStatusCount}</div>
+          <div className="text-sm text-text-muted capitalize">
+            {topStatusLabel.replace('_', ' ')} {templateName.toLowerCase()}
+          </div>
+        </div>
+
+        {/* Categories Card */}
+        <div className="card p-6 hover:shadow-glow hover:-translate-y-0.5 transition-all">
+          <div className="flex items-start justify-between mb-4">
+            <div className="bg-warning-soft text-warning w-12 h-12 rounded-lg flex items-center justify-center ring-1 ring-primary/10">
+              <Tag size={24} />
+            </div>
+          </div>
+          <div className="text-3xl font-bold text-text-main mb-1">{categoriesCount}</div>
+          <div className="text-sm text-text-muted">
+            {categoriesCount === 1 ? 'Category' : 'Categories'}
+          </div>
+        </div>
+
+        {/* Recently Added Card */}
+        <div className="card p-6 hover:shadow-glow hover:-translate-y-0.5 transition-all">
+          <div className="flex items-start justify-between mb-4">
+            <div className="bg-primary-soft text-primary w-12 h-12 rounded-lg flex items-center justify-center ring-1 ring-primary/10">
+              <Clock size={24} />
+            </div>
+          </div>
+          <div className="text-3xl font-bold text-text-main mb-1">{recentlyAdded}</div>
+          <div className="text-sm text-text-muted">
+            Added in last 7 days
+          </div>
+        </div>
       </div>
 
       <div className="card p-4">
