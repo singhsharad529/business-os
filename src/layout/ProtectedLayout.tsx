@@ -175,7 +175,7 @@ export const ProtectedLayout = () => {
                     activeSection={activeSection}
                     onSectionChange={handleSectionChange}
                 />
-                <main className="p-5">
+                <main className="p-6 pt-4 overflow-auto">
                     <Outlet />
                 </main>
             </div>
