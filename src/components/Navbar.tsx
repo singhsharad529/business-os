@@ -1,22 +1,61 @@
-import { LogOut, PanelLeft, User, Settings } from 'lucide-react';
+import { LogOut, PanelLeft, User, Settings, Bot, Grid3x3, Building2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 
-export function Navbar({ setCollapsed }: { setCollapsed: React.Dispatch<React.SetStateAction<boolean>> }) {
+export type MainNavSection = 'voicebot' | 'apps' | 'crm';
+
+interface NavbarProps {
+  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  activeSection: MainNavSection;
+  onSectionChange: (section: MainNavSection) => void;
+}
+
+export function Navbar({ setCollapsed, activeSection, onSectionChange }: NavbarProps) {
   const { user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
 
+  const mainNavItems: { id: MainNavSection; label: string; icon: typeof Bot }[] = [
+    { id: 'voicebot', label: 'Voicebot', icon: Bot },
+    { id: 'apps', label: 'Apps', icon: Grid3x3 },
+    // { id: 'crm', label: 'CRM', icon: Building2 },
+  ];
+
   return (
     <nav className="bg-white/80 backdrop-blur-xl border-b border-border-subtle h-16 flex items-center px-5 sticky top-0 z-40 shadow-soft">
-
-
       <div className="flex justify-between w-full items-center gap-3">
-        <button
-          onClick={() => setCollapsed((prev) => !prev)}
-          className="p-2.5 rounded-lg hover:bg-primary-soft/60 transition-all shadow-sm hover:-translate-y-0.5"
-        >
-          <PanelLeft className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setCollapsed((prev) => !prev)}
+            className="p-2.5 rounded-lg hover:bg-primary-soft/60 transition-all shadow-sm hover:-translate-y-0.5"
+          >
+            <PanelLeft className="w-5 h-5" />
+          </button>
+
+          {/* Main Navigation Tabs */}
+          <div className="flex items-center gap-1 bg-bg/50 rounded-lg p-1">
+            {mainNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onSectionChange(item.id)}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all
+                    ${isActive
+                      ? 'bg-white text-primary shadow-sm border border-primary/20'
+                      : 'text-text-muted hover:text-text-main hover:bg-white/50'
+                    }
+                  `}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="relative">
           <button
             onClick={() => setShowDropdown(!showDropdown)}

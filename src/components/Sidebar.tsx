@@ -33,7 +33,7 @@ export function Sidebar({ navItems, collapsed }: SidebarProps) {
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
-                    `group flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent
+                    `group flex items-center gap-3 px-3.5 py-2.5 my-1.5 rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent
                       ${isActive
                       ? "bg-gradient-to-r from-primary/15 to-accent/10 text-primary shadow-glow border-primary/30"
                       : "text-text-muted hover:text-text-main hover:bg-white hover:border-border-subtle hover:shadow-soft"

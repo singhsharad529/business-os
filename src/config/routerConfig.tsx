@@ -2,8 +2,6 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Login } from "../pages/Login";
 
 import { ProtectedLayout } from "../layout/ProtectedLayout";
-// import { SuperAdminRoute } from "./SuperAdminRoute";
-// import { CompanyRoute } from "./CompanyRoute";
 
 import { SuperAdminDashboard } from "../pages/super-admin/SuperAdminDashboard";
 import { Companies } from "../pages/super-admin/Companies";
@@ -12,6 +10,15 @@ import { CompanyDashboard } from "../pages/company/CompanyDashboard";
 import { EntityPage } from "../pages/company/EntityPage";
 import { SuperAdminRoute } from "../layout/SuperAdminRoute";
 import { CompanyRoute } from "../layout/CompanyRoute";
+
+import { VoicebotDashboard } from "../pages/voicebot/VoicebotDashboard";
+import { VoicebotCRM } from "../pages/voicebot/VoicebotCRM";
+import { VoicebotIntegrations } from "../pages/voicebot/VoicebotIntegrations";
+import { VoicebotSettings } from "../pages/voicebot/VoicebotSettings";
+
+import { CRMDashboard } from "../pages/crm/CRMDashboard";
+import { CRMContacts } from "../pages/crm/CRMContacts";
+import { CRMDeals } from "../pages/crm/CRMDeals";
 
 export const router = createBrowserRouter([
     {
@@ -30,7 +37,45 @@ export const router = createBrowserRouter([
         element: <ProtectedLayout />,
 
         children: [
-            // SUPER ADMIN ROUTES
+            // Default route → voicebot dashboard
+            {
+                index: true,
+                element: <Navigate to="/app/voicebot/dashboard" replace />,
+            },
+
+            // VOICEBOT ROUTES
+            {
+                path: "voicebot/dashboard",
+                element: <VoicebotDashboard />,
+            },
+            {
+                path: "voicebot/crm",
+                element: <VoicebotCRM />,
+            },
+            {
+                path: "voicebot/integrations",
+                element: <VoicebotIntegrations />,
+            },
+            {
+                path: "voicebot/settings",
+                element: <VoicebotSettings />,
+            },
+
+            // CRM ROUTES
+            {
+                path: "crm/dashboard",
+                element: <CRMDashboard />,
+            },
+            {
+                path: "crm/contacts",
+                element: <CRMContacts />,
+            },
+            {
+                path: "crm/deals",
+                element: <CRMDeals />,
+            },
+
+            // SUPER ADMIN ROUTES (under Apps section)
             {
                 element: <SuperAdminRoute />,
                 children: [
@@ -39,13 +84,20 @@ export const router = createBrowserRouter([
                 ],
             },
 
-            // COMPANY ROUTES
+            // COMPANY ROUTES (under Apps section)
             {
                 element: <CompanyRoute />,
                 children: [
                     { path: "company/dashboard", element: <CompanyDashboard /> },
+                    // Keep old route for backward compatibility, but also add new route
                     { path: "company/entities/:entityType", element: <EntityPage /> },
                 ],
+            },
+
+            // APPS ROUTES (new route structure for entities)
+            {
+                path: "apps/entities/:entityType",
+                element: <EntityPage />,
             },
         ],
     },

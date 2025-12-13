@@ -29,12 +29,8 @@ export function Login() {
       return;
     }
 
-    // Navigate immediately using the returned user
-    if (loggedInUser.role === 'super_admin') {
-      navigate('/app/super-admin/dashboard');
-    } else {
-      navigate('/app/company/dashboard');
-    }
+    // Navigate to voicebot dashboard by default (new default behavior)
+    navigate('/app/voicebot/dashboard');
 
 
   };
