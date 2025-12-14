@@ -9,6 +9,7 @@ interface DataContextType {
   alerts: Alert[];
   getCompany: (id: string) => Company | undefined;
   getEntitiesByCompany: (companyId: string, templateName?: string) => Entity[];
+  getAllEntitiesByName: (templateName?: string) => Entity[];
   getEntity: (id: string) => Entity | undefined;
   getActivitiesForEntity: (entityId: string) => Activity[];
   getAlertsByCompany: (companyId: string) => Alert[];
@@ -33,6 +34,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const getEntitiesByCompany = (companyId: string, templateName?: string) => {
     return entities.filter(
       (e) => e.companyId === companyId && (!templateName || e.templateName === templateName)
+    );
+  };
+
+  const getAllEntitiesByName = (templateName?: string) => {
+    return entities.filter(
+      (e) => !templateName || e.templateName === templateName
     );
   };
 
@@ -106,6 +113,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         alerts,
         getCompany,
         getEntitiesByCompany,
+        getAllEntitiesByName,
         getEntity,
         getActivitiesForEntity,
         getAlertsByCompany,

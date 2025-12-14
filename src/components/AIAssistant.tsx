@@ -43,14 +43,14 @@ export function AIAssistant() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#E55A1E] transition-all z-40 hover:scale-110"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-primary to-accent text-white rounded-full shadow-glow flex items-center justify-center transition-all z-40 hover:scale-110 hover:shadow-card"
       >
         {isOpen ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-surface rounded-lg shadow-xl flex flex-col z-40">
-          <div className="p-4 bg-primary text-white rounded-t-lg">
+        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white/95 backdrop-blur-lg rounded-xl shadow-card border border-border-subtle flex flex-col z-40">
+          <div className="p-4 bg-gradient-to-r from-primary to-accent text-white rounded-t-xl shadow-soft">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               <h3 className="text-sm font-semibold">AI Assistant</h3>
@@ -58,7 +58,7 @@ export function AIAssistant() {
             <p className="text-xs opacity-90 mt-0.5">Ask me anything about your data</p>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-white via-white to-bg/60">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -66,8 +66,8 @@ export function AIAssistant() {
               >
                 <div
                   className={`max-w-[80%] p-2.5 rounded-lg ${message.role === 'user'
-                    ? 'bg-primary text-white'
-                    : 'bg-bg text-text-main'
+                    ? 'bg-primary text-white shadow-glow'
+                    : 'bg-white text-text-main shadow-soft border border-border-subtle'
                     }`}
                 >
                   <p className="text-xs whitespace-pre-line">{message.content}</p>
@@ -76,14 +76,14 @@ export function AIAssistant() {
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="p-3 bg-bg">
+          <form onSubmit={handleSubmit} className="p-3 bg-bg/90 rounded-b-xl border-t border-border-subtle">
             <div className="flex gap-2">
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Ask me anything..."
-                className="input flex-1"
+                className="input flex-1 bg-white"
               />
               <button
                 type="submit"

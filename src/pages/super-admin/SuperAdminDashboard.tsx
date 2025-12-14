@@ -52,9 +52,9 @@ export function SuperAdminDashboard() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="card p-6 hover:shadow-md transition-shadow">
+            <div key={stat.label} className="card p-6 hover:shadow-glow hover:-translate-y-0.5 transition-all">
               <div className="flex items-start justify-between mb-4">
-                <div className={`${stat.bgColor} ${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}>
+                <div className={`${stat.bgColor} ${stat.color} w-12 h-12 rounded-lg flex items-center justify-center ring-1 ring-primary/10`}>
                   <Icon size={24} />
                 </div>
               </div>

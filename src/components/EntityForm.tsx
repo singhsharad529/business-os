@@ -70,7 +70,7 @@ export function EntityForm({ templateName, entity, onSave, onCancel }: EntityFor
         </label>
         <select
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e: any) => setStatus(e.target.value)}
           className="input"
           required
         >
@@ -148,6 +148,7 @@ function getDefaultFields(templateName: string): Record<string, any> {
     Loans: { principal: 0, interestRate: 5.0, term: 60, startDate: '', maturityDate: '', monthlyPayment: 0 },
     Customers: { email: '', phone: '', address: '', propertyType: 'Single Family Home', serviceHistory: 0 },
     Jobs: { scheduledDate: '', assignedTo: '', estimatedDuration: '' },
+    Contacts: { email: '', phone: '', title: '', department: '', category: '' }, // add this
   };
   return defaults[templateName] || {};
 }
@@ -203,6 +204,13 @@ function getFieldsForTemplate(templateName: string) {
       { name: 'assignedTo', label: 'Assigned To', type: 'text', required: false, placeholder: 'Crew A' },
       { name: 'estimatedDuration', label: 'Estimated Duration', type: 'text', required: false, placeholder: '2 weeks' },
     ],
+    Contacts: [ // add this
+      { name: 'email', label: 'Email', type: 'email', required: true, placeholder: 'contact@email.com' },
+      { name: 'phone', label: 'Phone', type: 'tel', required: true, placeholder: '+1-555-0000' },
+      { name: 'title', label: 'Title', type: 'text', required: false, placeholder: 'Procurement Lead' },
+      { name: 'department', label: 'Department', type: 'text', required: false, placeholder: 'Sourcing' },
+      { name: 'category', label: 'Category', type: 'text', required: false, placeholder: 'Procurement' },
+    ],
   };
   return fields[templateName] || [];
 }
@@ -216,6 +224,7 @@ function getStatusOptions(templateName: string) {
     Loans: ['pending', 'active', 'closed', 'delinquent'],
     Customers: ['active', 'inactive'],
     Jobs: ['draft', 'scheduled', 'in_progress', 'completed', 'cancelled'],
+    Contacts: ['active', 'inactive'], // add this
   };
   return statuses[templateName] || ['draft', 'active', 'closed'];
 }

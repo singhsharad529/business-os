@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
-import { AlertCircle, Building2, UserCog } from 'lucide-react';
+import { AlertCircle, Building2, User, UserCog, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'super_admin' | 'company_admin' | ''>('super_admin');
+  const [role, setRole] = useState<'super_admin' | 'company_admin' | 'standard_user' | ''>('super_admin');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, user } = useAuth();
@@ -29,19 +29,15 @@ export function Login() {
       return;
     }
 
-    // Navigate immediately using the returned user
-    if (loggedInUser.role === 'super_admin') {
-      navigate('/app/super-admin/dashboard');
-    } else {
-      navigate('/app/company/dashboard');
-    }
+    // Navigate to voicebot dashboard by default (new default behavior)
+    navigate('/app/voicebot/dashboard');
 
 
   };
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 relative"
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
         backgroundImage: 'url(/images/screenshot_2025-12-10_at_10.39.06_am.png)',
         backgroundSize: 'cover',
@@ -49,6 +45,7 @@ export function Login() {
         backgroundRepeat: 'no-repeat'
       }}
     >
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-white/80 to-bg/90 backdrop-blur-[2px]" />
       <div className="w-full max-w-md relative z-10">
 
         {/* Header Section */}
@@ -80,12 +77,13 @@ export function Login() {
                 Select Role
               </label>
 
-              <div className="grid grid-cols-2 gap-3">
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setRole('super_admin')}
-                  className={`flex items-center justify-center gap-2 border rounded-lg py-3 transition-all 
-                    ${role === 'super_admin'
+                  className={`flex items-center flex-col justify-center gap-2 border rounded-lg py-3 transition-all
+        ${role === 'super_admin'
                       ? 'bg-primary-soft text-black border-primary shadow-sm'
                       : 'border-border-muted text-text-muted hover:bg-surface'
                     }`}
@@ -97,14 +95,27 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setRole('company_admin')}
-                  className={`flex items-center justify-center gap-2 border rounded-lg transition-all 
-                    ${role === 'company_admin'
+                  className={`flex items-center flex-col justify-center gap-2 border rounded-lg py-3 px-1 transition-all
+        ${role === 'company_admin'
                       ? 'bg-primary-soft text-black border-primary shadow-sm'
                       : 'border-border-muted text-text-muted hover:bg-surface'
                     }`}
                 >
                   <Building2 className="w-4 h-4" />
                   <span className="text-sm font-medium">Company Admin</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRole('standard_user')}
+                  className={`flex items-center flex-col justify-center gap-2 border rounded-lg py-3 transition-all
+        ${role === 'standard_user'
+                      ? 'bg-primary-soft text-black border-primary shadow-sm'
+                      : 'border-border-muted text-text-muted hover:bg-surface'
+                    }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">User</span>
                 </button>
               </div>
             </div>
