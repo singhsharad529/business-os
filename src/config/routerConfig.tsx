@@ -99,6 +99,12 @@ export const router = createBrowserRouter([
                 path: "apps/entities/:entityType",
                 element: <EntityPage />,
             },
+
+            // BILLING ROUTE
+            {
+                path: "billing",
+                element: <CompanyDashboard />, // Placeholder - replace with actual billing component
+            },
         ],
     },
 

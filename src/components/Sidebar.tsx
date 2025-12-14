@@ -1,60 +1,161 @@
-import { NavLink } from "react-router-dom";
-import { LucideIcon } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { LogOut, CreditCard, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Logo } from "./Logo";
-
-interface NavItem {
-  label: string;
-  icon: LucideIcon;
-  to: string; // required for routing
-}
+import { useAuth } from "../contexts/AuthContext";
+import { navigationConfig, iconMap, filterNavigationByRole, NavigationItem } from "../config/navigationConfig";
+import { useSidebar } from "../hooks/useSidebar";
 
 interface SidebarProps {
-  navItems: NavItem[];
-  collapsed: boolean
+  selectedMenuId: string | null;
+  onMenuSelect: (menuId: string) => void;
+  onCollapseChange?: (collapsed: boolean) => void;
 }
-export function Sidebar({ navItems, collapsed }: SidebarProps) {
+
+export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange }: SidebarProps) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { isCollapsed, setIsCollapsed } = useSidebar();
+
+  const handleToggle = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    onCollapseChange?.(newState);
+  };
+
+  // Get navigation items based on user role
+  const userRole = user?.role || "standard_user";
+  const isSuperAdmin = userRole === "super_admin";
+
+  const mainNavItems = isSuperAdmin
+    ? navigationConfig.navigation.super_admin || []
+    : filterNavigationByRole(navigationConfig.navigation.main, userRole);
+
+  const handleMenuClick = (menuItem: NavigationItem) => {
+    onMenuSelect(menuItem.id);
+
+    // Navigate to first child route if no direct route, or to direct route
+    if (menuItem.route) {
+      navigate(menuItem.route);
+    } else if (menuItem.children && menuItem.children.length > 0) {
+      // Find first child with a route
+      const findFirstRoute = (children: any[]): string | null => {
+        for (const child of children) {
+          if (child.route) return child.route;
+          if (child.children) {
+            const route = findFirstRoute(child.children);
+            if (route) return route;
+          }
+        }
+        return null;
+      };
+      const firstRoute = findFirstRoute(menuItem.children);
+      if (firstRoute) {
+        navigate(firstRoute);
+      }
+    }
+  };
+
+  const isMenuActive = (menuId: string) => selectedMenuId === menuId;
+
   return (
-    <aside
-      className={`bg-white/80 backdrop-blur-xl min-h-screen fixed top-0 left-0 flex flex-col transition-all duration-300 border-r border-border-subtle shadow-soft
-      overflow-hidden ${collapsed ? "w-0" : "w-60"}`}
-    >
-      {!collapsed && (
-        <div className="px-4 py-3">
-          <Logo size="sm" />
-        </div>
-      )}
+    <aside className={`fixed left-0 top-0 h-screen z-30 flex flex-col justify-between transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+      {/* Top Section: Logo and Collapse Toggle */}
+      <div className="px-4 py-6 flex items-center justify-between">
+        {!isCollapsed && <Logo size="sm" />}
+        <button
+          onClick={handleToggle}
+          className="p-2 rounded-lg hover:bg-white/50 transition-colors"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen className="w-5 h-5 text-text-muted" />
+          ) : (
+            <PanelLeftClose className="w-5 h-5 text-text-muted" />
+          )}
+        </button>
+      </div>
 
-      <nav className="flex-1 p-3">
+      {/* Middle Section: Main Navigation - Vertically Centered */}
+      <nav className={`flex-1 flex flex-col justify-center overflow-y-auto ${isCollapsed ? 'px-2 py-4' : 'px-3 py-4'}`}>
         <ul className="space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.label}>
-                <NavLink
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `group flex items-center gap-3 px-3.5 py-2.5 my-1.5 rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent
-                      ${isActive
-                      ? "bg-gradient-to-r from-primary/15 to-accent/10 text-primary shadow-glow border-primary/30"
-                      : "text-text-muted hover:text-text-main hover:bg-white hover:border-border-subtle hover:shadow-soft"
-                    }`
-                  }
-                >
-                  <Icon className="w-4 h-4 transition-colors group-hover:text-primary" />
+          {mainNavItems.map((item) => {
+            const Icon = iconMap[item.icon] || iconMap.home;
+            const isActive = isMenuActive(item.id);
 
-                  {/* Label hides gracefully when collapsed */}
-                  <span
-                    className={`whitespace-nowrap transition-all duration-200 
-                      ${collapsed ? "opacity-0 w-0" : "opacity-100 w-auto"}`}
-                  >
-                    {item.label}
-                  </span>
-                </NavLink>
+            return (
+              <li key={item.id}>
+                <button
+                  onClick={() => handleMenuClick(item)}
+                  className={`
+                    w-full group flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-200 
+                    ${isCollapsed
+                      ? 'px-2 py-2.5'
+                      : 'gap-3 px-3.5 py-2.5'
+                    }
+                    ${isActive
+                      ? "bg-primary text-white shadow-glow border-primary"
+                      : "text-text-muted hover:text-text-main hover:bg-white hover:border-border-subtle hover:shadow-soft"
+                    }
+                  `}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  <Icon className={`w-4 h-4 transition-colors flex-shrink-0 ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />
+                  {!isCollapsed && <span className="flex-1 text-left">{item.label}</span>}
+                </button>
               </li>
             );
           })}
         </ul>
       </nav>
+
+      {/* Bottom Section: Billing, Logout, User Profile */}
+      <div className={` space-y-1 ${isCollapsed ? 'px-2 py-4 items-center' : 'px-3 py-4'}`}>
+        <NavLink
+          to="/app/billing"
+          className={({ isActive }) =>
+            `group flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent
+            ${isCollapsed
+              ? 'px-2 py-2.5'
+              : 'gap-3 px-3.5 py-2.5'
+            }
+            ${isActive
+              ? "bg-primary text-white shadow-glow border-primary"
+              : "text-text-muted hover:text-text-main hover:bg-white hover:border-border-subtle hover:shadow-soft"
+            }`
+          }
+          title={isCollapsed ? "Billing / Credits" : undefined}
+        >
+          <CreditCard className={`w-4 h-4 transition-colors flex-shrink-0 ${isCollapsed ? '' : 'group-hover:text-primary'}`} />
+          {!isCollapsed && <span>Billing / Credits</span>}
+        </NavLink>
+
+        <div className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3.5 py-2.5'}`}>
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white/50 flex-shrink-0">
+            {user?.avatar || user?.name?.charAt(0).toUpperCase()}
+          </div>
+          {!isCollapsed && (
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-text-main truncate">{user?.name}</div>
+              <div className="text-xs text-text-muted truncate capitalize">
+                {user?.role.replace('_', ' ')}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={logout}
+          className={`w-full group flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent text-text-muted hover:text-danger hover:bg-danger-soft/30 hover:border-danger/30
+          ${isCollapsed
+              ? 'px-2 py-2.5'
+              : 'gap-3 px-3.5 py-2.5'
+            }`}
+          title={isCollapsed ? "Logout" : undefined}
+        >
+          <LogOut className="w-4 h-4 transition-colors flex-shrink-0" />
+          {!isCollapsed && <span>Logout</span>}
+        </button>
+      </div>
     </aside>
   );
 }

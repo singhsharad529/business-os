@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
@@ -7,15 +8,51 @@ export default {
         sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
       },
       colors: {
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
         primary: {
           DEFAULT: "#F29AAE", // soft coral/pink
           soft: "#FCE4EA",
           strong: "#E87D99",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
           DEFAULT: "#7132CA", // deep violet
           soft: "#EFE4FB",
           strong: "#301CA0",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        border: {
+          DEFAULT: "#D9E1EC",
+          subtle: "#E6EAF2",
+          muted: "#EEF2F7",
+        },
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        chart: {
+          "1": "hsl(var(--chart-1))",
+          "2": "hsl(var(--chart-2))",
+          "3": "hsl(var(--chart-3))",
         },
         highlight: {
           DEFAULT: "#C47BE4", // lavender highlight
@@ -27,11 +64,6 @@ export default {
         },
         bg: "#F6F7FB",
         surface: "#FFFFFF",
-        border: {
-          DEFAULT: "#D9E1EC",
-          subtle: "#E6EAF2",
-          muted: "#EEF2F7",
-        },
         text: {
           main: "#0F172A",
           muted: "#475467",
@@ -50,8 +82,9 @@ export default {
         },
       },
       borderRadius: {
-        md: "10px",
-        lg: "14px",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
         xl: "18px",
       },
       boxShadow: {
@@ -62,5 +95,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };

@@ -1,74 +1,104 @@
-import { LogOut, PanelLeft, User, Settings, Bot, Grid3x3, ChevronDown } from 'lucide-react';
+import { LogOut, User, Settings, ChevronDown, Link2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
-
-export type MainNavSection = 'voicebot' | 'apps' | 'crm';
+import { NavLink, useLocation } from 'react-router-dom';
+import { navigationConfig, NavigationChild } from '../config/navigationConfig';
 
 interface NavbarProps {
-  setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
-  activeSection: MainNavSection;
-  onSectionChange: (section: MainNavSection) => void;
+  selectedMenuId: string | null;
 }
 
-export function Navbar({ setCollapsed, activeSection, onSectionChange }: NavbarProps) {
+export function Navbar({ selectedMenuId }: NavbarProps) {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const mainNavItems: { id: MainNavSection; label: string; icon: typeof Bot }[] = [
-    { id: 'voicebot', label: 'Voicebot', icon: Bot },
-    { id: 'apps', label: 'Apps', icon: Grid3x3 },
-  ];
+  // Get children menu items for selected parent
+  const getChildrenMenuItems = (): NavigationChild[] => {
+    if (!selectedMenuId) return [];
+
+    const userRole = user?.role || "standard_user";
+    const isSuperAdmin = userRole === "super_admin";
+
+    const mainNavItems = isSuperAdmin
+      ? navigationConfig.navigation.super_admin || []
+      : navigationConfig.navigation.main;
+
+    const selectedMenu = mainNavItems.find((item) => item.id === selectedMenuId);
+    return selectedMenu?.children || [];
+  };
+
+  const childrenItems = getChildrenMenuItems();
+
+  const renderChildItem = (child: NavigationChild): JSX.Element[] => {
+    const items: JSX.Element[] = [];
+
+    if (child.children && child.children.length > 0) {
+      // This is a parent with children - render all children
+      child.children.forEach((subChild) => {
+        if (subChild.route) {
+          const isActive = location.pathname === subChild.route || location.pathname.startsWith(subChild.route + '/');
+          items.push(
+            <NavLink
+              key={subChild.id}
+              to={subChild.route}
+              className={({ isActive: navIsActive }) =>
+                `flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap
+                ${navIsActive || isActive
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-text-muted hover:text-text-main hover:bg-white/50"
+                }
+              `}
+            >
+              <Link2 className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{subChild.label}</span>
+            </NavLink>
+          );
+        }
+      });
+    } else if (child.route) {
+      // Direct child item
+      const isActive = location.pathname === child.route || location.pathname.startsWith(child.route + '/');
+      items.push(
+        <NavLink
+          key={child.id}
+          to={child.route}
+          className={({ isActive: navIsActive }) =>
+            `flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap
+            ${navIsActive || isActive
+              ? "bg-primary/10 text-primary border border-primary/20"
+              : "text-text-muted hover:text-text-main hover:bg-white/50"
+            }
+          `}
+        >
+          <Link2 className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>{child.label}</span>
+        </NavLink>
+      );
+    }
+
+    return items;
+  };
 
   return (
-    <div className="sticky top-0 z-20 px-4 pt-4 pb-2 bg-bg/80 backdrop-blur-sm ">
-      <nav className="bg-white/90 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-xl shadow-black/5 h-14 flex items-center px-6 mx-auto max-w-[calc(100%-2rem)]">
+    <div className="w-full">
+      <nav className="glass-morphism h-16 flex items-center px-6 rounded-2xl shadow-lg border border-white/20 backdrop-blur-2xl">
         <div className="flex justify-between w-full items-center gap-4">
-          {/* Left Section: Sidebar Toggle + Navigation */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setCollapsed((prev) => !prev)}
-              className="p-2 rounded-xl hover:bg-primary-soft/40 transition-all duration-200 hover:scale-105 active:scale-95"
-              aria-label="Toggle sidebar"
-            >
-              <PanelLeft className="w-5 h-5 text-text-main" />
-            </button>
-
-            {/* Main Navigation Tabs - Modern Design */}
-            <div className="flex items-center gap-2 bg-gradient-to-br from-bg/60 to-bg/40 backdrop-blur-sm rounded-md p-1 border border-white/30 shadow-inner">
-              {mainNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeSection === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => onSectionChange(item.id)}
-                    className={`
-                      relative flex items-center gap-2.5 px-5 py-1.5 rounded-md text-sm font-semibold transition-all duration-300
-                      ${isActive
-                        ? 'bg-white text-primary shadow-lg shadow-primary/10 scale-[1.02]'
-                        : 'text-text-muted hover:text-text-main hover:bg-white/60'
-                      }
-                    `}
-                  >
-                    <Icon className={`w-4 h-4 transition-transform ${isActive ? 'scale-110' : ''}`} />
-                    <span className="whitespace-nowrap">{item.label}</span>
-                    {isActive && (
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
-                    )}
-                  </button>
-                );
-              })}
+          {/* Left Section: Children Menu Items */}
+          {childrenItems.length > 0 && (
+            <div className="flex items-center gap-2 flex-1 overflow-x-auto scrollbar-hide">
+              {childrenItems.flatMap((child) => renderChildItem(child))}
             </div>
-          </div>
+          )}
 
           {/* Right Section: User Profile */}
           <div className="relative">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center gap-3 hover:bg-primary-soft/30 px-3 py-1 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 group"
+              className="flex items-center gap-3 hover:bg-white/20 px-3 py-1.5 rounded-xl transition-all duration-500 ease-out hover:scale-105 active:scale-95 group"
             >
               <div className="relative">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary via-primary to-accent rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/30 ring-2 ring-white/50">
+                <div className="w-9 h-9 bg-gradient-to-br from-primary via-primary to-accent rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/30 ring-2 ring-white/50">
                   {user?.avatar || user?.name?.charAt(0).toUpperCase()}
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-white shadow-sm"></div>
@@ -79,7 +109,7 @@ export function Navbar({ setCollapsed, activeSection, onSectionChange }: NavbarP
                   {user?.role.replace('_', ' ')}
                 </div>
               </div>
-              <ChevronDown className={`w-4 h-4 text-text-muted transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 text-text-muted transition-transform duration-500 ease-out ${showDropdown ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown Menu */}
@@ -89,9 +119,9 @@ export function Navbar({ setCollapsed, activeSection, onSectionChange }: NavbarP
                   className="fixed inset-0 z-10"
                   onClick={() => setShowDropdown(false)}
                 />
-                <div className="absolute right-0 mt-2 w-64 bg-white/100 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/10 border border-white/20 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 mt-2 w-64 glass-morphism rounded-2xl shadow-2xl border border-white/20 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-500">
                   {/* User Info Header */}
-                  <div className="px-4 py-3 bg-gradient-to-br from-primary-soft/20 to-accent-soft/20 border-b border-border-subtle/50">
+                  <div className="px-4 py-3 bg-gradient-to-br from-primary-soft/20 to-accent-soft/20">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
                         {user?.avatar || user?.name?.charAt(0).toUpperCase()}
@@ -108,11 +138,11 @@ export function Navbar({ setCollapsed, activeSection, onSectionChange }: NavbarP
 
                   {/* Menu Items */}
                   <div className="py-1">
-                    <button className="w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-primary-soft/30 flex items-center gap-3 transition-colors duration-150">
+                    <button className="w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300">
                       <User className="w-4 h-4 text-text-muted" />
                       <span>Profile Settings</span>
                     </button>
-                    <button className="w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-primary-soft/30 flex items-center gap-3 transition-colors duration-150">
+                    <button className="w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300">
                       <Settings className="w-4 h-4 text-text-muted" />
                       <span>Preferences</span>
                     </button>
@@ -122,7 +152,7 @@ export function Navbar({ setCollapsed, activeSection, onSectionChange }: NavbarP
                         logout();
                         setShowDropdown(false);
                       }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-danger hover:bg-danger-soft/30 flex items-center gap-3 transition-colors duration-150 rounded-b-2xl"
+                      className="w-full px-4 py-2.5 text-left text-sm text-danger hover:bg-danger-soft/30 flex items-center gap-3 transition-colors duration-300 rounded-b-2xl"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>

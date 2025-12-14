@@ -1,41 +1,65 @@
-import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
-import { Navbar, MainNavSection } from "../components/Navbar";
+import { AppsLaunchpad } from "../components/AppsLaunchpad";
+import { Navbar } from "../components/Navbar";
 import { AIAssistant } from "../components/AIAssistant";
 import { useAuth } from "../contexts/AuthContext";
-import { useData } from "../contexts/DataContext";
-import { LayoutDashboard, Building2, Users, Package, FileText, DollarSign, Briefcase, ClipboardList, Settings, Plug } from "lucide-react";
 import { useState, useEffect } from "react";
-import { mockCompanies } from "../data/mockData";
-
-
+import { navigationConfig } from "../config/navigationConfig";
+import { useSidebar } from "../hooks/useSidebar";
 
 export const ProtectedLayout = () => {
     const { user, isLoading } = useAuth();
-    const [collapsed, setCollapsed] = useState<boolean>(false);
-    const [activeSection, setActiveSection] = useState<MainNavSection>("voicebot");
-    const { getCompany } = useData();
-    const navigate = useNavigate();
+    const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
     const location = useLocation();
+    const { isCollapsed } = useSidebar();
 
-    // Determine active section from current route
+    // Determine selected menu from current route
     useEffect(() => {
         const path = location.pathname;
-        if (path.startsWith("/app/voicebot")) {
-            setActiveSection("voicebot");
-        } else if (path.startsWith("/app/apps") || path.startsWith("/app/company/entities") || path.startsWith("/app/company/dashboard") || path.startsWith("/app/super-admin")) {
-            // Apps section includes entities, company dashboard, and super admin routes
-            setActiveSection("apps");
-        } else if (path.startsWith("/app/crm")) {
-            setActiveSection("crm");
-        } else {
-            // Default to voicebot for any other route
-            setActiveSection("voicebot");
+
+        // Find matching menu item based on route
+        const userRole = user?.role || "standard_user";
+        const isSuperAdmin = userRole === "super_admin";
+        const mainNavItems = isSuperAdmin
+            ? navigationConfig.navigation.super_admin || []
+            : navigationConfig.navigation.main;
+
+        // Check each menu item and its children
+        for (const menuItem of mainNavItems) {
+            // Check if route matches menu item
+            if (menuItem.route && path.startsWith(menuItem.route)) {
+                setSelectedMenuId(menuItem.id);
+                return;
+            }
+
+            // Check children
+            if (menuItem.children) {
+                for (const child of menuItem.children) {
+                    if (child.route && path.startsWith(child.route)) {
+                        setSelectedMenuId(menuItem.id);
+                        return;
+                    }
+
+                    // Check nested children
+                    if (child.children) {
+                        for (const subChild of child.children) {
+                            if (subChild.route && path.startsWith(subChild.route)) {
+                                setSelectedMenuId(menuItem.id);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Default to home if no match
+        if (!selectedMenuId) {
+            setSelectedMenuId("home");
         }
     }, [location.pathname, user]);
 
-
-    // IMPORTANT FIX
     if (isLoading) {
         return (
             <div className="min-h-screen bg-bg flex items-center justify-center">
@@ -47,140 +71,72 @@ export const ProtectedLayout = () => {
         );
     }
 
-    // THIS IS THE LINE CAUSING REDIRECT
     if (!user) {
         return <Navigate to="/login" replace />;
     }
 
-    const company = user.companyId ? getCompany(user.companyId) : null;
-
-
-    // Handle section change
-    const handleSectionChange = (section: MainNavSection) => {
-        setActiveSection(section);
-        if (section === "voicebot") {
-            navigate("/app/voicebot/dashboard");
-        } else if (section === "apps") {
-            if (user.role === "super_admin") {
-                navigate("/app/super-admin/dashboard");
-            } else {
-                navigate("/app/company/dashboard");
-            }
-        } else if (section === "crm") {
-            navigate("/app/crm/dashboard");
-        }
-    };
-
-    const superAdminNavItems = [
-        { label: "Dashboard", icon: LayoutDashboard, to: "/app/super-admin/dashboard" },
-        { label: "Companies", icon: Building2, to: "/app/super-admin/companies" },
-    ];
-
-    const moduleIcons: Record<string, any> = {
-        contacts: Users,
-        vendors: Package,
-        borrowers: Users,
-        customers: Users,
-        quotes: FileText,
-        invoices: DollarSign,
-        loans: Briefcase,
-        policies: ClipboardList,
-        jobs: ClipboardList,
-    };
-
-    // Voicebot sidebar items
-    const getVoicebotNavItems = () => {
-        return [
-            { label: "Dashboard", icon: LayoutDashboard, to: "/app/voicebot/dashboard" },
-            { label: "CRM", icon: Building2, to: "/app/voicebot/crm" },
-            { label: "Integrations", icon: Plug, to: "/app/voicebot/integrations" },
-            { label: "Settings", icon: Settings, to: "/app/voicebot/settings" },
-        ];
-    };
-
-    // Apps sidebar items (entities)
-    const getAppsNavItems = () => {
-        if (!company) {
-            if (user.role === "super_admin") {
-                const allModules = Array.from(
-                    new Set(
-                        mockCompanies.flatMap((c) => c.enabledModules)
-                    )
-                );
-
-                const entityItems = allModules.map((module) => ({
-                    label: module.charAt(0).toUpperCase() + module.slice(1),
-                    icon: moduleIcons[module] || FileText,
-                    to: `/app/apps/entities/${module}`,
-                }));
-
-                return [...superAdminNavItems, ...entityItems];
-            }
-
-            return [
-                { label: "Dashboard", icon: LayoutDashboard, to: "/app/company/dashboard" },
-            ];
-        }
-
-        const entityItems = company.enabledModules.map((module) => ({
-            label: module.charAt(0).toUpperCase() + module.slice(1),
-            icon: moduleIcons[module] || FileText,
-            to: `/app/apps/entities/${module}`,
-        }));
-
-        return [
-            { label: "Dashboard", icon: LayoutDashboard, to: "/app/company/dashboard" },
-            ...entityItems,
-        ];
-    };
-
-    // CRM sidebar items
-    const getCrmNavItems = () => {
-        return [
-            { label: "Dashboard", icon: LayoutDashboard, to: "/app/crm/dashboard" },
-            { label: "Contacts", icon: Users, to: "/app/crm/contacts" },
-            { label: "Deals", icon: Briefcase, to: "/app/crm/deals" },
-        ];
-    };
-
-    // Get sidebar items based on active section
-    const getSidebarNavItems = () => {
-        switch (activeSection) {
-            case "voicebot":
-                return getVoicebotNavItems();
-            case "apps":
-                return getAppsNavItems();
-            case "crm":
-                return getCrmNavItems();
-            default:
-                return getVoicebotNavItems();
-        }
-    };
-
-    const navItems = getSidebarNavItems();
+    // Check if we're in apps launchpad view (dashboard pages only)
+    const isAppsLaunchpad = selectedMenuId === "apps" && (
+        location.pathname === "/app/super-admin/dashboard" ||
+        location.pathname === "/app/company/dashboard" ||
+        location.pathname === "/app/apps"
+    );
 
     return (
-        <div className="flex min-h-screen bg-bg">
-            <Sidebar navItems={navItems} collapsed={collapsed} />
-
+        <div className="min-h-screen relative overflow-hidden">
+            {/* Background Container with bg.webp */}
             <div
-                className={`
-                    flex-1
-          transition-all duration-300
-          ${collapsed ? "pl-0" : "pl-60"}
-        `}
+                className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+                style={{
+                    backgroundImage: `url('/images/bg.webp')`,
+                    backgroundColor: '#E8F4F8', // Fallback: light teal-blue
+                }}
             >
-                <Navbar
-                    setCollapsed={setCollapsed}
-                    activeSection={activeSection}
-                    onSectionChange={handleSectionChange}
-                />
-                <main className="p-6 pt-4 overflow-auto">
-                    <Outlet />
-                </main>
+                {/* Subtle overlay to enhance glass morphism effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-teal-50/30 via-pink-50/20 to-transparent" />
             </div>
 
-            {(user.role == "super_admin" || user.role == "company_admin") && <AIAssistant />}
+            {/* Main Layout Container */}
+            <div className="relative min-h-screen flex">
+                {/* Fixed Left Sidebar */}
+                <Sidebar
+                    selectedMenuId={selectedMenuId}
+                    onMenuSelect={setSelectedMenuId}
+                />
+
+                {/* Main Content Area - Properly spaced from sidebar (dynamic based on collapsed state) */}
+                <div className="flex-1 relative min-h-screen transition-all duration-300" style={{ marginLeft: isCollapsed ? '80px' : '256px' }}>
+                    {/* Content Container - Large rounded white container */}
+                    <div className="relative z-10 min-h-screen py-6 pr-6">
+                        {/* Main Content Container - Sandan style */}
+                        <div className={`
+                            relative min-h-[calc(100vh-3rem)] 
+                            bg-white/45 backdrop-blur-xl
+                            rounded-3xl shadow-2xl border border-white/30
+                            transition-all duration-700 ease-out
+                            ${isAppsLaunchpad ? 'opacity-0 pointer-events-none scale-95 blur-sm' : 'opacity-100 scale-100 blur-0'}
+                        `}>
+                            {/* Top Navbar - Inside container */}
+                            <div className="sticky top-0 z-20 px-8 pt-6 pb-4 bg-transparent">
+                                <Navbar
+                                    selectedMenuId={selectedMenuId}
+                                />
+                            </div>
+
+                            {/* Apps Launchpad - Full Screen Overlay */}
+                            {isAppsLaunchpad && <AppsLaunchpad />}
+
+                            {/* Main Content Area */}
+                            <main className="relative px-8 pb-8">
+                                <Outlet />
+                            </main>
+                        </div>
+                    </div>
+                </div>
+
+                {/* AI Assistant */}
+                {(user.role === "super_admin" || user.role === "company_admin") && <AIAssistant />}
+            </div>
         </div>
     );
 };
