@@ -89,6 +89,8 @@ export const router = createBrowserRouter([
                 element: <CompanyRoute />,
                 children: [
                     { path: "company/dashboard", element: <CompanyDashboard /> },
+                    { path: "company/apps", element: <CompanyDashboard /> },
+
                     // Keep old route for backward compatibility, but also add new route
                     { path: "company/entities/:entityType", element: <EntityPage /> },
                 ],

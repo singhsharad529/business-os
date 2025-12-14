@@ -6,13 +6,24 @@ import { AIAssistant } from "../components/AIAssistant";
 import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { navigationConfig } from "../config/navigationConfig";
-import { useSidebar } from "../hooks/useSidebar";
+
 
 export const ProtectedLayout = () => {
     const { user, isLoading } = useAuth();
     const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
     const location = useLocation();
-    const { isCollapsed } = useSidebar();
+    const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+        const saved = localStorage.getItem('sidebarCollapsed');
+        return saved ? JSON.parse(saved) : false;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed));
+    }, [isCollapsed]);
+
+
+    console.log("iscollapsed", isCollapsed);
+
 
     // Determine selected menu from current route
     useEffect(() => {
@@ -88,7 +99,7 @@ export const ProtectedLayout = () => {
             <div
                 className="fixed inset-0 bg-cover bg-center bg-no-repeat"
                 style={{
-                    backgroundImage: `url('/images/bg.webp')`,
+                    // backgroundImage: `url('/images/bg.webp')`,
                     backgroundColor: '#E8F4F8', // Fallback: light teal-blue
                 }}
             >
@@ -102,6 +113,7 @@ export const ProtectedLayout = () => {
                 <Sidebar
                     selectedMenuId={selectedMenuId}
                     onMenuSelect={setSelectedMenuId}
+                    isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}
                 />
 
                 {/* Main Content Area - Properly spaced from sidebar (dynamic based on collapsed state) */}

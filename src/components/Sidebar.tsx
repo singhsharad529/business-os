@@ -3,18 +3,21 @@ import { LogOut, CreditCard, PanelLeftClose, PanelLeftOpen } from "lucide-react"
 import { Logo } from "./Logo";
 import { useAuth } from "../contexts/AuthContext";
 import { navigationConfig, iconMap, filterNavigationByRole, NavigationItem } from "../config/navigationConfig";
-import { useSidebar } from "../hooks/useSidebar";
+
+import { Dispatch, SetStateAction } from "react";
 
 interface SidebarProps {
   selectedMenuId: string | null;
   onMenuSelect: (menuId: string) => void;
   onCollapseChange?: (collapsed: boolean) => void;
+  isCollapsed: boolean,
+  setIsCollapsed: Dispatch<SetStateAction<boolean>>
 }
 
-export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange }: SidebarProps) {
+export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange, isCollapsed, setIsCollapsed }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { isCollapsed, setIsCollapsed } = useSidebar();
+
 
   const handleToggle = () => {
     const newState = !isCollapsed;
@@ -113,7 +116,7 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange }: Side
         <NavLink
           to="/app/billing"
           className={({ isActive }) =>
-            `group flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent
+            `group flex items-center rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent
             ${isCollapsed
               ? 'px-2 py-2.5'
               : 'gap-3 px-3.5 py-2.5'
@@ -145,7 +148,7 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange }: Side
 
         <button
           onClick={logout}
-          className={`w-full group flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent text-text-muted hover:text-danger hover:bg-danger-soft/30 hover:border-danger/30
+          className={`w-full group flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent text-text-muted text-danger bg-danger-soft/30 hover:bg-danger-soft/50 border-danger/30
           ${isCollapsed
               ? 'px-2 py-2.5'
               : 'gap-3 px-3.5 py-2.5'
