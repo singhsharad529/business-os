@@ -273,7 +273,7 @@ export function CompanyDashboard() {
         {metrics.slice(0, 4).map((metric) => (
           <Card
             key={metric.module}
-            className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+            className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all"
             onClick={() => handleMetricClick(metric.module)}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

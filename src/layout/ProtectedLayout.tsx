@@ -99,8 +99,9 @@ export const ProtectedLayout = () => {
             <div
                 className="fixed inset-0 bg-cover bg-center bg-no-repeat"
                 style={{
+                    backgroundImage: "linear-gradient(180deg,#FCE4EA 0%,#7132CA 100%)",
                     // backgroundImage: `url('/images/bg.webp')`,
-                    backgroundColor: '#E8F4F8', // Fallback: light teal-blue
+                    // backgroundColor: '#E8F4F8', // Fallback: light teal-blue
                 }}
             >
                 {/* Subtle overlay to enhance glass morphism effect */}
@@ -117,7 +118,7 @@ export const ProtectedLayout = () => {
                 />
 
                 {/* Main Content Area - Properly spaced from sidebar (dynamic based on collapsed state) */}
-                <div className="flex-1 relative min-h-screen transition-all duration-300" style={{ marginLeft: isCollapsed ? '80px' : '256px' }}>
+                <div className="flex-1 relative min-h-screen transition-all duration-300" style={{ marginLeft: isCollapsed ? '80px' : '240px' }}>
                     {/* Content Container - Large rounded white container */}
                     <div className="relative z-10 min-h-screen py-6 pr-6">
                         {/* Main Content Container - Sandan style */}
