@@ -31,6 +31,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import BarChart from "@/components/chart/BarChart";
+import { callData, callSeries } from '@/lib/calls';
+import { metricsSeries, metricsToChartData } from '@/lib/metrics';
+
 
 type TimeContext = 'today' | 'week' | 'month';
 
@@ -300,6 +304,13 @@ export function CompanyDashboard() {
         ))}
       </div>
 
+
+      <Card>
+        <CardContent className="space-y-4">
+          <BarChart data={metricsToChartData(metrics)} series={metricsSeries} />
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Priority Alerts and Risks */}
         <Card className="lg:col-span-2">
@@ -396,6 +407,10 @@ export function CompanyDashboard() {
           </CardContent>
         </Card>
       </div>
+
+
+
+
       {/* AI Insights Panel */}
       {aiInsights.length > 0 && (
         <Card>

@@ -1,3 +1,7 @@
+import { Card, CardContent } from "@/components/ui/card";
+import { callData, callSeries } from "@/lib/calls";
+import BarChart from "@/components/chart/BarChart";
+
 export function VoicebotDashboard() {
   return (
     <div className="space-y-6">
@@ -31,6 +35,12 @@ export function VoicebotDashboard() {
           <div className="text-xs text-text-muted mt-2">Fast & responsive</div>
         </div>
       </div>
+
+      <Card>
+        <CardContent className="space-y-4">
+          <BarChart data={callData} series={callSeries} />
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">

@@ -80,7 +80,7 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange, isColl
 
       {/* Middle Section: Main Navigation - Vertically Centered */}
       <nav className={`flex-1 flex flex-col justify-center overflow-y-auto ${isCollapsed ? 'px-2 py-4' : 'px-3 py-4'}`}>
-        <ul className="space-y-1">
+        <ul className="space-y-1.5">
           {mainNavItems.map((item) => {
             const Icon = iconMap[item.icon] || iconMap.home;
             const isActive = isMenuActive(item.id);

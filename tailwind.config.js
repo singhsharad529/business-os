@@ -19,7 +19,7 @@ export default {
           foreground: "hsl(var(--popover-foreground))",
         },
         primary: {
-          DEFAULT: "#F29AAE", // soft coral/pink
+          DEFAULT: "#e7869c", // soft coral/pink
           soft: "#FCE4EA",
           strong: "#E87D99",
           foreground: "hsl(var(--primary-foreground))",
