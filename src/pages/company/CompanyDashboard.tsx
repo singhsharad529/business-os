@@ -269,21 +269,13 @@ export function CompanyDashboard() {
       </div>
 
       {/* Key Metrics Cards */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.slice(0, 4).map((metric) => (
-          <Card
-            key={metric.module}
-            className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all"
-            onClick={() => handleMetricClick(metric.module)}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-text-muted">
-                {metric.templateName}
-              </CardTitle>
-              <metric.icon className="h-4 w-4 text-text-muted" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-text-main">{metric.totalCount}</div>
+          <div key={metric.module} className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+            <div>
+              <div className="text-sm text-text-muted mb-2">{metric.templateName}</div>
+              <div className="text-3xl font-bold text-text-main">{metric.totalCount}</div>
               {metric.actionableCount > 0 && (
                 <div className="flex items-center gap-2 mt-2">
                   <Badge variant="destructive" className="text-xs">
@@ -299,8 +291,12 @@ export function CompanyDashboard() {
                   {metric.contextCount} {timeContext === 'today' ? 'today' : `this ${timeContext}`}
                 </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div>
+              <metric.icon className="h-8 w-8 text-text-muted" />
+            </div>
+
+          </div>
         ))}
       </div>
 
@@ -400,7 +396,6 @@ export function CompanyDashboard() {
           </CardContent>
         </Card>
       </div>
-
       {/* AI Insights Panel */}
       {aiInsights.length > 0 && (
         <Card>

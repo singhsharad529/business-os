@@ -50,9 +50,9 @@ export default {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
+          1: "hsl(var(--chart-1))",
+          2: "hsl(var(--chart-2))",
+          3: "hsl(var(--chart-3))",
         },
         highlight: {
           DEFAULT: "#C47BE4", // lavender highlight
@@ -90,7 +90,7 @@ export default {
       boxShadow: {
         sm: "0 1px 2px 0 rgba(15, 23, 42, 0.06)",
         soft: "0 4px 18px rgba(15, 23, 42, 0.08)",
-        card: "0 10px 40px rgba(15, 23, 42, 0.08)",
+        card: "0 4px 24px rgba(15, 23, 42, 0.04)",
         glow: "0 10px 30px rgba(37, 99, 235, 0.18)",
       },
     },
