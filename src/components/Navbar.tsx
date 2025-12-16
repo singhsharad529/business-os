@@ -1,6 +1,6 @@
-import { LogOut, User, Settings, ChevronDown, Link2 } from 'lucide-react';
+import { LogOut, User, Settings, ChevronDown, Link2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { navigationConfig, NavigationChild } from '../config/navigationConfig';
 
@@ -8,10 +8,14 @@ interface NavbarProps {
   selectedMenuId: string | null;
 }
 
+const SCROLL_AMOUNT = 200;
+const NAV_ITEMS_LIMIT = 5;
+
 export function Navbar({ selectedMenuId }: NavbarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // Get children menu items for selected parent
   const getChildrenMenuItems = (): NavigationChild[] => {
@@ -80,16 +84,71 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
     return items;
   };
 
+
+  const renderedItemsCount = childrenItems.reduce((count, child) => {
+    const rendered = renderChildItem(child);
+    return count + rendered.length;
+  }, 0);
+
+  const showNavButtons = renderedItemsCount > NAV_ITEMS_LIMIT;
+
+  const scrollLeft = () => {
+    scrollRef.current?.scrollBy({
+      left: -SCROLL_AMOUNT,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollRight = () => {
+    scrollRef.current?.scrollBy({
+      left: SCROLL_AMOUNT,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <div className="w-full">
       <nav className="glass-morphism h-16 flex items-center px-6 rounded-2xl shadow-lg border border-white/20 backdrop-blur-2xl">
         <div className="flex justify-between w-full items-center gap-4">
           {/* Left Section: Children Menu Items */}
-          {childrenItems.length > 0 && (
-            <div className="flex items-center gap-2 flex-1 overflow-x-auto scrollbar-hide">
-              {childrenItems.flatMap((child) => renderChildItem(child))}
-            </div>
-          )}
+          <div>
+            {
+              showNavButtons && (
+                <button
+                  onClick={scrollLeft}
+                  className="flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 transition"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+              )
+            }
+          </div>
+
+          {/* Scrollable Menu */}
+          <div
+            ref={scrollRef}
+            className="flex items-center gap-2 flex-1 overflow-x-auto w-80 scrollbar-hide"
+          >
+            {childrenItems.flatMap((child) => renderChildItem(child))}
+          </div>
+
+          <div>
+            {
+              showNavButtons && (
+                <button
+                  onClick={scrollRight}
+                  className="flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 transition"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight size={18} />
+                </button>
+
+              )
+            }
+          </div>
+
+
 
           {/* Right Section: User Profile */}
           <div className="relative">
@@ -119,9 +178,9 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
                   className="fixed inset-0 z-10"
                   onClick={() => setShowDropdown(false)}
                 />
-                <div className="absolute right-0 mt-2 w-64 glass-morphism rounded-2xl shadow-2xl border border-white/20 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-white/20 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-500">
                   {/* User Info Header */}
-                  <div className="px-4 py-3 bg-gradient-to-br from-primary-soft/20 to-accent-soft/20">
+                  <div className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
                         {user?.avatar || user?.name?.charAt(0).toUpperCase()}

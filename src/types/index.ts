@@ -1,9 +1,17 @@
-export type UserRole = 'super_admin' | 'company_admin' | 'standard_user';
+export type UserRole = "super_admin" | "company_admin" | "standard_user";
 
 export type EntityStatus =
-  | 'draft' | 'sent' | 'accepted' | 'rejected'
-  | 'pending' | 'active' | 'closed' | 'delinquent'
-  | 'scheduled' | 'completed' | 'cancelled';
+  | "draft"
+  | "sent"
+  | "accepted"
+  | "rejected"
+  | "pending"
+  | "active"
+  | "closed"
+  | "delinquent"
+  | "scheduled"
+  | "completed"
+  | "cancelled";
 
 export interface User {
   id: string;
@@ -22,8 +30,8 @@ export interface Company {
   logo?: string;
   timezone: string;
   currency: string;
-  industry: 'procurement' | 'lending' | 'home_services' | 'general';
-  status: 'active' | 'inactive';
+  industry: "procurement" | "lending" | "home_services" | "general";
+  status: "active" | "inactive";
   createdAt: string;
   enabledModules: string[];
   userCount: number;
@@ -45,7 +53,7 @@ export interface EntityTemplate {
 export interface EntityField {
   id: string;
   name: string;
-  type: 'text' | 'number' | 'date' | 'boolean' | 'dropdown' | 'reference';
+  type: "text" | "number" | "date" | "boolean" | "dropdown" | "reference";
   required: boolean;
   options?: string[];
 }
@@ -77,14 +85,31 @@ export interface DashboardMetric {
   label: string;
   value: number | string;
   change?: number;
-  trend?: 'up' | 'down' | 'neutral';
+  trend?: "up" | "down" | "neutral";
 }
 
 export interface Alert {
   id: string;
-  type: 'info' | 'warning' | 'error' | 'success';
+  type: "info" | "warning" | "error" | "success";
   message: string;
   timestamp: string;
   entityId?: string;
   entityName?: string;
+}
+
+export type CallStatus = "completed" | "missed" | "failed" | "ongoing";
+export type CallSentiment = "positive" | "neutral" | "negative";
+
+export interface CallRecord {
+  id: string;
+  sessionId: string;
+  customerName: string;
+  customerMobile: string;
+  status: CallStatus;
+  duration: number; // in seconds
+  sentiment: CallSentiment;
+  intent: string;
+  action: string;
+  createdAt: string;
+  updatedAt: string;
 }

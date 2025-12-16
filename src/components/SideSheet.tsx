@@ -32,7 +32,7 @@ export function SideSheet({ isOpen, onClose, title, children, size = 'md' }: Sid
   return (
     <>
       <div
-        className="fixed top-0 left-0 right-0 bottom-0 inset-0 bg-black/30 backdrop-blur-sm z-50 transition-opacity"
+        className="fixed top-0 left-0 right-0 bottom-0 inset-0 rounded-3xl bg-black/30 backdrop-blur-sm z-50 transition-opacity"
         onClick={onClose}
       />
       <div

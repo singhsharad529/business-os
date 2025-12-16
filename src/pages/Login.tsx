@@ -30,7 +30,11 @@ export function Login() {
     }
 
     // Navigate to voicebot dashboard by default (new default behavior)
-    navigate('/app/voicebot/dashboard');
+    if (loggedInUser.role === "company_admin")
+      navigate('/app/voicebot/dashboard');
+
+    if (loggedInUser.role == "super_admin")
+      navigate('/app/super-admin/dashboard');
 
 
   };

@@ -6,13 +6,21 @@ import { AIAssistant } from "../components/AIAssistant";
 import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { navigationConfig } from "../config/navigationConfig";
-import { useSidebar } from "../hooks/useSidebar";
+
 
 export const ProtectedLayout = () => {
     const { user, isLoading } = useAuth();
     const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
     const location = useLocation();
-    const { isCollapsed } = useSidebar();
+    const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+        const saved = localStorage.getItem('sidebarCollapsed');
+        return saved ? JSON.parse(saved) : false;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed));
+    }, [isCollapsed]);
+
 
     // Determine selected menu from current route
     useEffect(() => {
@@ -88,8 +96,9 @@ export const ProtectedLayout = () => {
             <div
                 className="fixed inset-0 bg-cover bg-center bg-no-repeat"
                 style={{
-                    backgroundImage: `url('/images/bg.webp')`,
-                    backgroundColor: '#E8F4F8', // Fallback: light teal-blue
+                    backgroundImage: "linear-gradient(180deg,#FCE4EA 0%,#7132CA 100%)",
+                    // backgroundImage: `url('/images/bg.webp')`,
+                    // backgroundColor: '#E8F4F8', // Fallback: light teal-blue
                 }}
             >
                 {/* Subtle overlay to enhance glass morphism effect */}
@@ -102,10 +111,11 @@ export const ProtectedLayout = () => {
                 <Sidebar
                     selectedMenuId={selectedMenuId}
                     onMenuSelect={setSelectedMenuId}
+                    isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}
                 />
 
                 {/* Main Content Area - Properly spaced from sidebar (dynamic based on collapsed state) */}
-                <div className="flex-1 relative min-h-screen transition-all duration-300" style={{ marginLeft: isCollapsed ? '80px' : '256px' }}>
+                <div className="flex-1 relative min-h-screen transition-all duration-300" style={{ marginLeft: isCollapsed ? '80px' : '240px' }}>
                     {/* Content Container - Large rounded white container */}
                     <div className="relative z-10 min-h-screen py-6 pr-6">
                         {/* Main Content Container - Sandan style */}
