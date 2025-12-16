@@ -19,6 +19,7 @@ import { VoicebotSettings } from "../pages/voicebot/VoicebotSettings";
 import { CRMDashboard } from "../pages/crm/CRMDashboard";
 import { CRMContacts } from "../pages/crm/CRMContacts";
 import { CRMDeals } from "../pages/crm/CRMDeals";
+import VoicebotCalls from "@/pages/voicebot/VoicebotCalls";
 
 export const router = createBrowserRouter([
     {
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
             {
                 path: "voicebot/crm",
                 element: <VoicebotCRM />,
+            },
+            {
+                path: "voicebot/calls",
+                element: <VoicebotCalls />,
             },
             {
                 path: "voicebot/integrations",
@@ -89,7 +94,10 @@ export const router = createBrowserRouter([
                 element: <CompanyRoute />,
                 children: [
                     { path: "company/dashboard", element: <CompanyDashboard /> },
-                    { path: "company/apps", element: <CompanyDashboard /> },
+                    {
+                        path: "company/apps",
+                        element: <Navigate to="/app/apps/entities/contacts" replace />,
+                    },
 
                     // Keep old route for backward compatibility, but also add new route
                     { path: "company/entities/:entityType", element: <EntityPage /> },

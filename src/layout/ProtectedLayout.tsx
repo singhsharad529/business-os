@@ -22,9 +22,6 @@ export const ProtectedLayout = () => {
     }, [isCollapsed]);
 
 
-    console.log("iscollapsed", isCollapsed);
-
-
     // Determine selected menu from current route
     useEffect(() => {
         const path = location.pathname;

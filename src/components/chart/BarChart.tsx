@@ -36,10 +36,8 @@ export default function GenericBarChart({ data, series }: Props) {
         <ChartContainer config={config} className="h-[300px] w-full">
             <BarChart data={data}
                 margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
-
             >
                 <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
-
                 <XAxis
                     dataKey="label"
                     tickLine={false}

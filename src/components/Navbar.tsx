@@ -34,9 +34,6 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
 
   const childrenItems = getChildrenMenuItems();
 
-  console.log("childrenItems:", childrenItems);
-  console.log("childrenItems.length:", childrenItems?.length);
-
   const renderChildItem = (child: NavigationChild): JSX.Element[] => {
     const items: JSX.Element[] = [];
 

@@ -125,6 +125,11 @@ export const navigationConfig: NavigationConfig = {
             route: "/app/voicebot/integrations"
           },
           {
+            id: "voice_calls",
+            label: "Calls",
+            route: "/app/voicebot/calls"
+          },
+          {
             id: "voice_settings",
             label: "Voice Settings",
             route: "/app/voicebot/settings"
@@ -135,39 +140,34 @@ export const navigationConfig: NavigationConfig = {
         id: "apps",
         label: "Apps",
         icon: "grid",
-        route: "/app/company/apps",
+        route: "/app/apps/entities/contacts",
         roles: ["company_admin", "standard_user"],
         children: [
+
           {
-            id: "entities",
-            label: "Entities",
-            children: [
-              {
-                id: "contacts",
-                label: "Contacts",
-                route: "/app/apps/entities/contacts"
-              },
-              {
-                id: "quotes",
-                label: "Quotes",
-                route: "/app/apps/entities/quotes"
-              },
-              {
-                id: "loans",
-                label: "Loans",
-                route: "/app/apps/entities/loans"
-              },
-              {
-                id: "invoices",
-                label: "Invoices",
-                route: "/app/apps/entities/invoices"
-              },
-              {
-                id: "jobs",
-                label: "Jobs / Work Orders",
-                route: "/app/apps/entities/jobs"
-              }
-            ]
+            id: "contacts",
+            label: "Contacts",
+            route: "/app/apps/entities/contacts"
+          },
+          {
+            id: "quotes",
+            label: "Quotes",
+            route: "/app/apps/entities/quotes"
+          },
+          {
+            id: "loans",
+            label: "Loans",
+            route: "/app/apps/entities/loans"
+          },
+          {
+            id: "invoices",
+            label: "Invoices",
+            route: "/app/apps/entities/invoices"
+          },
+          {
+            id: "jobs",
+            label: "Jobs / Work Orders",
+            route: "/app/apps/entities/jobs"
           },
           {
             id: "ai_tools",
@@ -235,53 +235,53 @@ export const navigationConfig: NavigationConfig = {
           }
         ]
       },
-      {
-        id: "settings",
-        label: "Settings",
-        icon: "settings",
-        route: "/app/voicebot/settings",
-        roles: ["company_admin", "super_admin"],
-        children: [
-          {
-            id: "company_settings",
-            label: "Company Settings",
-            roles: ["company_admin"],
-            children: [
-              {
-                id: "company_profile",
-                label: "Profile",
-                route: "/app/voicebot/settings"
-              },
-              {
-                id: "branding",
-                label: "Branding",
-                route: "/app/voicebot/settings"
-              }
-            ]
-          },
-          {
-            id: "user_management",
-            label: "User Management",
-            children: [
-              {
-                id: "users",
-                label: "Users",
-                route: "/app/voicebot/settings"
-              },
-              {
-                id: "roles",
-                label: "Roles & Permissions",
-                route: "/app/voicebot/settings"
-              }
-            ]
-          },
-          {
-            id: "usage",
-            label: "Usage & Billing",
-            route: "/app/voicebot/settings"
-          }
-        ]
-      }
+      // {
+      //   id: "settings",
+      //   label: "Settings",
+      //   icon: "settings",
+      //   route: "/app/voicebot/settings",
+      //   roles: ["company_admin", "super_admin"],
+      //   children: [
+      //     {
+      //       id: "company_settings",
+      //       label: "Company Settings",
+      //       roles: ["company_admin"],
+      //       children: [
+      //         {
+      //           id: "company_profile",
+      //           label: "Profile",
+      //           route: "/app/voicebot/settings"
+      //         },
+      //         {
+      //           id: "branding",
+      //           label: "Branding",
+      //           route: "/app/voicebot/settings"
+      //         }
+      //       ]
+      //     },
+      //     {
+      //       id: "user_management",
+      //       label: "User Management",
+      //       children: [
+      //         {
+      //           id: "users",
+      //           label: "Users",
+      //           route: "/app/voicebot/settings"
+      //         },
+      //         {
+      //           id: "roles",
+      //           label: "Roles & Permissions",
+      //           route: "/app/voicebot/settings"
+      //         }
+      //       ]
+      //     },
+      //     {
+      //       id: "usage",
+      //       label: "Usage & Billing",
+      //       route: "/app/voicebot/settings"
+      //     }
+      //   ]
+      // }
     ],
     super_admin: [
       {

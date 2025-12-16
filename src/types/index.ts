@@ -96,3 +96,20 @@ export interface Alert {
   entityId?: string;
   entityName?: string;
 }
+
+export type CallStatus = "completed" | "missed" | "failed" | "ongoing";
+export type CallSentiment = "positive" | "neutral" | "negative";
+
+export interface CallRecord {
+  id: string;
+  sessionId: string;
+  customerName: string;
+  customerMobile: string;
+  status: CallStatus;
+  duration: number; // in seconds
+  sentiment: CallSentiment;
+  intent: string;
+  action: string;
+  createdAt: string;
+  updatedAt: string;
+}

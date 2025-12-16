@@ -61,7 +61,7 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange, isColl
   const isMenuActive = (menuId: string) => selectedMenuId === menuId;
 
   return (
-    <aside className={`fixed left-0 top-0 h-screen z-30 flex flex-col justify-between transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-56'}`}>
+    <aside className={`fixed left-0 top-0 h-screen z-30 flex flex-col justify-between transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-60'}`}>
       {/* Top Section: Logo and Collapse Toggle */}
       <div className="px-4 py-6 flex items-center justify-between">
         {!isCollapsed && <Logo size="sm" />}

@@ -1,4 +1,11 @@
-import type { User, Company, Entity, Activity, Alert } from "../types";
+import type {
+  User,
+  Company,
+  Entity,
+  Activity,
+  Alert,
+  CallRecord,
+} from "../types";
 
 export const mockUsers: User[] = [
   {
@@ -520,5 +527,60 @@ export const mockAlerts: Alert[] = [
     timestamp: "2024-12-07T15:00:00Z",
     entityId: "e-12",
     entityName: "Q-2024-0345",
+  },
+];
+
+export const mockCalls: CallRecord[] = [
+  {
+    id: "1",
+    sessionId: "CALL-2024-001",
+    customerName: "Rahul Sharma",
+    customerMobile: "+91 9876543210",
+    status: "completed",
+    duration: 320,
+    sentiment: "positive",
+    intent: "Loan Inquiry",
+    action: "Follow-up Scheduled",
+    createdAt: "2024-12-12T10:30:00Z",
+    updatedAt: "2024-12-12T10:35:00Z",
+  },
+  {
+    id: "2",
+    sessionId: "CALL-2024-002",
+    customerName: "Anita Verma",
+    customerMobile: "+91 9123456789",
+    status: "missed",
+    duration: 0,
+    sentiment: "neutral",
+    intent: "Support",
+    action: "Callback Required",
+    createdAt: "2024-12-13T09:15:00Z",
+    updatedAt: "2024-12-13T09:15:00Z",
+  },
+  {
+    id: "3",
+    sessionId: "CALL-2024-003",
+    customerName: "Vikas Gupta",
+    customerMobile: "+91 9988776655",
+    status: "failed",
+    duration: 12,
+    sentiment: "negative",
+    intent: "Complaint",
+    action: "Escalated",
+    createdAt: "2024-12-14T14:10:00Z",
+    updatedAt: "2024-12-14T14:12:00Z",
+  },
+  {
+    id: "4",
+    sessionId: "CALL-2024-004",
+    customerName: "Pooja Singh",
+    customerMobile: "+91 9090909090",
+    status: "completed",
+    duration: 540,
+    sentiment: "positive",
+    intent: "Product Demo",
+    action: "Converted",
+    createdAt: "2024-12-15T16:45:00Z",
+    updatedAt: "2024-12-15T16:55:00Z",
   },
 ];

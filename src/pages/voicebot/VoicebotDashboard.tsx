@@ -1,13 +1,26 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { callData, callSeries } from "@/lib/calls";
 import BarChart from "@/components/chart/BarChart";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export function VoicebotDashboard() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-text-main">Voicebot Dashboard</h1>
-        <p className="text-text-muted mt-1">Welcome to your voicebot control center</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-text-main">Voicebot Dashboard</h1>
+          <p className="text-text-muted mt-1">Welcome to your voicebot control center</p>
+        </div>
+        <div>
+          <button
+            // onClick={() => setShowCreateSheet(true)}
+            className="btn btn-primary flex items-center gap-1.5"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            New Call
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
