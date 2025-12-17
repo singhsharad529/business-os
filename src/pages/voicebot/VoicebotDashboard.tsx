@@ -6,10 +6,10 @@ import { Plus } from "lucide-react";
 
 export function VoicebotDashboard() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 my-2">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-text-main">Voicebot Dashboard</h1>
+          <h1 className="text-3xl font-bold text-text-main">Voicebot Dashboard</h1>
           <p className="text-text-muted mt-1">Welcome to your voicebot control center</p>
         </div>
         <div>
