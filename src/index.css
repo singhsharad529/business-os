@@ -27,9 +27,16 @@
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
-    --chart-success: theme(colors.primary.strong);
-    --chart-appointment: theme(colors.primary.DEFAULT);
-    --chart-failed: theme(colors.primary.soft);
+    /* Main chart gradient (matches background) */
+    --chart-gradient-start: #FCE4EA;
+    --chart-gradient-end: #7132CA;
+
+    /* Optional semantic variants */
+    --chart-gradient-success-start: #F7E1F2;
+    --chart-gradient-success-end: #7132CA;
+
+    --chart-gradient-danger-start: #F2D6E8;
+    --chart-gradient-danger-end: #5B249F;
   }
 
   .dark {
@@ -233,7 +240,7 @@
   }
 
   .btn-primary {
-    @apply bg-gradient-to-r from-primary to-accent text-white shadow-glow hover:shadow-card hover:-translate-y-0.5 focus:ring-primary/40;
+    @apply bg-gradient-to-r from-primary-strong via-primary to-accent text-white shadow-glow hover:shadow-card hover:-translate-y-0.5 focus:ring-primary/40;
   }
 
   .btn-secondary {

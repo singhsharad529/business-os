@@ -13,10 +13,14 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 
+type GradientType = {
+    start: string,
+    end: string
+}
 type Series = {
     key: string
     label: string
-    color: string
+    gradient: GradientType
 }
 
 type Props = {
@@ -25,10 +29,15 @@ type Props = {
 }
 
 export default function GenericBarChart({ data, series }: Props) {
+    console.log('data is', data, series);
+
     const config = Object.fromEntries(
         series.map((s) => [
             s.key,
-            { label: s.label, color: s.color },
+            {
+                label: s.label,
+                color: s.gradient.end,
+            },
         ])
     )
 
@@ -37,6 +46,24 @@ export default function GenericBarChart({ data, series }: Props) {
             <BarChart data={data}
                 margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
             >
+
+                {/* Gradients */}
+                <defs>
+                    {series.map((s) => (
+                        <linearGradient
+                            key={s.key}
+                            id={`gradient-${s.key}`}
+                            x1="0"
+                            y1="1"
+                            x2="0"
+                            y2="0"
+                        >
+                            <stop offset="0%" stopColor={s.gradient.start} />
+                            <stop offset="100%" stopColor={s.gradient.end} />
+                        </linearGradient>
+                    ))}
+                </defs>
+
                 <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
                 <XAxis
                     dataKey="label"
@@ -59,7 +86,7 @@ export default function GenericBarChart({ data, series }: Props) {
                     <Bar
                         key={s.key}
                         dataKey={s.key}
-                        fill={s.color}
+                        fill={`url(#gradient-${s.key})`}
                         radius={4}
                     />
                 ))}

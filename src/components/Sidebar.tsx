@@ -118,7 +118,7 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange, isColl
           className={({ isActive }) =>
             `group flex items-center rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent
             ${isCollapsed
-              ? 'px-2 py-2.5'
+              ? 'px-2 py-2.5 justify-center'
               : 'gap-3 px-3.5 py-2.5'
             }
             ${isActive
@@ -129,7 +129,7 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange, isColl
           title={isCollapsed ? "Billing / Credits" : undefined}
         >
           <CreditCard className={`w-4 h-4 transition-colors flex-shrink-0 ${isCollapsed ? '' : 'group-hover:text-primary'}`} />
-          {!isCollapsed && <span>Billing / Credits</span>}
+          {!isCollapsed && <span className="">Billing / Credits</span>}
         </NavLink>
 
         <div className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3.5 py-2.5'}`}>

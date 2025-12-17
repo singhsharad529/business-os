@@ -94,7 +94,7 @@ export function EntityList({ templateName }: EntityListProps) {
   };
 
   return (
-    <div>
+    <div className='my-2'>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold text-text-main">{templateName}</h1>
