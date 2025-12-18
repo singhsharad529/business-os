@@ -102,15 +102,19 @@ export function AIAssistant() {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-primary-strong via-primary to-accent text-white rounded-full shadow-glow flex items-center justify-center transition-all z-40 hover:scale-110 hover:shadow-card shadow-card"
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
-      </button>
+      {
+        !isOpen && (
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-primary-strong via-primary to-accent text-white rounded-full shadow-glow flex items-center justify-center transition-all z-40 hover:scale-110 hover:shadow-card shadow-card"
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
+          </button>
+        )
+      }
 
       {isOpen && (
-        <div className="fixed bottom-20 right-6 w-[400px] h-[520px] bg-white/95 backdrop-blur-lg rounded-xl shadow-card border border-border-subtle flex flex-col z-40">
+        <div className="fixed bottom-4 right-4 w-[400px] h-[520px] bg-white/95 backdrop-blur-lg rounded-xl shadow-card border border-border-subtle flex flex-col z-40">
           <div className='flex justify-between bg-gradient-to-r from-primary to-accent text-white rounded-t-xl shadow-soft opacity-95 px-4'>
             <div className="p-4 text-white rounded-t-xl shadow-soft opacity-90">
               <div className="flex items-center gap-2">
