@@ -115,25 +115,25 @@ export const navigationConfig: NavigationConfig = {
             route: "/app/voicebot/dashboard"
           },
           {
-            id: "voice_crm",
-            label: "CRM",
-            route: "/app/voicebot/crm"
-          },
-          {
-            id: "voice_integrations",
-            label: "Integrations",
-            route: "/app/voicebot/integrations"
-          },
-          {
             id: "voice_calls",
             label: "Calls",
             route: "/app/voicebot/calls"
           },
           {
-            id: "voice_settings",
-            label: "Voice Settings",
-            route: "/app/voicebot/settings"
-          }
+            id: "voice_crm",
+            label: "CRM",
+            route: "/app/voicebot/crm"
+          },
+          {
+            id: "insights",
+            label: "Insights",
+            route: "/app/voicebot/insights"
+          },
+          {
+            id: "leads_database",
+            label: "Leads Database",
+            route: "/app/voicebot/leads-database"
+          },
         ]
       },
       {
