@@ -71,9 +71,9 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange, isColl
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
-            <PanelLeftOpen className="w-5 h-5 text-text-primary" />
+            <PanelLeftOpen className="w-5 h-5 text-primary" />
           ) : (
-            <PanelLeftClose className="w-5 h-5 text-text-primary" />
+            <PanelLeftClose className="w-5 h-5 text-primary" />
           )}
         </button>
       </div>

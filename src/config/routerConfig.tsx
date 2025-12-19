@@ -13,7 +13,7 @@ import { CompanyRoute } from "../layout/CompanyRoute";
 
 import { VoicebotDashboard } from "../pages/voicebot/VoicebotDashboard";
 import { VoicebotCRM } from "../pages/voicebot/VoicebotCRM";
-import { VoicebotIntegrations } from "../pages/voicebot/VoicebotIntegrations";
+import VoicebotInsights from "../pages/voicebot/VoicebotInsights";
 import { VoicebotSettings } from "../pages/voicebot/VoicebotSettings";
 
 import { CRMDashboard } from "../pages/crm/CRMDashboard";
@@ -58,8 +58,8 @@ export const router = createBrowserRouter([
                 element: <VoicebotCalls />,
             },
             {
-                path: "voicebot/integrations",
-                element: <VoicebotIntegrations />,
+                path: "voicebot/insights",
+                element: <VoicebotInsights />,
             },
             {
                 path: "voicebot/settings",

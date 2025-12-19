@@ -297,7 +297,7 @@ export function CompanyDashboard() {
               </div>
             </div>
             <div>
-              <metric.icon className="h-8 w-8 text-text-muted" />
+              <metric.icon className="h-8 w-8 text-primary" />
             </div>
 
           </div>
