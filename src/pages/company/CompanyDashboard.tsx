@@ -297,7 +297,7 @@ export function CompanyDashboard() {
               </div>
             </div>
             <div>
-              <metric.icon className="h-8 w-8 text-primary" />
+              <metric.icon className="h-8 w-8 text-primary opacity-80" />
             </div>
 
           </div>
@@ -305,7 +305,7 @@ export function CompanyDashboard() {
       </div>
 
 
-      <Card>
+      <Card className="glass-morphism">
         <CardContent className="space-y-4">
           <BarChart data={metricsToChartData(metrics)} series={metricsSeries} />
         </CardContent>

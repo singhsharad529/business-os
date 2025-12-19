@@ -20,6 +20,7 @@ import { CRMDashboard } from "../pages/crm/CRMDashboard";
 import { CRMContacts } from "../pages/crm/CRMContacts";
 import { CRMDeals } from "../pages/crm/CRMDeals";
 import VoicebotCalls from "@/pages/voicebot/VoicebotCalls";
+import VoicebotLeadDatabase from "@/pages/voicebot/VoicebotLeadDatabase";
 
 export const router = createBrowserRouter([
     {
@@ -62,10 +63,9 @@ export const router = createBrowserRouter([
                 element: <VoicebotInsights />,
             },
             {
-                path: "voicebot/settings",
-                element: <VoicebotSettings />,
+                path: "voicebot/leads-database",
+                element: <VoicebotLeadDatabase />,
             },
-
             // CRM ROUTES
             {
                 path: "crm/dashboard",

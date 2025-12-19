@@ -1,6 +1,5 @@
 
 
-import { Progress } from "@/components/ui/progress"
 import { Activity, Mail, Phone } from "lucide-react"
 
 
@@ -16,7 +15,7 @@ function ActionsInsight() {
                 <div className="space-y-4">
                     <div className="flex gap-4 items-center justify-between bg-primary-soft/30 p-4 rounded-xl">
                         <div className="flex gap-4 items-center">
-                            <Mail className="w-8 h-8 text-primary opacity-60" />
+                            <Mail className="w-6 h-6 text-primary opacity-60" />
                             <div className="flex flex-col">
                                 <h6 className="text-md font-semibold">Emails Sent</h6>
                                 <p className="text-sm text-text-muted">Automated follow-ups</p>
@@ -31,7 +30,7 @@ function ActionsInsight() {
 
                     <div className="flex gap-4 items-center justify-between bg-primary-soft/30 p-4 rounded-xl">
                         <div className="flex gap-4 items-center">
-                            <Activity className="w-8 h-8 text-primary opacity-60" />
+                            <Activity className="w-6 h-6 text-primary opacity-60" />
                             <div className="flex flex-col">
                                 <h6 className="text-md font-semibold">Calendar Events Created</h6>
                                 <p className="text-sm text-text-muted">Scheduled appointments</p>
@@ -46,7 +45,7 @@ function ActionsInsight() {
 
                     <div className="flex gap-4 items-center justify-between bg-primary-soft/30 p-4 rounded-xl">
                         <div className="flex gap-4 items-center">
-                            <Phone className="w-8 h-8 text-primary opacity-60" />
+                            <Phone className="w-6 h-6 text-primary opacity-60" />
                             <div className="flex flex-col">
                                 <h6 className="text-md font-semibold">WhatsApp Messages</h6>
                                 <p className="text-sm text-text-muted">Instant communications</p>
