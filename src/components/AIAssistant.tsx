@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Sparkles, X, Send, MessageCircleX, Mic, MicOff } from 'lucide-react';
+import { Sparkles, X, Send, MessageCircleX, Mic, MicOff, Plus, FileText, Paperclip } from 'lucide-react';
 
 
 const SAMPLE_QUERIES = [
@@ -25,6 +25,35 @@ export function AIAssistant() {
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([
     { role: 'assistant', content: 'Hello! I\'m your AI assistant. I can help you search records, extract data from documents, and provide insights. Try asking me something!' }
   ]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      setShowPlusMenu(false);
+    }
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowPlusMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSend = useCallback((text: string) => {
     if (!text.trim()) return;
@@ -96,8 +125,21 @@ export function AIAssistant() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleSend(query);
+    if (!query.trim() && !uploadedFile) return;
+
+    let messageContent = query;
+    if (uploadedFile) {
+      messageContent = query
+        ? `${query}\n(File attached: ${uploadedFile.name})`
+        : `Sent a file: ${uploadedFile.name}`;
+    }
+
+    handleSend(messageContent);
     setQuery('');
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -114,7 +156,7 @@ export function AIAssistant() {
       }
 
       {isOpen && (
-        <div className="fixed bottom-4 right-4 w-[400px] h-[520px] bg-white/95 backdrop-blur-lg rounded-xl shadow-card border border-border-subtle flex flex-col z-40">
+        <div className="fixed bottom-4 right-4 w-[420px] h-[540px] bg-white/95 backdrop-blur-lg rounded-xl shadow-card border border-border-subtle flex flex-col z-40">
           <div className='flex justify-between bg-gradient-to-r from-primary to-accent text-white rounded-t-xl shadow-soft opacity-95 px-4'>
             <div className="p-4 text-white rounded-t-xl shadow-soft opacity-90">
               <div className="flex items-center gap-2">
@@ -165,8 +207,59 @@ export function AIAssistant() {
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="p-3 bg-bg/90 rounded-b-xl border-t border-border-subtle">
-            <div className="flex gap-2">
+          <form onSubmit={handleSubmit} className="p-3 bg-bg/90 rounded-b-xl border-t border-border-subtle relative">
+            {uploadedFile && (
+              <div className="mb-2 px-2 py-1.5 bg-primary/5 border border-primary/20 rounded-lg flex items-center justify-between animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                  <span className="text-[11px] text-text-main truncate font-medium">{uploadedFile.name}</span>
+                  <span className="text-[10px] text-text-muted flex-shrink-0">({(uploadedFile.size / 1024).toFixed(1)} KB)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={removeFile}
+                  className="p-1 hover:bg-primary/10 rounded-full text-text-muted hover:text-red-500 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+
+            <div className="flex gap-2 relative">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                id="ai-file-upload"
+              />
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowPlusMenu(!showPlusMenu)}
+                  className={`btn px-2 flex items-center justify-center transition-all ${showPlusMenu ? 'bg-primary/10 text-primary border-primary/50' : 'bg-white text-text-muted hover:text-primary border border-border-subtle hover:border-primary/50'}`}
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+
+                {showPlusMenu && (
+                  <div
+                    ref={menuRef}
+                    className="absolute bottom-full left-0 mb-2 w-48 bg-white rounded-lg shadow-card border border-border-subtle py-1 z-50 animate-in fade-in slide-in-from-bottom-2"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full px-3 py-2 text-left text-xs text-text-main hover:bg-primary/5 flex items-center gap-2 transition-colors"
+                    >
+                      <Paperclip className="w-3.5 h-3.5 text-primary" />
+                      <span>Upload File</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <input
                 type="text"
                 value={query}
@@ -187,7 +280,7 @@ export function AIAssistant() {
                 </button>
                 <button
                   type="submit"
-                  disabled={!query.trim()}
+                  disabled={!query.trim() && !uploadedFile}
                   className="btn btn-primary px-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send className="w-3.5 h-3.5" />
