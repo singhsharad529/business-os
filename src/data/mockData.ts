@@ -584,3 +584,115 @@ export const mockCalls: CallRecord[] = [
     updatedAt: "2024-12-15T16:55:00Z",
   },
 ];
+
+export const mockVoicebotUsers = [
+  {
+    email: "benjamin.wilson@vertexgroup.com",
+    fullName: "Benjamin Wilson",
+    company: "Vertex Group",
+    subscription: "Professional",
+    verified: "Yes",
+    lastLogin: "Dec 20, 2025 15:18",
+  },
+  {
+    email: "olivia.lee@acmecorp.com",
+    fullName: "Olivia Lee",
+    company: "Acme Corp",
+    subscription: "Free",
+    verified: "Yes",
+    lastLogin: "Dec 20, 2025 10:05",
+  },
+  {
+    email: "william.white@summitpartners.com",
+    fullName: "William White",
+    company: "Summit Partners",
+    subscription: "Enterprise",
+    verified: "No",
+    lastLogin: "Dec 20, 2025 02:30",
+  },
+];
+
+export const mockCallSessions = [
+  {
+    sessionId: "b4096e39...",
+    customerPhone: "+12426075466",
+    status: "Completed",
+    duration: "7:11",
+    startTime: "Dec 20, 2025 05:57",
+  },
+  {
+    sessionId: "5837841d...",
+    customerPhone: "+18268099489",
+    status: "Failed",
+    duration: "4:40",
+    startTime: "Dec 20, 2025 05:31",
+  },
+  {
+    sessionId: "416ae03d...",
+    customerPhone: "+17806041629",
+    status: "Completed",
+    duration: "1:11",
+    startTime: "Dec 19, 2025 16:31",
+  },
+  {
+    sessionId: "fad9887e...",
+    customerPhone: "+13812193236",
+    status: "Completed",
+    duration: "8:56",
+    startTime: "Dec 19, 2025 13:24",
+  },
+];
+
+export const mockAnalyses = [
+  {
+    sessionId: "4b5b99d1...",
+    sentiment: "Positive",
+    extractedEmail: "james.lewis@summitpartners.com",
+    extractedName: "James Lewis",
+    intent: "General Inquiry",
+    followUp: "Yes",
+  },
+  {
+    sessionId: "2cf8b8ce...",
+    sentiment: "Positive",
+    extractedEmail: "charlotte.martinez@quantumlabs.com",
+    extractedName: "Charlotte Martinez",
+    intent: "Book Demo",
+    followUp: "Yes",
+  },
+  {
+    sessionId: "97027e1c...",
+    sentiment: "Negative",
+    extractedEmail: "noah.taylor@phoenixdigital.com",
+    extractedName: "Noah Taylor",
+    intent: "Request Callback",
+    followUp: "Yes",
+  },
+];
+
+export const mockVoicebotActions = [
+  {
+    analysisId: "468d9df2...",
+    toolUsed: "create_calendar_event",
+    status: "Failed",
+    timestamp: "Dec 19, 2025 06:13",
+  },
+  {
+    analysisId: "b6bbea1c...",
+    toolUsed: "update_crm",
+    status: "Success",
+    timestamp: "Dec 18, 2025 16:53",
+  },
+  {
+    analysisId: "f87fade4...",
+    toolUsed: "send_email",
+    status: "Success",
+    timestamp: "Dec 17, 2025 23:33",
+  },
+  {
+    analysisId: "5365eae6...",
+    toolUsed: "update_crm",
+    status: "Success",
+    timestamp: "Dec 16, 2025 11:35",
+  },
+];

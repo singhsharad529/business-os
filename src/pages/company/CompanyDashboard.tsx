@@ -255,7 +255,7 @@ export function CompanyDashboard() {
       {/* Top Summary Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-text-main">{getGreeting()}</h1>
+          <h1 className="text-3xl font-bold text-text-main">{user?.name}</h1>
           <p className="text-text-muted mt-1">
             Here's what needs your attention {timeContext === 'today' ? 'today' : `this ${timeContext}`}
           </p>

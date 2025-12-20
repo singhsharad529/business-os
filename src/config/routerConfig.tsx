@@ -50,10 +50,10 @@ export const router = createBrowserRouter([
                 path: "voicebot/dashboard",
                 element: <VoicebotDashboard />,
             },
-            {
-                path: "voicebot/crm",
-                element: <VoicebotCRM />,
-            },
+            // {
+            //     path: "voicebot/crm",
+            //     element: <VoicebotCRM />,
+            // },
             {
                 path: "voicebot/calls",
                 element: <VoicebotCalls />,
