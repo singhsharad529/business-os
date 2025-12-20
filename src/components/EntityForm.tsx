@@ -107,7 +107,7 @@ export function EntityForm({ templateName, entity, onSave, onCancel }: EntityFor
               required={field.required}
             >
               <option value="">Select...</option>
-              {field.options?.map((opt) => (
+              {field.options?.map((opt: string) => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
