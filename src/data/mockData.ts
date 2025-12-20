@@ -236,6 +236,7 @@ export const mockEntities: Entity[] = [
       items: "Steel Beams (500 units)",
       validUntil: "2024-12-15",
       deliveryDate: "2025-01-15",
+      type: "received",
     },
   },
   {
@@ -255,6 +256,7 @@ export const mockEntities: Entity[] = [
       items: "Circuit Boards (200 units)",
       validUntil: "2024-12-20",
       deliveryDate: "2025-02-01",
+      type: "created",
     },
   },
   {
