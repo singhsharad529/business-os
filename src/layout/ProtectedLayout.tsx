@@ -96,9 +96,7 @@ export const ProtectedLayout = () => {
             <div
                 className="fixed inset-0 bg-cover bg-center bg-no-repeat"
                 style={{
-                    backgroundImage: "linear-gradient(180deg,#FCE4EA 0%,#7132CA 100%)",
-                    // backgroundImage: `url('/images/bg.webp')`,
-                    // backgroundColor: '#E8F4F8', // Fallback: light teal-blue
+                    backgroundImage: "linear-gradient(180deg,#FCE4EA 0%,#7132CA 100%)"
                 }}
             >
                 {/* Subtle overlay to enhance glass morphism effect */}
@@ -106,7 +104,7 @@ export const ProtectedLayout = () => {
             </div>
 
             {/* Main Layout Container */}
-            <div className="relative min-h-screen flex">
+            <div className="relative h-screen flex overflow-hidden">
                 {/* Fixed Left Sidebar */}
                 <Sidebar
                     selectedMenuId={selectedMenuId}
@@ -115,19 +113,20 @@ export const ProtectedLayout = () => {
                 />
 
                 {/* Main Content Area - Properly spaced from sidebar (dynamic based on collapsed state) */}
-                <div className="flex-1 relative min-h-screen transition-all duration-300" style={{ marginLeft: isCollapsed ? '80px' : '240px' }}>
+                <div className="flex-1 relative h-screen transition-all duration-300 overflow-hidden" style={{ marginLeft: isCollapsed ? '80px' : '240px' }}>
                     {/* Content Container - Large rounded white container */}
-                    <div className="relative z-10 min-h-screen py-6 pr-6">
+                    <div className="relative z-10 h-full py-4 pr-4 overflow-hidden">
                         {/* Main Content Container - Sandan style */}
                         <div className={`
-                            relative min-h-[calc(100vh-3rem)] 
+                            relative h-full
                             bg-white/45 backdrop-blur-xl
                             rounded-3xl shadow-2xl border border-white/30
                             transition-all duration-700 ease-out
+                            flex flex-col overflow-hidden
                             ${isAppsLaunchpad ? 'opacity-0 pointer-events-none scale-95 blur-sm' : 'opacity-100 scale-100 blur-0'}
                         `}>
                             {/* Top Navbar - Inside container */}
-                            <div className="sticky top-0 z-20 px-8 pt-6 pb-4 bg-transparent">
+                            <div className="sticky top-0 z-30 px-6 pt-6 pb-4 bg-transparent">
                                 <Navbar
                                     selectedMenuId={selectedMenuId}
                                 />
@@ -137,7 +136,7 @@ export const ProtectedLayout = () => {
                             {isAppsLaunchpad && <AppsLaunchpad />}
 
                             {/* Main Content Area */}
-                            <main className="relative px-8 pb-8">
+                            <main className="flex-1 overflow-y-auto px-6 pb-8 relative">
                                 <Outlet />
                             </main>
                         </div>

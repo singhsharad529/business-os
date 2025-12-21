@@ -255,7 +255,7 @@ export function CompanyDashboard() {
       {/* Top Summary Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-text-main">{getGreeting()}</h1>
+          <h1 className="text-3xl font-bold text-text-main">{user?.name}</h1>
           <p className="text-text-muted mt-1">
             Here's what needs your attention {timeContext === 'today' ? 'today' : `this ${timeContext}`}
           </p>
@@ -297,7 +297,7 @@ export function CompanyDashboard() {
               </div>
             </div>
             <div>
-              <metric.icon className="h-8 w-8 text-text-muted" />
+              <metric.icon className="h-8 w-8 text-primary opacity-80" />
             </div>
 
           </div>
@@ -305,7 +305,7 @@ export function CompanyDashboard() {
       </div>
 
 
-      <Card>
+      <Card className="glass-morphism">
         <CardContent className="space-y-4">
           <BarChart data={metricsToChartData(metrics)} series={metricsSeries} />
         </CardContent>

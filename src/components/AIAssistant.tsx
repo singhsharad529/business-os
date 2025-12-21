@@ -1,29 +1,67 @@
-import { useState } from 'react';
-import { Sparkles, X, Send } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Sparkles, X, Send, MessageCircleX, Mic, MicOff, Plus, FileText, Paperclip } from 'lucide-react';
+
+
+const SAMPLE_QUERIES = [
+  'Show loans maturing soon',
+  'Vendors with long lead time',
+  'View overdue invoices',
+  'Check quote status'
+];
+
+const mockResponses: Record<string, string> = {
+  'loans maturing': 'I found 2 loans maturing in the next 30 days: L-2024-0089 (Sarah Mitchell) on Oct 15, 2029, and L-2024-0102 (James Anderson) on Nov 1, 2027.',
+  'lead time': 'Based on your data, I found 2 vendors with lead times over 30 days: Global Electronics Ltd. (45 days) and Steel Suppliers Inc. (30 days).',
+  'overdue': 'You have 1 overdue invoice: INV-2024-0156 from Steel Suppliers Inc. for $45,000, due on Dec 15, 2024.',
+  'quote': 'You have 3 active quotes: 2 sent and 1 draft. The acceptance rate this month is 67%.',
+  'default': 'I can help you with:\n- Finding records (e.g., "show loans maturing soon")\n- Analyzing data (e.g., "vendors with long lead times")\n- Creating records (e.g., "create a new quote")\n- Extracting data from documents\n\nWhat would you like to know?'
+};
 
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([
     { role: 'assistant', content: 'Hello! I\'m your AI assistant. I can help you search records, extract data from documents, and provide insights. Try asking me something!' }
   ]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const mockResponses: Record<string, string> = {
-    'loans maturing': 'I found 2 loans maturing in the next 30 days: L-2024-0089 (Sarah Mitchell) on Oct 15, 2029, and L-2024-0102 (James Anderson) on Nov 1, 2027.',
-    'vendors lead time': 'Based on your data, I found 2 vendors with lead times over 30 days: Global Electronics Ltd. (45 days) and Steel Suppliers Inc. (30 days).',
-    'overdue invoices': 'You have 1 overdue invoice: INV-2024-0156 from Steel Suppliers Inc. for $45,000, due on Dec 15, 2024.',
-    'quote status': 'You have 3 active quotes: 2 sent and 1 draft. The acceptance rate this month is 67%.',
-    'default': 'I can help you with:\n- Finding records (e.g., "show loans maturing soon")\n- Analyzing data (e.g., "vendors with long lead times")\n- Creating records (e.g., "create a new quote")\n- Extracting data from documents\n\nWhat would you like to know?'
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      setShowPlusMenu(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  const removeFile = () => {
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
-    setMessages(prev => [...prev, { role: 'user', content: query }]);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowPlusMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSend = useCallback((text: string) => {
+    if (!text.trim()) return;
+
+    setMessages(prev => [...prev, { role: 'user', content: text }]);
 
     setTimeout(() => {
-      const lowerQuery = query.toLowerCase();
+      const lowerQuery = text.toLowerCase();
       let response = mockResponses.default;
 
       for (const [key, value] of Object.entries(mockResponses)) {
@@ -35,27 +73,103 @@ export function AIAssistant() {
 
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
     }, 500);
+  }, []);
 
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onerror = (event: any) => {
+        if (event.error === 'no-speech') {
+          setIsListening(false);
+          return;
+        }
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        handleSend(transcript);
+        setQuery('');
+        setIsListening(false);
+      };
+    }
+  }, [handleSend]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in your browser.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim() && !uploadedFile) return;
+
+    let messageContent = query;
+    if (uploadedFile) {
+      messageContent = query
+        ? `${query}\n(File attached: ${uploadedFile.name})`
+        : `Sent a file: ${uploadedFile.name}`;
+    }
+
+    handleSend(messageContent);
     setQuery('');
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-primary-strong via-primary to-accent text-white rounded-full shadow-glow flex items-center justify-center transition-all z-40 hover:scale-110 hover:shadow-card"
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
-      </button>
+      {
+        !isOpen && (
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="fixed bottom-4 right-4 w-12 h-12 bg-gradient-to-r from-primary-strong via-primary to-accent text-white rounded-full shadow-glow flex items-center justify-center transition-all z-30 hover:scale-110 hover:shadow-card shadow-card"
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
+          </button>
+        )
+      }
 
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white/95 backdrop-blur-lg rounded-xl shadow-card border border-border-subtle flex flex-col z-40">
-          <div className="p-4 bg-gradient-to-r from-primary to-accent text-white rounded-t-xl shadow-soft">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              <h3 className="text-sm font-semibold">AI Assistant</h3>
+        <div className="fixed bottom-4 right-4 w-[420px] h-[540px] bg-white/95 backdrop-blur-lg rounded-xl shadow-card border border-border-subtle flex flex-col z-30">
+          <div className='flex justify-between bg-gradient-to-r from-primary to-accent text-white rounded-t-xl shadow-soft opacity-95 px-4'>
+            <div className="p-4 text-white rounded-t-xl shadow-soft opacity-90">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                <h3 className="text-md text-white font-semibold">AI Assistant</h3>
+              </div>
+              <p className="text-sm mt-0.5">Ask me anything about your data</p>
             </div>
-            <p className="text-xs opacity-90 mt-0.5">Ask me anything about your data</p>
+            <div className='mt-4'>
+              <button onClick={() => setIsOpen(false)}>
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-white via-white to-bg/60">
@@ -74,23 +188,104 @@ export function AIAssistant() {
                 </div>
               </div>
             ))}
+
+            {messages.length === 1 && (
+              <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border-subtle">
+                <p className="text-[10px] text-text-muted uppercase font-semibold tracking-wider px-1">Ask me anything</p>
+                <div className="flex flex-wrap gap-2">
+                  {SAMPLE_QUERIES.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => handleSend(q)}
+                      className="text-[11px] bg-white hover:bg-primary/5 text-primary border border-primary/20 hover:border-primary/40 px-3 py-1.5 rounded-full transition-all text-left shadow-sm"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          <form onSubmit={handleSubmit} className="p-3 bg-bg/90 rounded-b-xl border-t border-border-subtle">
-            <div className="flex gap-2">
+          <form onSubmit={handleSubmit} className="p-3 bg-bg/90 rounded-b-xl border-t border-border-subtle relative">
+            {uploadedFile && (
+              <div className="mb-2 px-2 py-1.5 bg-primary/5 border border-primary/20 rounded-lg flex items-center justify-between animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                  <span className="text-[11px] text-text-main truncate font-medium">{uploadedFile.name}</span>
+                  <span className="text-[10px] text-text-muted flex-shrink-0">({(uploadedFile.size / 1024).toFixed(1)} KB)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={removeFile}
+                  className="p-1 hover:bg-primary/10 rounded-full text-text-muted hover:text-red-500 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+
+            <div className="flex gap-2 relative">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                id="ai-file-upload"
+              />
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowPlusMenu(!showPlusMenu)}
+                  className={`btn px-2 flex items-center justify-center transition-all ${showPlusMenu ? 'bg-primary/10 text-primary border-primary/50' : 'bg-white text-text-muted hover:text-primary border border-border-subtle hover:border-primary/50'}`}
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+
+                {showPlusMenu && (
+                  <div
+                    ref={menuRef}
+                    className="absolute bottom-full left-0 mb-2 w-48 bg-white rounded-lg shadow-card border border-border-subtle py-1 z-50 animate-in fade-in slide-in-from-bottom-2"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full px-3 py-2 text-left text-xs text-text-main hover:bg-primary/5 flex items-center gap-2 transition-colors"
+                    >
+                      <Paperclip className="w-3.5 h-3.5 text-primary" />
+                      <span>Upload File</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask me anything..."
-                className="input flex-1 bg-white"
+                placeholder={isListening ? "Listening..." : "Ask me anything..."}
+                className={`input flex-1 bg-white transition-all ${isListening ? 'border-primary ring-2 ring-primary/20' : ''}`}
               />
-              <button
-                type="submit"
-                className="btn btn-primary px-3"
-              >
-                <Send className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  className={`btn px-3 flex items-center justify-center transition-all ${isListening
+                    ? 'bg-red-500 text-white animate-pulse hover:bg-red-600'
+                    : 'bg-white text-text-muted hover:text-primary border border-border-subtle hover:border-primary/50'
+                    }`}
+                >
+                  {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                </button>
+                <button
+                  type="submit"
+                  disabled={!query.trim() && !uploadedFile}
+                  className="btn btn-primary px-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </form>
         </div>

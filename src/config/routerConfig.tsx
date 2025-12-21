@@ -13,13 +13,14 @@ import { CompanyRoute } from "../layout/CompanyRoute";
 
 import { VoicebotDashboard } from "../pages/voicebot/VoicebotDashboard";
 import { VoicebotCRM } from "../pages/voicebot/VoicebotCRM";
-import { VoicebotIntegrations } from "../pages/voicebot/VoicebotIntegrations";
+import VoicebotInsights from "../pages/voicebot/VoicebotInsights";
 import { VoicebotSettings } from "../pages/voicebot/VoicebotSettings";
 
 import { CRMDashboard } from "../pages/crm/CRMDashboard";
 import { CRMContacts } from "../pages/crm/CRMContacts";
 import { CRMDeals } from "../pages/crm/CRMDeals";
 import VoicebotCalls from "@/pages/voicebot/VoicebotCalls";
+import VoicebotLeadDatabase from "@/pages/voicebot/VoicebotLeadDatabase";
 
 export const router = createBrowserRouter([
     {
@@ -49,23 +50,22 @@ export const router = createBrowserRouter([
                 path: "voicebot/dashboard",
                 element: <VoicebotDashboard />,
             },
-            {
-                path: "voicebot/crm",
-                element: <VoicebotCRM />,
-            },
+            // {
+            //     path: "voicebot/crm",
+            //     element: <VoicebotCRM />,
+            // },
             {
                 path: "voicebot/calls",
                 element: <VoicebotCalls />,
             },
             {
-                path: "voicebot/integrations",
-                element: <VoicebotIntegrations />,
+                path: "voicebot/insights",
+                element: <VoicebotInsights />,
             },
             {
-                path: "voicebot/settings",
-                element: <VoicebotSettings />,
+                path: "voicebot/leads-database",
+                element: <VoicebotLeadDatabase />,
             },
-
             // CRM ROUTES
             {
                 path: "crm/dashboard",

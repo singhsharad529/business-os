@@ -113,3 +113,14 @@ export interface CallRecord {
   createdAt: string;
   updatedAt: string;
 }
+export interface Agent {
+  id: string;
+  configuration: string;
+  industry: string;
+  language: string;
+  region: string;
+  mobileNumber: string;
+  websiteName?: string;
+  domain?: string;
+  customContext?: string;
+}

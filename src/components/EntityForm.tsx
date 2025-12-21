@@ -12,9 +12,15 @@ interface EntityFormProps {
   onCancel: () => void;
 }
 
+import { QuoteForm } from './QuoteForm';
+
 export function EntityForm({ templateName, entity, onSave, onCancel }: EntityFormProps) {
   const { user } = useAuth();
   const { createEntity, updateEntity } = useData();
+
+  if (templateName === 'Quotes') {
+    return <QuoteForm entity={entity} onSave={onSave} onCancel={onCancel} />;
+  }
 
   const [formData, setFormData] = useState<Record<string, any>>(
     entity?.data || getDefaultFields(templateName)
@@ -101,7 +107,7 @@ export function EntityForm({ templateName, entity, onSave, onCancel }: EntityFor
               required={field.required}
             >
               <option value="">Select...</option>
-              {field.options?.map((opt) => (
+              {field.options?.map((opt: string) => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>

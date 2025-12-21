@@ -49,7 +49,7 @@ export function VoicebotDashboard() {
         </div>
       </div>
 
-      <Card>
+      <Card className="glass-morphism">
         <CardContent className="space-y-4">
           <BarChart data={callData} series={callSeries} />
         </CardContent>
