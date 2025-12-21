@@ -148,7 +148,7 @@ export function AIAssistant() {
         !isOpen && (
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-primary-strong via-primary to-accent text-white rounded-full shadow-glow flex items-center justify-center transition-all z-30 hover:scale-110 hover:shadow-card shadow-card"
+            className="fixed bottom-4 right-4 w-12 h-12 bg-gradient-to-r from-primary-strong via-primary to-accent text-white rounded-full shadow-glow flex items-center justify-center transition-all z-30 hover:scale-110 hover:shadow-card shadow-card"
           >
             {isOpen ? <X className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
           </button>

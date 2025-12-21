@@ -10,9 +10,10 @@ import { Agent } from "../../types";
 interface NewAgentProps {
     agent?: Agent;
     onSuccess?: (agent: Partial<Agent>) => void;
+    onCancel?: () => void;
 }
 
-function NewAgent({ agent, onSuccess }: NewAgentProps) {
+function NewAgent({ agent, onSuccess, onCancel }: NewAgentProps) {
     const [formData, setFormData] = useState({
         name: agent?.configuration.split(" - ")[1] || "", // Extracting name from config for demo
         configuration: agent?.configuration || "",
@@ -183,7 +184,7 @@ function NewAgent({ agent, onSuccess }: NewAgentProps) {
                         name="customContext"
                         value={formData.customContext}
                         onChange={handleChange}
-                        className="input min-h-[120px] resize-none"
+                        className="input min-h-[100px] resize-none"
                         placeholder="Describe your products, services, policies, or FAQs here..."
                     />
                     <p className="text-[10px] text-text-muted mt-1 italic">
@@ -192,9 +193,15 @@ function NewAgent({ agent, onSuccess }: NewAgentProps) {
                 </div>
             </div>
 
-            <div className="flex justify-end">
-                <button type="submit" className="btn btn-primary px-8">
+            <div className="flex gap-2">
+                <button type="submit" className="btn btn-primary flex-1">
                     {agent ? "Update Agent" : "Create Agent"}
+                </button>
+                <button type="button"
+                    className="btn btn-secondary"
+                    onClick={onCancel}
+                >
+                    Cancel
                 </button>
             </div>
         </form>

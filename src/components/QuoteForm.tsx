@@ -221,7 +221,7 @@ export function QuoteForm({ entity, onSave, onCancel }: QuoteFormProps) {
                     {(activeTab === 'created' || uploadedFile || entity) && (
                         <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
                             <div className="col-span-2">
-                                <label className="block text-xs font-medium text-text-main mb-1.5 uppercase tracking-wider">
+                                <label className="block text-xs font-medium text-text-main uppercase tracking-wider">
                                     Quote Name <span className="text-danger">*</span>
                                 </label>
                                 <input
@@ -270,7 +270,7 @@ export function QuoteForm({ entity, onSave, onCancel }: QuoteFormProps) {
 
                                 {activeTab === 'created' ? (
                                     <div className="quill-editor-container border border-border rounded-xl overflow-hidden bg-white focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                                        <div ref={editorRef} className="min-h-[200px]" />
+                                        <div ref={editorRef} className="min-h-[140px]" />
                                     </div>
                                 ) : (
                                     <textarea
@@ -284,15 +284,15 @@ export function QuoteForm({ entity, onSave, onCancel }: QuoteFormProps) {
                         </div>
                     )}
 
-                    <div className="flex gap-3 pt-6">
+                    <div className="flex gap-3">
                         <button
                             type="submit"
-                            className="btn btn-primary flex-1 py-3 font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
+                            className="btn btn-primary flex-1 font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
                             disabled={isExtracting || (!uploadedFile && !entity && activeTab === 'received')}
                         >
                             {entity ? 'Update' : 'Save'} Quote
                         </button>
-                        <button type="button" onClick={onCancel} className="btn btn-secondary py-3 px-6">
+                        <button type="button" onClick={onCancel} className="btn btn-secondary">
                             Cancel
                         </button>
                     </div>

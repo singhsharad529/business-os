@@ -308,7 +308,9 @@ export default function VoicebotCalls() {
                 title="Agent Configuration"
                 size="md"
             >
-                <NewAgent onSuccess={() => setIsNewAgentOpen(false)} />
+                <NewAgent onSuccess={() => setIsNewAgentOpen(false)}
+                    onCancel={() => setIsNewAgentOpen(false)}
+                />
             </SideSheet>
 
             <SideSheet
@@ -321,6 +323,7 @@ export default function VoicebotCalls() {
                     <NewAgent
                         agent={selectedAgentToEdit}
                         onSuccess={() => setIsEditAgentOpen(false)}
+                        onCancel={() => setIsEditAgentOpen(false)}
                     />
                 )}
             </SideSheet>

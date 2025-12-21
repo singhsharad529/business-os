@@ -175,10 +175,10 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
             {showDropdown && (
               <>
                 <div
-                  className="fixed inset-0 z-10"
+                  className="fixed inset-0 z-[100]"
                   onClick={() => setShowDropdown(false)}
                 />
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-white/20 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-white/20 py-2 z-[110] animate-in fade-in slide-in-from-top-2 duration-500">
                   {/* User Info Header */}
                   <div className="px-4 py-3">
                     <div className="flex items-center gap-3">
