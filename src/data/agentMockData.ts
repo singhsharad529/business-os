@@ -66,3 +66,50 @@ export const mockAgents: Agent[] = [
     mobileNumber: "+1-555-0102",
   },
 ];
+
+export const agentConfigurations = [
+  "Consultant - E-commerce",
+  "Consultant - Healthcare",
+  "Consultant - Real Estate",
+  "Consultant - IT",
+  "Sales - E-commerce",
+  "Sales - Healthcare",
+  "Sales - Real Estate",
+  "Sales - IT",
+  "Support - E-commerce",
+  "Support - Healthcare",
+  "Support - Real Estate",
+  "Support - IT",
+];
+
+export const agentRoles = [
+  "Consultant",
+  "Sales",
+  "Support",
+  "Analyst",
+  "Manager",
+];
+
+export const agentLanguages = [
+  "English (US)",
+  "English (UK)",
+  "Hindi",
+  "Spanish",
+  "French",
+  "German",
+  "Arabic",
+  "Chinese",
+  "Japanese",
+  "Portuguese",
+];
+
+export const agentRegions = [
+  "North America",
+  "Europe",
+  "South Asia",
+  "East Asia",
+  "Latin America",
+  "Middle East",
+  "Africa",
+  "Oceania",
+];

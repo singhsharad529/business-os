@@ -120,4 +120,7 @@ export interface Agent {
   language: string;
   region: string;
   mobileNumber: string;
+  websiteName?: string;
+  domain?: string;
+  customContext?: string;
 }
