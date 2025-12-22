@@ -287,12 +287,12 @@ export function QuoteForm({ entity, onSave, onCancel }: QuoteFormProps) {
                     <div className="flex gap-3">
                         <button
                             type="submit"
-                            className="btn btn-primary flex-1 font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
+                            className="btn btn-primary flex-1 font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 rounded-xl"
                             disabled={isExtracting || (!uploadedFile && !entity && activeTab === 'received')}
                         >
                             {entity ? 'Update' : 'Save'} Quote
                         </button>
-                        <button type="button" onClick={onCancel} className="btn btn-secondary">
+                        <button type="button" onClick={onCancel} className="btn btn-secondary rounded-xl">
                             Cancel
                         </button>
                     </div>

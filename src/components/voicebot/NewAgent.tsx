@@ -194,11 +194,11 @@ function NewAgent({ agent, onSuccess, onCancel }: NewAgentProps) {
             </div>
 
             <div className="flex gap-2">
-                <button type="submit" className="btn btn-primary flex-1">
+                <button type="submit" className="btn btn-primary flex-1 rounded-xl">
                     {agent ? "Update Agent" : "Create Agent"}
                 </button>
                 <button type="button"
-                    className="btn btn-secondary"
+                    className="btn btn-secondary rounded-xl"
                     onClick={onCancel}
                 >
                     Cancel

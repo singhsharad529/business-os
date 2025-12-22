@@ -5,6 +5,7 @@ import type {
   Activity,
   Alert,
   CallRecord,
+  VoicebotUser,
 } from "../types";
 
 export const mockUsers: User[] = [
@@ -587,7 +588,7 @@ export const mockCalls: CallRecord[] = [
   },
 ];
 
-export const mockVoicebotUsers = [
+export const mockVoicebotUsers: VoicebotUser[] = [
   {
     email: "benjamin.wilson@vertexgroup.com",
     fullName: "Benjamin Wilson",

@@ -115,12 +115,24 @@ export interface CallRecord {
 }
 export interface Agent {
   id: string;
+  name: string;
   configuration: string;
   industry: string;
   language: string;
   region: string;
   mobileNumber: string;
+  specialty?: string;
+  voice?: string;
   websiteName?: string;
   domain?: string;
   customContext?: string;
+}
+
+export interface VoicebotUser {
+  email: string;
+  fullName: string;
+  company: string;
+  subscription: string;
+  verified: string;
+  lastLogin: string;
 }
