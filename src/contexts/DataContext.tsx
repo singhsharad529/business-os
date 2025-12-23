@@ -19,6 +19,10 @@ interface DataContextType {
   createCompany: (company: Omit<Company, 'id' | 'createdAt'>) => Company;
   updateCompany: (id: string, updates: Partial<Company>) => void;
   deleteCompany: (id: string) => void;
+  voiceBotDashboardData: any;
+  setVoiceBotDashboardData: (data: any) => void;
+  agents: any;
+  setAgents: (data: any) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -28,6 +32,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [entities, setEntities] = useState<Entity[]>(mockEntities);
   const [activities, setActivities] = useState<Activity[]>(mockActivities);
   const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
+
+  const [voiceBotDashboardData, setVoiceBotDashboardData] = useState<any>({});
+  const [agents, setAgents] = useState<any>([]);
+
 
   const getCompany = (id: string) => companies.find((c) => c.id === id);
 
@@ -123,6 +131,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         createCompany,
         updateCompany,
         deleteCompany,
+        voiceBotDashboardData,
+        setVoiceBotDashboardData,
+        agents,
+        setAgents
       }}
     >
       {children}

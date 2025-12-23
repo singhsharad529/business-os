@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '../types';
 import { mockUsers } from '../data/mockData';
+import userService from '@/api/userService';
 
 interface AuthContextType {
   user: User | null;
@@ -25,15 +26,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<User | null> => {
 
-    const foundUser = mockUsers.find(
-      (u) => u.email === email && u.password === password
-    );
+    try {
 
-    if (foundUser) {
-      const userWithoutPassword = { ...foundUser, password: '' };
-      setUser(userWithoutPassword);
-      localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
-      return userWithoutPassword;
+      const foundUser = mockUsers.find(
+        (u) => u.email === email && u.password === password
+      );
+
+      if (foundUser) {
+
+        const response = await userService.login({ email, password }, {});
+        if (response) {
+          localStorage.setItem('businessos_access_token', response.access_token);
+        }
+        else {
+          return null;
+        }
+
+        const userWithoutPassword = { ...foundUser, password: '' };
+        setUser(userWithoutPassword);
+        localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
+
+        return userWithoutPassword;
+      }
+
+    }
+    catch (error) {
+      console.error(error);
+      return null;
     }
 
     return null;

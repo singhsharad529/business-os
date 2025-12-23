@@ -10,7 +10,7 @@ import axios from "axios";
 //     ? import.meta.env.REACT_APP_PROD
 //     : import.meta.env.REACT_APP_DEFAULT;
 
-const baseURL = import.meta.env.VITE_SERVER_URL;
+const baseURL = import.meta.env.VITE_VOICEBOT_URL;
 
 const apiClient = axios.create({
   baseURL, // Dynamically set baseURL
@@ -22,13 +22,13 @@ const apiClient = axios.create({
 });
 
 // Optional: Attach token if available
-// apiClient.interceptors.request.use((config) => {
-//   const accessToken = localStorage.getItem("access_token");
-//   if (accessToken) {
-//     config.headers.Authorization = `Bearer ${accessToken}`;
-//   }
-//   return config;
-// });
+apiClient.interceptors.request.use((config) => {
+  const accessToken = localStorage.getItem("businessos_access_token");
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
 
 // Optional: Global error handler
 apiClient.interceptors.response.use(

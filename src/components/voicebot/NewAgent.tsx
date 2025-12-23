@@ -4,6 +4,7 @@ import {
     agentRoles,
     agentLanguages,
     agentRegions,
+    mobileNumbers,
 } from "../../data/agentMockData";
 import { Agent } from "../../types";
 
@@ -23,6 +24,7 @@ function NewAgent({ agent, onSuccess, onCancel }: NewAgentProps) {
         websiteName: agent?.websiteName || "",
         domain: agent?.domain || "",
         customContext: agent?.customContext || "",
+        number: agent?.mobileNumber || "",
     });
 
     useEffect(() => {
@@ -36,6 +38,7 @@ function NewAgent({ agent, onSuccess, onCancel }: NewAgentProps) {
                 websiteName: agent.websiteName || "",
                 domain: agent.domain || "",
                 customContext: agent.customContext || "",
+                number: agent.mobileNumber || "",
             });
         }
     }, [agent]);
@@ -64,25 +67,6 @@ function NewAgent({ agent, onSuccess, onCancel }: NewAgentProps) {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                    <div>
-                        <label className="text-xs font-medium text-text-main mb-1 block">
-                            Configuration <span className="text-danger">*</span>
-                        </label>
-                        <select
-                            name="configuration"
-                            value={formData.configuration}
-                            onChange={handleChange}
-                            className="input"
-                            required
-                        >
-                            <option value="">Select Configuration</option>
-                            {agentConfigurations.map((config) => (
-                                <option key={config} value={config}>
-                                    {config}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
 
                     <div>
                         <label className="text-xs font-medium text-text-main mb-1 block">
@@ -105,6 +89,28 @@ function NewAgent({ agent, onSuccess, onCancel }: NewAgentProps) {
                     </div>
 
                     <div>
+                        <label className="text-xs font-medium text-text-main mb-1 block">
+                            Configuration <span className="text-danger">*</span>
+                        </label>
+                        <select
+                            name="configuration"
+                            value={formData.configuration}
+                            onChange={handleChange}
+                            className="input"
+                            required
+                        >
+                            <option value="">Select Configuration</option>
+                            {agentConfigurations.map((config) => (
+                                <option key={config} value={config}>
+                                    {config}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+
+
+                    <div>
                         <label className="text-xs font-medium text-text-main mb-1 block">Language</label>
                         <select
                             name="language"
@@ -121,75 +127,22 @@ function NewAgent({ agent, onSuccess, onCancel }: NewAgentProps) {
                         </select>
                     </div>
                     <div>
-                        <label className="text-xs font-medium text-text-main mb-1 block">Region</label>
+                        <label className="text-xs font-medium text-text-main mb-1 block">Number</label>
                         <select
-                            name="region"
-                            value={formData.region}
+                            name="number"
+                            value={formData.number}
                             onChange={handleChange}
                             className="input"
                         >
-                            <option value="">Select Region</option>
-                            {agentRegions.map((region) => (
-                                <option key={region} value={region}>
-                                    {region}
+                            <option value="">Select Number</option>
+                            {mobileNumbers.map((number) => (
+                                <option key={number} value={number}>
+                                    {number}
                                 </option>
                             ))}
                         </select>
                     </div>
 
-                </div>
-            </div>
-
-            {/* Business Context Section */}
-            <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-text-main border-b border-border-subtle pb-2">
-                    Business Context
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-xs font-medium text-text-main mb-1 block">Website Name</label>
-                        <input
-                            type="text"
-                            name="websiteName"
-                            value={formData.websiteName}
-                            onChange={handleChange}
-                            className="input"
-                            placeholder="e.g. Acme Corp"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-xs font-medium text-text-main mb-1 block">Domain</label>
-                        <input
-                            type="text"
-                            name="domain"
-                            value={formData.domain}
-                            onChange={handleChange}
-                            className="input"
-                            placeholder="e.g. acme.com"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Custom Context Section */}
-            <div className="space-y-4 pt-2">
-                <h3 className="text-sm font-semibold text-text-main border-b border-border-subtle pb-2">
-                    Custom Context
-                </h3>
-                <div>
-                    <label className="text-xs font-medium text-text-main mb-1 block">
-                        Knowledge Base / Instructions
-                    </label>
-                    <textarea
-                        name="customContext"
-                        value={formData.customContext}
-                        onChange={handleChange}
-                        className="input min-h-[100px] resize-none"
-                        placeholder="Describe your products, services, policies, or FAQs here..."
-                    />
-                    <p className="text-[10px] text-text-muted mt-1 italic">
-                        This information will be used by the agent to answer customer queries.
-                    </p>
                 </div>
             </div>
 

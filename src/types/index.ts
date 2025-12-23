@@ -115,7 +115,6 @@ export interface CallRecord {
 }
 export interface Agent {
   id: string;
-  name: string;
   configuration: string;
   industry: string;
   language: string;
