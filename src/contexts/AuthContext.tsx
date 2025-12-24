@@ -17,11 +17,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('businessos_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    const initAuth = () => {
+      try {
+        const storedUser = localStorage.getItem('businessos_user');
+        console.log('Stored user from localStorage:', storedUser);
+
+        if (storedUser && storedUser !== 'undefined') {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser && typeof parsedUser === 'object') {
+            setUser(parsedUser);
+          } else {
+            console.warn('Invalid user data in localStorage');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user from localStorage:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
   const login = async (email: string, password: string): Promise<User | null> => {

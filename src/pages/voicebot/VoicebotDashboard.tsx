@@ -3,7 +3,7 @@ import BarChart from "@/components/chart/BarChart";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import voiceBotService from "@/api/voicebotService";
-import DashboardLoader from "@/components/common/dashboardLoader";
+import DashboardLoader from "@/components/common/DashboardLoader";
 import { useData } from "@/contexts/DataContext";
 
 import axios from "axios";

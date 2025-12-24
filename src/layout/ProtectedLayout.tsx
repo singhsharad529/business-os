@@ -16,6 +16,9 @@ export const ProtectedLayout = () => {
         const saved = localStorage.getItem('sidebarCollapsed');
         return saved ? JSON.parse(saved) : false;
     });
+    console.log('ProtectedLayout - user:', user);
+    console.log('ProtectedLayout - isLoading:', isLoading);
+
 
     useEffect(() => {
         localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed));

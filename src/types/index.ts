@@ -38,6 +38,22 @@ export interface Company {
   recordCount: number;
   storageUsage: number;
   aiUsage: number;
+  description?: string;
+  documents?: CompanyDocument[];
+  website?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  foundedDate?: string;
+  taxId?: string;
+}
+
+export interface CompanyDocument {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  uploadedAt: string;
 }
 
 export interface EntityTemplate {

@@ -95,6 +95,30 @@ export const mockCompanies: Company[] = [
     recordCount: 456,
     storageUsage: 2.4,
     aiUsage: 1250,
+    description:
+      "Acme Procurement is a leading provider of supply chain management and procurement solutions for global enterprises. We specialize in optimizing sourcing processes and reducing operational costs through advanced AI analytics and strategic supplier management. Our platform helps companies streamline their entire procurement lifecycle, from initial requisition to final payment, ensuring maximum efficiency and cost savings. With over a decade of experience in the industry, we have helped hundreds of organizations transform their procurement departments into centers of excellence.",
+    documents: [
+      {
+        id: "d1",
+        name: "Incorporation Certificate",
+        url: "#",
+        type: "PDF",
+        uploadedAt: "2024-02-01T10:00:00Z",
+      },
+      {
+        id: "d2",
+        name: "Tax Compliance",
+        url: "#",
+        type: "PDF",
+        uploadedAt: "2024-02-15T11:30:00Z",
+      },
+    ],
+    website: "https://acmeprocure.com",
+    contactEmail: "info@acmeprocure.com",
+    contactPhone: "+1-800-ACME-PRO",
+    address: "123 Procurement Pl, New York, NY 10001",
+    foundedDate: "2010-05-12",
+    taxId: "TX-987654321",
   },
   {
     id: "c-2",
@@ -110,6 +134,30 @@ export const mockCompanies: Company[] = [
     recordCount: 234,
     storageUsage: 1.8,
     aiUsage: 890,
+    description:
+      "FastLoan Financial provides quick and secure lending solutions for individuals and small businesses. Our AI-driven risk assessment ensures faster approvals and competitive rates. We are committed to financial inclusion, leveraging modern technology to provide credit access to those traditionally underserved by the banking sector. Our streamlined application process and transparent terms have made us a preferred partner for thousands of growing businesses looking for flexible capital solutions.",
+    documents: [
+      {
+        id: "d3",
+        name: "Financial License",
+        url: "#",
+        type: "PDF",
+        uploadedAt: "2024-03-01T09:00:00Z",
+      },
+      {
+        id: "d4",
+        name: "Privacy Policy",
+        url: "#",
+        type: "PDF",
+        uploadedAt: "2024-03-05T14:00:00Z",
+      },
+    ],
+    website: "https://fastloan.finance",
+    contactEmail: "support@fastloan.finance",
+    contactPhone: "+1-888-FAST-LOAN",
+    address: "456 Silicon Valley Blvd, San Francisco, CA 94105",
+    foundedDate: "2018-09-20",
+    taxId: "FL-123456789",
   },
   {
     id: "c-3",
@@ -125,6 +173,30 @@ export const mockCompanies: Company[] = [
     recordCount: 678,
     storageUsage: 3.2,
     aiUsage: 2100,
+    description:
+      "HomePro Services is your trusted partner for all home renovation and maintenance needs. From plumbing to full-scale remodeling, we deliver quality craftsmanship every time. Our team consists of licensed professionals who are dedicated to excellence and customer satisfaction. We take pride in our ability to handle projects of all sizes, from minor repairs to major additions, always with a focus on timeline adherence and budget management.",
+    documents: [
+      {
+        id: "d5",
+        name: "Business Insurance",
+        url: "#",
+        type: "PDF",
+        uploadedAt: "2024-04-01T08:30:00Z",
+      },
+      {
+        id: "d6",
+        name: "Service Agreement Template",
+        url: "#",
+        type: "DOCX",
+        uploadedAt: "2024-04-10T11:00:00Z",
+      },
+    ],
+    website: "https://homepros.services",
+    contactEmail: "hello@homepros.services",
+    contactPhone: "+1-312-HOME-PRO",
+    address: "789 Blue Ribbon Parkway, Chicago, IL 60611",
+    foundedDate: "2015-02-14",
+    taxId: "HP-456123789",
   },
   {
     id: "c-4",
@@ -140,6 +212,15 @@ export const mockCompanies: Company[] = [
     recordCount: 89,
     storageUsage: 0.5,
     aiUsage: 120,
+    description:
+      "TechStart Solutions helps early-stage startups build and scale their MVP with modern technology stacks and agile development methodologies. We provide fractional CTO services, full-stack development, and cloud infra management to ensure your product is built on a solid foundation from day one.",
+    documents: [],
+    website: "https://techstart.solutions",
+    contactEmail: "builders@techstart.solutions",
+    contactPhone: "+1-212-TECH-SOL",
+    address: "55 Innovation Way, Brooklyn, NY 11201",
+    foundedDate: "2022-11-01",
+    taxId: "TS-789456123",
   },
 ];
 
