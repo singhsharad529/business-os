@@ -33,6 +33,16 @@ const voiceBotService = {
     apiService.patch(`vapi/assistants/${vapiId}`, data, config),
   getCallLogs: (config: AxiosRequestConfig) =>
     apiService.get("vapi/call-logs", config),
+  linkPhoneNumber: (
+    vapiIdPhoneNumber: string,
+    assistantId: string | null,
+    config: AxiosRequestConfig
+  ) =>
+    apiService.patch(
+      `vapi/phone-numbers/${vapiIdPhoneNumber}/link`,
+      { assistantId },
+      config
+    ),
 };
 
 export default voiceBotService;

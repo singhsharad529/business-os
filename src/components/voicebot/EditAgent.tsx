@@ -38,6 +38,7 @@ function EditAgent({ agent, onSuccess, onCancel }: EditAgentProps) {
     const [dataLoading, setDataLoading] = useState<boolean>(false);
     const [confiLoading, setConfigLoading] = useState<boolean>(false);
     const [submitLoading, setSubmitLoading] = useState<boolean>(false);
+    const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         name: agent?.name || "",
@@ -46,6 +47,20 @@ function EditAgent({ agent, onSuccess, onCancel }: EditAgentProps) {
         language: agent?.metadata?.language || "",
         phoneNumberId: agent?.phoneNumbers?.[0]?.vapiId || "",
     });
+
+    const handlePhoneAction = async (vapiIdPhoneNumber: string, assistantId: string | null) => {
+        try {
+            setActionLoadingId(vapiIdPhoneNumber);
+            await voiceBotService.linkPhoneNumber(vapiIdPhoneNumber, assistantId, {});
+            toast.success(assistantId ? "Phone number linked successfully" : "Phone number unlinked successfully");
+            onSuccess?.();
+        } catch (error) {
+            console.error("Error updating phone number:", error);
+            toast.danger("Failed to update phone number link");
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
 
     useEffect(() => {
         const getAllAgentData = async () => {
@@ -205,21 +220,60 @@ function EditAgent({ agent, onSuccess, onCancel }: EditAgentProps) {
                         {dataLoading ? (
                             <Skeleton className="h-10" />
                         ) : (
-                            <Select
-                                value={formData.phoneNumberId}
-                                onValueChange={(value) => setFormData(p => ({ ...p, phoneNumberId: value }))}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select Number" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {numbers.map((number) => (
-                                        <SelectItem key={number.id} value={number.vapiId}>
-                                            {number.number}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <>
+                                <Select
+                                    value={formData.phoneNumberId}
+                                    onValueChange={(value) => setFormData(p => ({ ...p, phoneNumberId: value }))}
+                                    disabled={true}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select Number" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {numbers.map((number) => (
+                                            <SelectItem key={number.id} value={number.vapiId}>
+                                                {number.number}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+
+                                {agent?.phoneNumbers?.[0] && (
+                                    <div className="mt-2 space-y-1">
+                                        <p className="text-[10px] uppercase tracking-wider text-text-subtle font-semibold">Currently Linked</p>
+                                        <div
+                                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-xl text-xs text-primary cursor-pointer hover:bg-primary/10 transition-colors group"
+                                            onClick={() => handlePhoneAction(agent.phoneNumbers[0].vapiId, null)}
+                                        >
+                                            <span className="font-medium">{agent.phoneNumbers[0].number}</span>
+                                            <div className="h-3 w-[1px] bg-primary/20" />
+                                            <span className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                                                {actionLoadingId === agent.phoneNumbers[0].vapiId ? <Loader2 className="h-3 w-3 animate-spin" /> : <span className="underline decoration-primary/30 underline-offset-2">Unlink Number</span>}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {numbers.length > 0 && !agent?.phoneNumbers?.[0] && (
+                                    <div className="mt-3 space-y-2">
+                                        <p className="text-[10px] uppercase tracking-wider text-text-subtle font-semibold">Available Numbers</p>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {numbers.map((num) => (
+                                                <div
+                                                    key={num.id}
+                                                    className="flex items-center justify-between p-2 rounded-xl border border-border-subtle hover:border-primary/30 hover:bg-primary/5 transition-all group cursor-pointer"
+                                                    onClick={() => handlePhoneAction(num.vapiId, agent.vapiId)}
+                                                >
+                                                    <span className="text-xs font-medium text-text-main">{num.number}</span>
+                                                    <span className="text-[10px] text-primary flex items-center gap-1">
+                                                        {actionLoadingId === num.vapiId ? <Loader2 className="h-3 w-3 animate-spin" /> : <span className="underline opacity-0 group-hover:opacity-100 transition-opacity">Link Agent</span>}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
