@@ -18,6 +18,10 @@ const apiService = {
     const response = await apiClient.delete(url, config);
     return response.data;
   },
+  patch: async (url: string, data: unknown, config: AxiosRequestConfig) => {
+    const response = await apiClient.patch(url, data, config);
+    return response.data;
+  },
 };
 
 export default apiService;

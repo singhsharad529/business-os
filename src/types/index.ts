@@ -26,24 +26,28 @@ export interface User {
 
 export interface Company {
   id: string;
+  userId?: string;
   name: string;
   logo?: string;
-  timezone: string;
-  currency: string;
-  industry: "procurement" | "lending" | "home_services" | "general";
-  status: "active" | "inactive";
+  timezone?: string;
+  currency?: string;
+  industry?: "procurement" | "lending" | "home_services" | "general";
+  status?: "active" | "inactive";
   createdAt: string;
-  enabledModules: string[];
-  userCount: number;
-  recordCount: number;
-  storageUsage: number;
-  aiUsage: number;
+  updatedAt?: string;
+  enabledModules?: string[];
+  userCount?: number;
+  recordCount?: number;
+  storageUsage?: number;
+  aiUsage?: number;
   description?: string;
   documents?: CompanyDocument[];
-  website?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  address?: string;
+  contactInfo: {
+    email: string;
+    phone: string;
+    address: string;
+    website: string;
+  };
   foundedDate?: string;
   taxId?: string;
 }

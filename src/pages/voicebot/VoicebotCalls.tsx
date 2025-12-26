@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Filter, RotateCcw, X, Plus, BotMessageSquare, Phone, Globe, Languages, Briefcase, MoveLeft } from "lucide-react";
+import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Globe, Languages, Briefcase, MoveLeft, Trash } from "lucide-react";
 import { mockCalls } from "@/data/mockData";
 import { SideSheet } from "@/components/SideSheet";
+import { AlertDialog } from "@/components/ui/AlertDialog";
 import { CallDetails } from "@/components/voicebot/CallDetails";
-import { mockAgents } from "@/data/agentMockData";
 import NewAgent from "@/components/voicebot/NewAgent";
 import voiceBotService from "@/api/voicebotService";
 import { useData } from "@/contexts/DataContext";
 import CardsLoader from "@/components/common/CardsLoader";
+import EditAgent from "@/components/voicebot/EditAgent";
+import TestCall from "@/components/voicebot/TestCall";
+import { toast } from "@/hooks/useToast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function VoicebotCalls() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -18,10 +22,15 @@ export default function VoicebotCalls() {
     const [isSideSheetOpen, setIsSideSheetOpen] = useState<boolean>(false);
     const [isOpenedCalls, setIsOpenedCalls] = useState<boolean>(false);
     const [isNewAgentOpen, setIsNewAgentOpen] = useState<boolean>(false);
+    const [isTestCallOpen, setIsTestCallOpen] = useState<boolean>(false);
     const [selectedAgentToEdit, setSelectedAgentToEdit] = useState<any>(null);
     const [isEditAgentOpen, setIsEditAgentOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
+    const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState<boolean>(false);
+    const [agentToDelete, setAgentToDelete] = useState<string | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
+    const { user } = useAuth();
     const { agents, setAgents } = useData();
 
     const sentiments = ["positive", "neutral", "negative"];
@@ -61,15 +70,53 @@ export default function VoicebotCalls() {
 
     const getAllAgents = async () => {
         try {
-
             setLoading(true);
-
             const response = await voiceBotService.getAllAgents({});
             console.log(response);
             setAgents(response);
 
         } catch (error) {
             console.log(error);
+            toast.danger("Failed to get agents");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const handleDeleteAgent = (agentId: string) => {
+        setAgentToDelete(agentId);
+        setIsDeleteAlertOpen(true);
+    };
+
+    const confirmDeleteAgent = async () => {
+        if (!agentToDelete) return;
+
+        try {
+            setDeleteLoading(true);
+            await voiceBotService.deleteAgent(agentToDelete, {});
+            toast.success("Agent deleted successfully");
+            await getAllAgents(); // Reload the list
+            setIsDeleteAlertOpen(false);
+            setAgentToDelete(null);
+        } catch (error) {
+            console.error(error);
+            toast.danger("Failed to delete agent");
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
+
+    const getCallLogs = async () => {
+        try {
+            setLoading(true);
+            const response = await voiceBotService.getCallLogs({});
+            console.log(response);
+            // setCalls(response);
+
+        } catch (error) {
+            console.log(error);
+            toast.danger("Failed to get call logs");
         } finally {
             setLoading(false);
         }
@@ -90,17 +137,25 @@ export default function VoicebotCalls() {
                     </div>
                     <div className="flex gap-4">
                         <button
-                            onClick={() => setIsNewAgentOpen(true)}
+                            onClick={() => {
+                                if (user && !user.companyId) {
+                                    toast.danger("Please create a company from Company section to start using the voicebot");
+
+                                    return;
+                                }
+                                setIsNewAgentOpen(true)
+                            }}
                             className="btn btn-primary flex items-center gap-1.5"
                         >
                             <BotMessageSquare className="w-3.5 h-3.5" />
                             Create Agent
                         </button>
                         <button
+                            onClick={() => setIsTestCallOpen(true)}
                             className="btn btn-primary flex items-center gap-1.5"
                         >
-                            <Plus className="w-3.5 h-3.5" />
-                            New Call
+                            <Phone className="w-3.5 h-3.5" />
+                            Test Call
                         </button>
                     </div>
                 </div>
@@ -108,11 +163,11 @@ export default function VoicebotCalls() {
                 {loading ? <CardsLoader /> : (
                     <div className="flex flex-col min-h-[500px]">
                         {
-                            agents.length > 0 ? (
+                            agents && agents.agents && agents.agents.length > 0 ? (
                                 <div>
                                     {!isOpenedCalls && (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {mockAgents.map((agent) => (
+                                            {agents.agents.map((agent: any) => (
                                                 <div className="card p-5 group hover:shadow-glow transition-all duration-300" key={agent.id}>
                                                     <div className="flex justify-between items-start mb-4">
                                                         <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
@@ -121,24 +176,24 @@ export default function VoicebotCalls() {
                                                         <span className="badge badge-primary">Active</span>
                                                     </div>
 
-                                                    <h3 className="text-lg font-bold text-text-main mb-1 truncate">{agent.configuration}</h3>
+                                                    <h3 className="text-lg font-bold text-text-main mb-1 truncate">{agent.name}</h3>
                                                     <div className="flex items-center gap-2 text-text-muted mb-4 text-xs">
                                                         <Briefcase className="w-3 h-3" />
-                                                        <span>{agent.industry}</span>
+                                                        <span className="uppercase">{agent.metadata.department}</span>
                                                     </div>
 
                                                     <div className="space-y-2.5 mb-6">
                                                         <div className="flex items-center gap-2 text-text-main">
                                                             <Languages className="w-3.5 h-3.5 text-text-muted" />
-                                                            <span className="text-xs">{agent.language}</span>
+                                                            <span className="text-xs">{agent.metadata.language}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-2 text-text-main">
+                                                        {/* <div className="flex items-center gap-2 text-text-main">
                                                             <Globe className="w-3.5 h-3.5 text-text-muted" />
-                                                            <span className="text-xs">{agent.region}</span>
-                                                        </div>
+                                                            <span className="text-xs">{agent.metadata.region}</span>
+                                                        </div> */}
                                                         <div className="flex items-center gap-2 text-text-main font-medium">
                                                             <Phone className="w-3.5 h-3.5 text-primary" />
-                                                            <span className="text-xs">{agent.mobileNumber}</span>
+                                                            <span className="text-xs">{agent && agent.phoneNumbers && agent.phoneNumbers.length > 0 ? agent.phoneNumbers[0].number : ""}</span>
                                                         </div>
                                                     </div>
 
@@ -158,6 +213,13 @@ export default function VoicebotCalls() {
                                                         >
                                                             <Phone className="w-3 h-3" />
                                                             Calls
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-secondary flex items-center gap-1.5 py-1.5 text-xs px-3"
+                                                            onClick={() => handleDeleteAgent(agent.vapiId)}
+                                                        >
+                                                            <Trash className="w-3 h-3" />
+
                                                         </button>
                                                     </div>
                                                 </div>
@@ -351,11 +413,12 @@ export default function VoicebotCalls() {
             <SideSheet
                 isOpen={isNewAgentOpen}
                 onClose={() => setIsNewAgentOpen(false)}
-                title="Agent Configuration"
+                title="Add New Agent"
                 size="md"
             >
-                <NewAgent onSuccess={() => setIsNewAgentOpen(false)}
+                <NewAgent
                     onCancel={() => setIsNewAgentOpen(false)}
+                    getAllAgents={getAllAgents}
                 />
             </SideSheet>
 
@@ -366,13 +429,33 @@ export default function VoicebotCalls() {
                 size="md"
             >
                 {selectedAgentToEdit && (
-                    <NewAgent
+                    <EditAgent
                         agent={selectedAgentToEdit}
-                        onSuccess={() => setIsEditAgentOpen(false)}
+                        onSuccess={() => {
+                            setIsEditAgentOpen(false);
+                            getAllAgents();
+                        }}
                         onCancel={() => setIsEditAgentOpen(false)}
                     />
                 )}
             </SideSheet>
+            <SideSheet
+                isOpen={isTestCallOpen}
+                onClose={() => setIsTestCallOpen(false)}
+                title="Test Call"
+                size="md"
+            >
+                <TestCall onCancel={() => setIsTestCallOpen(false)} />
+            </SideSheet>
+            <AlertDialog
+                isOpen={isDeleteAlertOpen}
+                onClose={() => setIsDeleteAlertOpen(false)}
+                onConfirm={confirmDeleteAgent}
+                title="Delete Agent"
+                description="Are you sure you want to delete this agent? This action cannot be undone and will remove the agent from your list."
+                confirmText="Delete Agent"
+                isLoading={deleteLoading}
+            />
         </div>
     );
 }

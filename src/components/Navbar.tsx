@@ -158,14 +158,16 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
             >
               <div className="relative">
                 <div className="w-9 h-9 bg-gradient-to-br from-primary-strong via-primary to-accent rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/30 ring-2 ring-white/50">
-                  {user?.avatar || user?.name?.charAt(0).toUpperCase()}
+                  {/* {user?.avatar || user?.name?.charAt(0).toUpperCase()} */}
+                  {"JD"}
+
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-white shadow-sm"></div>
               </div>
               <div className="text-left hidden md:block">
-                <div className="text-xs font-semibold text-text-main leading-tight">{user?.name}</div>
+                <div className="text-xs font-semibold text-text-main leading-tight">{user?.name ? user?.name : 'John Doe'}</div>
                 <div className="text-xs text-text-muted capitalize leading-tight">
-                  {user?.role.replace('_', ' ')}
+                  {user?.role ? user?.role.replace('_', ' ') : 'Company Admin'}
                 </div>
               </div>
               <ChevronDown className={`w-4 h-4 text-text-muted transition-transform duration-500 ease-out ${showDropdown ? 'rotate-180' : ''}`} />
@@ -183,13 +185,14 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
                   <div className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
-                        {user?.avatar || user?.name?.charAt(0).toUpperCase()}
+                        {/* {user?.avatar || user?.name?.charAt(0).toUpperCase()} */}
+                        JD
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-text-main truncate">{user?.name}</div>
+                        <div className="text-sm font-semibold text-text-main truncate">{user?.name ? user?.name : 'John Doe'}</div>
                         <div className="text-xs text-text-muted truncate">{user?.email}</div>
                         <div className="text-[10px] text-text-muted capitalize mt-0.5">
-                          {user?.role.replace('_', ' ')}
+                          {user?.role ? user?.role.replace('_', ' ') : 'Company Admin'}
                         </div>
                       </div>
                     </div>

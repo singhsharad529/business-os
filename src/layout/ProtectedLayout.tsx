@@ -6,6 +6,7 @@ import { AIAssistant } from "../components/AIAssistant";
 import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { navigationConfig } from "../config/navigationConfig";
+import { Toaster } from "../components/ui/Toaster";
 
 
 export const ProtectedLayout = () => {
@@ -16,8 +17,8 @@ export const ProtectedLayout = () => {
         const saved = localStorage.getItem('sidebarCollapsed');
         return saved ? JSON.parse(saved) : false;
     });
-    console.log('ProtectedLayout - user:', user);
-    console.log('ProtectedLayout - isLoading:', isLoading);
+    // console.log('ProtectedLayout - user:', user);
+    // console.log('ProtectedLayout - isLoading:', isLoading);
 
 
     useEffect(() => {
@@ -147,7 +148,10 @@ export const ProtectedLayout = () => {
                 </div>
 
                 {/* AI Assistant */}
-                {(user.role === "super_admin" || user.role === "company_admin") && <AIAssistant />}
+                {/* {(user.role === "super_admin" || user.role === "company_admin") && <AIAssistant />} */}
+                <AIAssistant />
+                {/* Global Toaster */}
+                <Toaster />
             </div>
         </div>
     );

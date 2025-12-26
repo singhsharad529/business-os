@@ -50,7 +50,7 @@ export function CompanyDashboard() {
   const navigate = useNavigate();
   const [timeContext, setTimeContext] = useState<TimeContext>('today');
 
-  const company = user?.companyId ? getCompany(user.companyId) : null;
+  const company = user?.companyId ? getCompany(user.companyId) : getCompany("c-1");
   const allEntities = user?.companyId ? getEntitiesByCompany(user.companyId) : [];
   const alerts = user?.companyId ? getAlertsByCompany(user.companyId) : [];
   const companyActivities = useMemo(() => {

@@ -6,8 +6,6 @@ import voiceBotService from "@/api/voicebotService";
 import DashboardLoader from "@/components/common/DashboardLoader";
 import { useData } from "@/contexts/DataContext";
 
-import axios from "axios";
-
 
 export function VoicebotDashboard() {
 
@@ -19,14 +17,11 @@ export function VoicebotDashboard() {
       return;
     }
     try {
-      const baseURL = import.meta.env.VITE_SERVER_URL;
       setLoading(true);
-      const response = await axios.get(`${baseURL}/dashboard`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("businessos_access_token")}`,
-        },
-      });
-      setVoiceBotDashboardData(response.data);
+      const response = await voiceBotService.getDashboardData({});
+      console.log('response', response);
+
+      setVoiceBotDashboardData(response);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -90,41 +85,41 @@ export function VoicebotDashboard() {
               <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                 <div className="text-sm text-text-muted mb-2">Total Conversations</div>
                 <div className="text-3xl font-bold text-text-main">
-                  {voiceBotDashboardData?.kpis?.total_conversations?.value || 0}
+                  {voiceBotDashboardData?.kpis?.totalConversations?.change || 0}
                 </div>
                 <div className="text-xs text-success mt-2">
-                  {voiceBotDashboardData?.kpis?.total_conversations?.change}
+                  {voiceBotDashboardData?.kpis?.totalConversations?.changeType}
                 </div>
               </div>
 
               <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                 <div className="text-sm text-text-muted mb-2">Active Sessions</div>
                 <div className="text-3xl font-bold text-text-main">
-                  {voiceBotDashboardData?.kpis?.active_sessions?.value || 0}
+                  {voiceBotDashboardData?.kpis?.activeSessions?.change || 0}
                 </div>
                 <div className="text-xs text-text-muted mt-2">
-                  {voiceBotDashboardData?.kpis?.active_sessions?.status}
+                  {voiceBotDashboardData?.kpis?.activeSessions?.status}
                 </div>
               </div>
 
               <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                 <div className="text-sm text-text-muted mb-2">Success Rate</div>
                 <div className="text-3xl font-bold text-text-main">
-                  {voiceBotDashboardData?.kpis?.success_rate?.value || 0}%
+                  {voiceBotDashboardData?.kpis?.successRate?.change || 0}%
                 </div>
                 <div className="text-xs text-success mt-2">
-                  {voiceBotDashboardData?.kpis?.success_rate?.change}
+                  {voiceBotDashboardData?.kpis?.successRate?.changeType}
                 </div>
               </div>
 
               <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                 <div className="text-sm text-text-muted mb-2">Avg Response Time</div>
                 <div className="text-3xl font-bold text-text-main">
-                  {voiceBotDashboardData?.kpis?.avg_response_time?.value || 0}
-                  {voiceBotDashboardData?.kpis?.avg_response_time?.unit}
+                  {voiceBotDashboardData?.kpis?.avgResponseTime?.value || 0}
+                  {voiceBotDashboardData?.kpis?.avgResponseTime?.unit}
                 </div>
                 <div className="text-xs text-text-muted mt-2">
-                  {voiceBotDashboardData?.kpis?.avg_response_time?.description}
+                  {voiceBotDashboardData?.kpis?.avgResponseTime?.status}
                 </div>
               </div>
             </div>
@@ -132,7 +127,7 @@ export function VoicebotDashboard() {
             <Card className="glass-morphism">
               <CardContent className="space-y-4">
                 <BarChart
-                  data={voiceBotDashboardData?.chart_data?.map((item: any) => ({ ...item, label: item.day })) || []}
+                  data={voiceBotDashboardData?.dailyActivity?.data?.map((item: any) => ({ ...item, label: item.day })) || []}
                   series={chartSeries}
                 />
               </CardContent>
