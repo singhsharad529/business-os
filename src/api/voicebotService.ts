@@ -43,6 +43,17 @@ const voiceBotService = {
       { assistantId },
       config
     ),
+  getAgentCallReports: (
+    params: {
+      assistantId: string;
+      phoneNumberId: string;
+      page?: number;
+      page_size?: number;
+    },
+    config: AxiosRequestConfig
+  ) => apiService.get("vapi/calls/reports", { ...config, params }),
+  getCallDetail: (vapiId: string, config: AxiosRequestConfig) =>
+    apiService.get(`vapi/calls/${vapiId}`, config),
 };
 
 export default voiceBotService;

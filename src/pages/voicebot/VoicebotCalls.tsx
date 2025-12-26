@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Globe, Languages, Briefcase, MoveLeft, Trash } from "lucide-react";
-import { mockCalls } from "@/data/mockData";
+import { useEffect, useState } from "react";
+import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Languages, Briefcase, MoveLeft, Trash } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { CallDetails } from "@/components/voicebot/CallDetails";
@@ -29,7 +28,8 @@ export default function VoicebotCalls() {
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState<boolean>(false);
     const [agentToDelete, setAgentToDelete] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
-
+    const [callLogs, setCallLogs] = useState<any[]>([]);
+    const [detailLoading, setDetailLoading] = useState<boolean>(false);
     const { user } = useAuth();
     const { agents, setAgents } = useData();
 
@@ -41,31 +41,8 @@ export default function VoicebotCalls() {
         missed: "badge-warning",
         failed: "badge-danger",
         ongoing: "badge-primary",
+        ended: "badge-success"
     };
-
-    const sentimentColors: Record<string, string> = {
-        positive: "badge-success",
-        neutral: "",
-        negative: "badge-danger",
-    };
-
-    const filteredCalls = useMemo(() => {
-        return mockCalls.filter((call) => {
-            const matchesSearch =
-                call.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                call.customerMobile.includes(searchTerm) ||
-                call.sessionId.toLowerCase().includes(searchTerm.toLowerCase());
-
-            const matchesStatus =
-                statusFilter === "all" || call.status === statusFilter;
-
-            const matchesSentiment =
-                sentimentFilter.length === 0 ||
-                sentimentFilter.includes(call.sentiment);
-
-            return matchesSearch && matchesStatus && matchesSentiment;
-        });
-    }, [searchTerm, statusFilter, sentimentFilter]);
 
 
     const getAllAgents = async () => {
@@ -106,6 +83,45 @@ export default function VoicebotCalls() {
         }
     };
 
+
+    const handleCallClick = async (call: any) => {
+        if (!call.vapiId) return;
+        try {
+            setDetailLoading(true);
+            const response = await voiceBotService.getCallDetail(call.vapiId, {});
+            setSelectedCall(response);
+            setIsSideSheetOpen(true);
+        } catch (error) {
+            console.error(error);
+            toast.danger("Failed to load call details");
+        } finally {
+            setDetailLoading(false);
+        }
+    };
+
+    const getCallReports = async (agent: any) => {
+        if (!agent.vapiId || !agent.phoneNumbers?.[0]?.vapiId) {
+            toast.danger("Agent or Phone Number ID missing");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setIsOpenedCalls(true);
+            const response = await voiceBotService.getAgentCallReports({
+                assistantId: agent.vapiId,
+                phoneNumberId: agent.phoneNumbers[0].vapiId,
+                page: 1,
+                page_size: 20
+            }, {});
+            setCallLogs(response.reports || []);
+        } catch (error) {
+            console.error(error);
+            toast.danger("Failed to get call reports");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const getCallLogs = async () => {
         try {
@@ -209,7 +225,7 @@ export default function VoicebotCalls() {
                                                         </button>
                                                         <button
                                                             className="btn btn-secondary flex items-center gap-1.5 py-1.5 text-xs px-3"
-                                                            onClick={() => setIsOpenedCalls(true)}
+                                                            onClick={() => getCallReports(agent)}
                                                         >
                                                             <Phone className="w-3 h-3" />
                                                             Calls
@@ -319,9 +335,9 @@ export default function VoicebotCalls() {
                                                 </div>
                                             </div>
 
-                                            {filteredCalls.length === 0 ? (
+                                            {callLogs.length === 0 ? (
                                                 <div className="text-center py-12 text-text-muted text-xs">
-                                                    No calls found
+                                                    No call reports found for this agent
                                                 </div>
                                             ) : (
                                                 <div className="overflow-x-auto">
@@ -330,53 +346,43 @@ export default function VoicebotCalls() {
                                                             <tr className="bg-bg">
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Customer</th>
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Status</th>
-                                                                <th className="text-left py-2 px-3 text-xs font-semibold">Sentiment</th>
-                                                                <th className="text-left py-2 px-3 text-xs font-semibold">Intent</th>
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Duration</th>
+                                                                <th className="text-left py-2 px-3 text-xs font-semibold">Type</th>
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Date</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {filteredCalls.map((call) => (
+                                                            {callLogs.map((call) => (
                                                                 <tr
                                                                     key={call.id}
-                                                                    className="hover:bg-bg transition-colors cursor-pointer"
-                                                                    onClick={() => {
-                                                                        setSelectedCall(call);
-                                                                        setIsSideSheetOpen(true);
-                                                                    }}
+                                                                    className={`hover:bg-bg transition-colors cursor-pointer ${detailLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                                                                    onClick={() => handleCallClick(call)}
                                                                 >
                                                                     <td className="py-2.5 px-3">
                                                                         <div className="text-xs font-medium">
-                                                                            {call.customerName}
+                                                                            {call.customerNumber || "Unknown"}
                                                                         </div>
                                                                         <div className="text-[10px] text-text-muted">
-                                                                            {call.customerMobile}
+                                                                            {call.phoneNumber || ""}
                                                                         </div>
                                                                     </td>
 
                                                                     <td className="py-2.5 px-3">
-                                                                        <span className={`badge ${statusColors[call.status]}`}>
+                                                                        <span className={`badge ${statusColors[call.status] || 'badge-primary'}`}>
                                                                             {call.status}
                                                                         </span>
                                                                     </td>
 
-                                                                    <td className="py-2.5 px-3">
-                                                                        <span className={`badge ${sentimentColors[call.sentiment]}`}>
-                                                                            {call.sentiment}
-                                                                        </span>
+                                                                    <td className="py-2.5 px-3 text-xs">
+                                                                        {Math.floor(call.durationSeconds / 60)}m {Math.floor(call.durationSeconds % 60)}s
                                                                     </td>
 
-                                                                    <td className="py-2.5 px-3 text-xs">
-                                                                        {call.intent}
-                                                                    </td>
-
-                                                                    <td className="py-2.5 px-3 text-xs">
-                                                                        {Math.floor(call.duration / 60)}m {call.duration % 60}s
+                                                                    <td className="py-2.5 px-3 text-xs capitalize">
+                                                                        {call.type?.replace(/([A-Z])/g, ' $1').trim()}
                                                                     </td>
 
                                                                     <td className="py-2.5 px-3 text-xs text-text-muted">
-                                                                        {new Date(call.createdAt).toLocaleDateString()}
+                                                                        {new Date(call.startedAt).toLocaleString()}
                                                                     </td>
                                                                 </tr>
                                                             ))}
@@ -404,7 +410,7 @@ export default function VoicebotCalls() {
             <SideSheet
                 isOpen={isSideSheetOpen}
                 onClose={() => setIsSideSheetOpen(false)}
-                title="Call Details"
+                title="Call History"
                 size="md"
             >
                 {selectedCall && <CallDetails call={selectedCall} />}
