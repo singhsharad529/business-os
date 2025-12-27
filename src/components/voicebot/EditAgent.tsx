@@ -116,11 +116,11 @@ function EditAgent({ agent, onSuccess, onCancel }: EditAgentProps) {
         try {
             setSubmitLoading(true);
             const updateData = {
-                name: formData.name,
+                // name: formData.name,
                 agentRole: formData.agentRole,
                 configuration: formData.configuration,
                 language: formData.language,
-                phoneNumberId: formData.phoneNumberId,
+                // phoneNumberId: formData.phoneNumberId,
             };
 
             const response = await voiceBotService.updateAgent(agent.vapiId, updateData, {});
