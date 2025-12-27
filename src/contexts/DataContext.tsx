@@ -23,6 +23,8 @@ interface DataContextType {
   setVoiceBotDashboardData: (data: any) => void;
   agents: any;
   setAgents: (data: any) => void;
+  leadDatabaseData: any;
+  setLeadDatabaseData: (data: any) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -35,6 +37,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const [voiceBotDashboardData, setVoiceBotDashboardData] = useState<any>({});
   const [agents, setAgents] = useState<any>([]);
+  const [leadDatabaseData, setLeadDatabaseData] = useState<any>(null);
 
 
   const getCompany = (id: string) => companies.find((c) => c.id === id);
@@ -134,7 +137,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         voiceBotDashboardData,
         setVoiceBotDashboardData,
         agents,
-        setAgents
+        setAgents,
+        leadDatabaseData,
+        setLeadDatabaseData
       }}
     >
       {children}
