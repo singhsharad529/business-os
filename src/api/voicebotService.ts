@@ -54,6 +54,17 @@ const voiceBotService = {
   ) => apiService.get("vapi/calls/reports", { ...config, params }),
   getCallDetail: (vapiId: string, config: AxiosRequestConfig) =>
     apiService.get(`vapi/calls/${vapiId}`, config),
+  uploadFiles: (files: File[], config: AxiosRequestConfig) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    return apiService.post("vapi/files/global-kb", formData, {
+      ...config,
+      headers: {
+        ...config.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };
 
 export default voiceBotService;
