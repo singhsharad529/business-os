@@ -1,35 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { SideSheet } from '../../components/SideSheet';
-import { Building2, FileText, Edit3, ExternalLink, Globe, Mail, Fingerprint } from 'lucide-react';
+import { Building2, FileText, Edit3, ExternalLink, Globe, Mail, Fingerprint, Upload, X } from 'lucide-react';
 import { Company, CompanyDocument, User } from '../../types';
 import voiceBotService from '@/api/voicebotService';
 import DashboardLoader from '@/components/common/DashboardLoader';
 import { toast } from '@/hooks/useToast';
 
-const STATIC_DOCUMENTS: CompanyDocument[] = [
-    {
-        id: 'DOC-001',
-        name: 'Certificate of Incorporation',
-        type: 'PDF',
-        url: '#',
-        uploadedAt: '2024-01-15T10:00:00Z'
-    },
-    {
-        id: 'DOC-002',
-        name: 'Tax Compliance Certificate',
-        type: 'PDF',
-        url: '#',
-        uploadedAt: '2024-03-22T14:30:00Z'
-    },
-    {
-        id: 'DOC-003',
-        name: 'Operational Guidelines',
-        type: 'DOCX',
-        url: '#',
-        uploadedAt: '2024-05-10T09:15:00Z'
-    }
-];
+// Static documents removed as we now use real company documents
 
 export function MyCompanyDashboard() {
     const { user, setUser } = useAuth();
@@ -49,15 +27,17 @@ export function MyCompanyDashboard() {
             website: ''
         },
         taxId: '',
-        foundedDate: ''
+        foundedDate: '',
+        documents: []
     });
+    const [uploading, setUploading] = useState(false);
 
-    const getCompanyDetails = async () => {
+    const getCompanyDetails = async (newCompanyId?: string) => {
         try {
             setCompanyLoading(true);
-            if (!user?.companyId) return;
+            if (!newCompanyId && !user?.companyId) return;
 
-            const response = await voiceBotService.getCompanyById(user.companyId, {});
+            const response = await voiceBotService.getCompanyById(newCompanyId || user?.companyId, {});
             setCompany(response);
             if (response) {
                 setEditData({
@@ -70,7 +50,8 @@ export function MyCompanyDashboard() {
                         website: response.contactInfo?.website || ''
                     },
                     taxId: response.taxId || '',
-                    foundedDate: response.foundedDate || ''
+                    foundedDate: response.foundedDate || '',
+                    documents: response.documents || []
                 });
             }
         } catch (error) {
@@ -81,6 +62,8 @@ export function MyCompanyDashboard() {
     };
 
     const handleSave = async () => {
+
+        let newCompanyId: string = "";
         try {
             console.log('Saving company data:', editData);
             let response;
@@ -98,6 +81,7 @@ export function MyCompanyDashboard() {
                     setIsEditSheetOpen(false);
                     if (user) {
                         const newUser: User = { ...user, companyId: response.id };
+                        newCompanyId = response.id;
                         setUser(newUser);
                         localStorage.setItem('businessos_user', JSON.stringify(newUser));
                     }
@@ -105,7 +89,7 @@ export function MyCompanyDashboard() {
             }
 
             // Refresh details
-            await getCompanyDetails();
+            await getCompanyDetails(newCompanyId);
             setIsEditSheetOpen(false);
         } catch (error) {
             console.error('Error saving company:', error);
@@ -247,22 +231,29 @@ export function MyCompanyDashboard() {
                                                         <p className="text-xs text-text-muted mt-1">Official company records</p>
                                                     </div>
                                                     <div className="p-6 space-y-4">
-                                                        {STATIC_DOCUMENTS.map((doc: any) => (
-                                                            <div key={doc.id} className="group flex items-center justify-between p-4 bg-bg rounded-2xl border border-border-subtle hover:border-primary/40 hover:shadow-soft transition-all cursor-default">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-border-subtle group-hover:scale-105 transition-transform">
-                                                                        <span className="text-[10px] font-black text-primary">{doc.type}</span>
+                                                        {company.documents && company.documents.length > 0 ? (
+                                                            company.documents.map((doc: CompanyDocument, index: number) => (
+                                                                <div key={index} className="group flex gap-2 items-center justify-between p-4 bg-bg rounded-2xl border border-border-subtle hover:border-primary/40 hover:shadow-soft transition-all cursor-default">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center border border-border-subtle group-hover:scale-105 transition-transform">
+                                                                            <span className="text-[10px] font-black text-primary uppercase">{doc.documentType}</span>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">{doc.documentName}</p>
+                                                                            {doc.uploadedAt && <p className="text-[10px] text-text-muted">Uploaded {new Date(doc.uploadedAt).toLocaleDateString()}</p>}
+                                                                        </div>
                                                                     </div>
-                                                                    <div>
-                                                                        <p className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">{doc.name}</p>
-                                                                        <p className="text-[10px] text-text-muted">Uploaded {new Date(doc.uploadedAt).toLocaleDateString()}</p>
-                                                                    </div>
+                                                                    <a href={doc.documentUrl} target="_blank" rel="noopener noreferrer" className="p-2 bg-white hover:bg-primary-soft rounded-xl border border-border-subtle text-text-muted hover:text-primary transition-all">
+                                                                        <ExternalLink className="w-4 h-4" />
+                                                                    </a>
                                                                 </div>
-                                                                <a href={doc.url} className="p-2.5 bg-white hover:bg-primary-soft rounded-xl border border-border-subtle text-text-muted hover:text-primary transition-all">
-                                                                    <ExternalLink className="w-4 h-4" />
-                                                                </a>
+                                                            ))
+                                                        ) : (
+                                                            <div className="text-center py-8 border-2 border-dashed border-border-subtle rounded-2xl">
+                                                                <FileText className="w-8 h-8 text-text-muted mx-auto mb-2 opacity-20" />
+                                                                <p className="text-xs text-text-muted">No documents uploaded yet</p>
                                                             </div>
-                                                        ))}
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -391,39 +382,98 @@ export function MyCompanyDashboard() {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Headquarters Address</label>
-                            <textarea
+                            <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Physical Address</label>
+                            <input
+                                type="text"
                                 value={editData.contactInfo.address}
                                 onChange={(e) => setEditData({
                                     ...editData,
                                     contactInfo: { ...editData.contactInfo, address: e.target.value }
                                 })}
-                                className="input h-20 py-2 resize-none"
+                                className="input"
+                                placeholder="Enter full physical address"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-6">
-                        <h4 className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-2">Administrative Info</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Tax ID</label>
+                        <h4 className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-2">Documents</h4>
+
+                        <div className="space-y-4">
+                            {editData.documents.map((doc: any, index: number) => (
+                                <div key={index} className="flex items-center justify-between p-3 bg-bg-muted/30 rounded-lg border border-border-subtle">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-white rounded flex items-center justify-center border border-border-subtle font-bold text-[10px] text-primary uppercase">
+                                            {doc.documentType}
+                                        </div>
+                                        <p className="text-sm font-medium text-text-main">{doc.documentName}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const newDocs = [...editData.documents];
+                                            newDocs.splice(index, 1);
+                                            setEditData({ ...editData, documents: newDocs });
+                                        }}
+                                        className="p-1.5 hover:bg-danger-soft text-text-muted hover:text-danger rounded-md transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+
+                            <div className="relative">
                                 <input
-                                    type="text"
-                                    value={editData.taxId}
-                                    onChange={(e) => setEditData({ ...editData, taxId: e.target.value })}
-                                    className="input"
-                                    placeholder="VAT/Tax Number"
+                                    type="file"
+                                    id="doc-upload"
+                                    className="hidden"
+                                    multiple
+                                    onChange={async (e) => {
+                                        const files = Array.from(e.target.files || []);
+                                        if (files.length === 0) return;
+
+                                        try {
+                                            setUploading(true);
+                                            const response = await voiceBotService.uploadFiles(files, {});
+
+                                            const newDocs = response.files.map((f: any) => ({
+                                                documentName: f.fileName,
+                                                documentType: f.fileName.split('.').pop()?.toLowerCase() || 'file',
+                                                gcsKey: f.gcs.gcsKey,
+                                                uploadedAt: f.vapi?.createdAt || new Date().toISOString()
+                                            }));
+
+                                            setEditData({
+                                                ...editData,
+                                                documents: [...editData.documents, ...newDocs]
+                                            });
+                                            toast.success('Files uploaded successfully');
+                                        } catch (error) {
+                                            console.error('Upload error:', error);
+                                            toast.danger('Failed to upload files');
+                                        } finally {
+                                            setUploading(false);
+                                        }
+                                    }}
                                 />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Founded Date</label>
-                                <input
-                                    type="date"
-                                    value={editData.foundedDate}
-                                    onChange={(e) => setEditData({ ...editData, foundedDate: e.target.value })}
-                                    className="input"
-                                />
+                                <label
+                                    htmlFor="doc-upload"
+                                    className={`flex flex-col items-center justify-center p-8 border-2 border-dashed border-border-subtle rounded-2xl hover:border-primary/40 hover:bg-primary-soft/10 transition-all cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+                                >
+                                    {uploading ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                            <p className="text-sm font-medium text-primary">Uploading files...</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="w-12 h-12 bg-primary-soft rounded-xl flex items-center justify-center mb-3">
+                                                <Upload className="w-6 h-6 text-primary" />
+                                            </div>
+                                            <p className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">Click to upload documents</p>
+                                            <p className="text-xs text-text-muted mt-1">PDF, DOCX, or Images accepted</p>
+                                        </>
+                                    )}
+                                </label>
                             </div>
                         </div>
                     </div>

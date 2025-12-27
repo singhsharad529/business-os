@@ -53,11 +53,12 @@ export interface Company {
 }
 
 export interface CompanyDocument {
-  id: string;
-  name: string;
-  url: string;
-  type: string;
-  uploadedAt: string;
+  id?: string;
+  documentName: string;
+  documentUrl?: string; // This is returned from GET
+  documentType: string;
+  gcsKey: string;
+  uploadedAt?: string;
 }
 
 export interface EntityTemplate {
