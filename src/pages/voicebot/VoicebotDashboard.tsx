@@ -68,15 +68,7 @@ export function VoicebotDashboard() {
           <h1 className="text-3xl font-bold text-text-main">Voicebot Dashboard</h1>
           <p className="text-text-muted mt-1">Welcome to your voicebot control center</p>
         </div>
-        <div>
-          <button
-            // onClick={() => setShowCreateSheet(true)}
-            className="btn btn-primary flex items-center gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            New Call
-          </button>
-        </div>
+
       </div>
       {
         loading ? <DashboardLoader /> : (

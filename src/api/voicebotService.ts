@@ -20,11 +20,11 @@ const voiceBotService = {
     config: AxiosRequestConfig
   ) => apiService.post("vapi/quick-agent-setup", data, config),
   getCompanyList: (config: AxiosRequestConfig) =>
-    apiService.get("company", config),
+    apiService.get("company/", config),
   getCompanyById: (id: string | undefined, config: AxiosRequestConfig) =>
     apiService.get(`company/${id}`, config),
   createCompany: (data: any, config: AxiosRequestConfig) =>
-    apiService.post("company", data, config),
+    apiService.post("company/", data, config),
   updateCompany: (id: string, data: any, config: AxiosRequestConfig) =>
     apiService.patch(`company/${id}`, data, config),
   deleteAgent: (id: string, config: AxiosRequestConfig) =>

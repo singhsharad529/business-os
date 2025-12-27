@@ -50,9 +50,9 @@ export function CompanyDashboard() {
   const navigate = useNavigate();
   const [timeContext, setTimeContext] = useState<TimeContext>('today');
 
-  const company = user?.companyId ? getCompany(user.companyId) : getCompany("c-1");
-  const allEntities = user?.companyId ? getEntitiesByCompany(user.companyId) : [];
-  const alerts = user?.companyId ? getAlertsByCompany(user.companyId) : [];
+  const company = getCompany("c-1");
+  const allEntities = getEntitiesByCompany("c-1");
+  const alerts = getAlertsByCompany("c-1");
   const companyActivities = useMemo(() => {
     if (!user?.companyId) return [];
     const companyEntityIds = allEntities.map((e) => e.id);
@@ -100,7 +100,7 @@ export function CompanyDashboard() {
 
     const dateFilter = getDateFilter();
 
-    const metrics = company.enabledModules.map((module) => {
+    const metrics = company.enabledModules?.map((module) => {
       const templateName = module.charAt(0).toUpperCase() + module.slice(1);
       const moduleEntities = allEntities.filter((e) => e.templateName === templateName);
       const totalCount = moduleEntities.length;
@@ -165,9 +165,9 @@ export function CompanyDashboard() {
     const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
     // Find actionable items for greeting
-    const quotesNeedingAction = metrics.find((m) => m.module === 'quotes')?.actionableCount || 0;
-    const overdueInvoices = metrics.find((m) => m.module === 'invoices')?.actionableCount || 0;
-    const loansMaturity = metrics.find((m) => m.module === 'loans')?.actionableCount || 0;
+    const quotesNeedingAction = metrics?.find((m) => m.module === 'quotes')?.actionableCount || 0;
+    const overdueInvoices = metrics?.find((m) => m.module === 'invoices')?.actionableCount || 0;
+    const loansMaturity = metrics?.find((m) => m.module === 'loans')?.actionableCount || 0;
 
     if (quotesNeedingAction > 0) {
       return `${greeting}, ${user?.name}. ${quotesNeedingAction} ${quotesNeedingAction === 1 ? 'quote needs' : 'quotes need'} action ${timeContext === 'today' ? 'today' : `this ${timeContext}`}.`;
@@ -185,7 +185,7 @@ export function CompanyDashboard() {
   // Mock AI insights (in real app, these would come from an AI service)
   const aiInsights = useMemo(() => {
     const insights = [];
-    const overdueInvoices = metrics.find((m) => m.module === 'invoices')?.actionableCount || 0;
+    const overdueInvoices = metrics?.find((m) => m.module === 'invoices')?.actionableCount || 0;
     if (overdueInvoices > 0) {
       insights.push({
         id: 'insight-1',
@@ -255,7 +255,7 @@ export function CompanyDashboard() {
       {/* Top Summary Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-text-main">{user?.name}</h1>
+          <h1 className="text-3xl font-bold text-text-main">John Doe</h1>
           <p className="text-text-muted mt-1">
             Here's what needs your attention {timeContext === 'today' ? 'today' : `this ${timeContext}`}
           </p>
@@ -275,7 +275,7 @@ export function CompanyDashboard() {
       {/* Key Metrics Cards */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.slice(0, 4).map((metric) => (
+        {metrics?.slice(0, 4).map((metric) => (
           <div key={metric.module} className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
             <div>
               <div className="text-sm text-text-muted mb-2">{metric.templateName}</div>
@@ -307,7 +307,7 @@ export function CompanyDashboard() {
 
       <Card className="glass-morphism">
         <CardContent className="space-y-4">
-          <BarChart data={metricsToChartData(metrics)} series={metricsSeries} />
+          <BarChart data={metricsToChartData(metrics || [])} series={metricsSeries} />
         </CardContent>
       </Card>
 
@@ -374,7 +374,7 @@ export function CompanyDashboard() {
             <CardDescription>Common tasks and shortcuts</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {company.enabledModules.slice(0, 3).map((module) => {
+            {company.enabledModules?.slice(0, 3).map((module) => {
               const templateName = module.charAt(0).toUpperCase() + module.slice(1);
               return (
                 <Button
@@ -534,7 +534,7 @@ export function CompanyDashboard() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-text-muted">Modules Active</span>
-                  <Badge variant="secondary">{company.enabledModules.length}</Badge>
+                  <Badge variant="secondary">{company.enabledModules?.length}</Badge>
                 </div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-text-muted">Total Records</span>

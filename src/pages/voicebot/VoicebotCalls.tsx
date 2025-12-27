@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Languages, Briefcase, MoveLeft, Trash } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { AlertDialog } from "@/components/ui/AlertDialog";
@@ -108,6 +108,10 @@ export default function VoicebotCalls() {
         try {
             setLoading(true);
             setIsOpenedCalls(true);
+            // Reset filters when opening new agent reports
+            setSearchTerm("");
+            setStatusFilter("all");
+            setSentimentFilter([]);
             const response = await voiceBotService.getAgentCallReports({
                 assistantId: agent.vapiId,
                 phoneNumberId: agent.phoneNumbers[0].vapiId,
@@ -141,6 +145,26 @@ export default function VoicebotCalls() {
     useEffect(() => {
         getAllAgents();
     }, []);
+
+    const filteredCallLogs = useMemo(() => {
+        return callLogs.filter((call) => {
+            const searchLower = searchTerm.toLowerCase();
+            const matchesSearch =
+                (call.customerNumber?.toLowerCase() || "").includes(searchLower) ||
+                (call.phoneNumber?.toLowerCase() || "").includes(searchLower) ||
+                (call.id?.toLowerCase() || "").includes(searchLower);
+
+            const matchesStatus = statusFilter === "all" || call.status === statusFilter;
+
+            // Optional: Filter by sentiment if it exists in the data
+            const callSentiment = call.analysis?.sentiment?.toLowerCase();
+            const matchesSentiment =
+                sentimentFilter.length === 0 ||
+                (callSentiment && sentimentFilter.includes(callSentiment));
+
+            return matchesSearch && matchesStatus && matchesSentiment;
+        });
+    }, [callLogs, searchTerm, statusFilter, sentimentFilter]);
 
 
     return (
@@ -248,7 +272,12 @@ export default function VoicebotCalls() {
                                             <div className="flex flex-col sm:flex-row gap-2 mb-4">
                                                 <button
                                                     className="btn btn-secondary bg-primary-soft text-primary flex items-center gap-1.5 py-1.5 text-xs px-3 border-primary"
-                                                    onClick={() => setIsOpenedCalls(false)}
+                                                    onClick={() => {
+                                                        setIsOpenedCalls(false);
+                                                        setSearchTerm("");
+                                                        setStatusFilter("all");
+                                                        setSentimentFilter([]);
+                                                    }}
                                                 >
                                                     <MoveLeft className="w-3 h-3" />
                                                     Agents
@@ -339,6 +368,10 @@ export default function VoicebotCalls() {
                                                 <div className="text-center py-12 text-text-muted text-xs">
                                                     No call reports found for this agent
                                                 </div>
+                                            ) : filteredCallLogs.length === 0 ? (
+                                                <div className="text-center py-12 text-text-muted text-xs">
+                                                    No calls found matching your filters
+                                                </div>
                                             ) : (
                                                 <div className="overflow-x-auto">
                                                     <table className="w-full">
@@ -352,7 +385,7 @@ export default function VoicebotCalls() {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {callLogs.map((call) => (
+                                                            {filteredCallLogs.map((call) => (
                                                                 <tr
                                                                     key={call.id}
                                                                     className={`hover:bg-bg transition-colors cursor-pointer ${detailLoading ? 'opacity-50 pointer-events-none' : ''}`}
