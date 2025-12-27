@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'super_admin' | 'company_admin' | 'standard_user' | ''>('super_admin');
+  const [role, setRole] = useState<'super_admin' | 'company_admin' | 'standard_user' | ''>('company_admin');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, user } = useAuth();
@@ -19,22 +19,29 @@ export function Login() {
     setError('');
     setIsLoading(true);
 
-    const loggedInUser = await login(email, password); // user object or null
-    console.log('loggedInUser', loggedInUser);
+    try {
+      const loggedInUser = await login(email, password); // user object or null
+      console.log('loggedInUser', loggedInUser);
 
 
-    if (!loggedInUser) {
-      setError('Invalid email or password');
+      if (!loggedInUser) {
+        setError('Invalid email or password');
+        setIsLoading(false);
+        return;
+      }
+
+      // Navigate to voicebot dashboard by default (new default behavior)
+      if (loggedInUser.role === "company_admin")
+        navigate('/app/voicebot/dashboard');
+      else if (loggedInUser.role == "super_admin")
+        navigate('/app/super-admin/dashboard');
+      else  // for now we navigate to voicebot dashboard for having not role
+        navigate('/app/voicebot/dashboard');
+    } catch (error) {
+      console.error(error);
+      setError('Failed to login. Please try again.');
       setIsLoading(false);
-      return;
     }
-
-    // Navigate to voicebot dashboard by default (new default behavior)
-    if (loggedInUser.role === "company_admin")
-      navigate('/app/voicebot/dashboard');
-
-    if (loggedInUser.role == "super_admin")
-      navigate('/app/super-admin/dashboard');
 
 
   };

@@ -21,6 +21,7 @@ import { CRMContacts } from "../pages/crm/CRMContacts";
 import { CRMDeals } from "../pages/crm/CRMDeals";
 import VoicebotCalls from "@/pages/voicebot/VoicebotCalls";
 import VoicebotLeadDatabase from "@/pages/voicebot/VoicebotLeadDatabase";
+import { MyCompanyDashboard } from "@/pages/single-company/MyCompanyDashboard";
 
 export const router = createBrowserRouter([
     {
@@ -78,6 +79,10 @@ export const router = createBrowserRouter([
             {
                 path: "crm/deals",
                 element: <CRMDeals />,
+            },
+            {
+                path: "my-company",
+                element: <MyCompanyDashboard />,
             },
 
             // SUPER ADMIN ROUTES (under Apps section)

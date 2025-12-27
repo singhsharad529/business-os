@@ -134,13 +134,14 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange, isColl
 
         <div className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3.5 py-2.5'}`}>
           <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white/50 flex-shrink-0">
-            {user?.avatar || user?.name?.charAt(0).toUpperCase()}
+            {/* {user?.avatar || user?.name?.charAt(0).toUpperCase()} */}
+            {"JD"}
           </div>
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-white truncate">{user?.name}</div>
+              <div className="text-sm font-semibold text-white truncate">{user?.name ? user?.name : 'John Doe'}</div>
               <div className="text-xs text-white truncate capitalize">
-                {user?.role.replace('_', ' ')}
+                {user?.role ? user?.role.replace('_', ' ') : 'Company Admin'}
               </div>
             </div>
           )}

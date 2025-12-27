@@ -29,8 +29,6 @@ type Props = {
 }
 
 export default function GenericBarChart({ data, series }: Props) {
-    console.log('data is', data, series);
-
     const config = Object.fromEntries(
         series.map((s) => [
             s.key,

@@ -134,10 +134,10 @@ export function EntityForm({ templateName, entity, onSave, onCancel }: EntityFor
       ))}
 
       <div className="flex gap-2 pt-4">
-        <button type="submit" className="btn btn-primary flex-1">
+        <button type="submit" className="btn btn-primary flex-1 rounded-xl">
           {entity ? 'Update' : 'Create'} {templateName.slice(0, -1)}
         </button>
-        <button type="button" onClick={onCancel} className="btn btn-secondary">
+        <button type="button" onClick={onCancel} className="btn btn-secondary rounded-xl">
           Cancel
         </button>
       </div>

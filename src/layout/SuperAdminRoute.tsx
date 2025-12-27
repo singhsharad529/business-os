@@ -15,8 +15,12 @@ export const SuperAdminRoute = () => {
         );
     }
 
-    if (!user || user.role !== "super_admin") {
+    if (!user) {
         return <Navigate to="/login" replace />;
+    }
+
+    if (user.role !== "super_admin") {
+        return <Navigate to="/app/company/dashboard" replace />;
     }
 
     return <Outlet />;

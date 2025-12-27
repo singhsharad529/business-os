@@ -29,6 +29,7 @@ import {
   LucideIcon
 } from "lucide-react";
 
+
 export interface NavigationChild {
   id: string;
   label: string;
@@ -233,6 +234,20 @@ export const navigationConfig: NavigationConfig = {
               }
             ]
           }
+        ]
+      },
+      {
+        id: "company",
+        label: "Company",
+        icon: "building",
+        route: "/app/my-company",
+        roles: ["company_admin", "standard_user"],
+        children: [
+          {
+            id: "company_overview",
+            label: "Overview",
+            route: "/app/my-company"
+          },
         ]
       },
       // {

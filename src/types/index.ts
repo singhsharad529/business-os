@@ -26,18 +26,38 @@ export interface User {
 
 export interface Company {
   id: string;
+  userId?: string;
   name: string;
   logo?: string;
-  timezone: string;
-  currency: string;
-  industry: "procurement" | "lending" | "home_services" | "general";
-  status: "active" | "inactive";
+  timezone?: string;
+  currency?: string;
+  industry?: "procurement" | "lending" | "home_services" | "general";
+  status?: "active" | "inactive";
   createdAt: string;
-  enabledModules: string[];
-  userCount: number;
-  recordCount: number;
-  storageUsage: number;
-  aiUsage: number;
+  updatedAt?: string;
+  enabledModules?: string[];
+  userCount?: number;
+  recordCount?: number;
+  storageUsage?: number;
+  aiUsage?: number;
+  description?: string;
+  documents?: CompanyDocument[];
+  contactInfo: {
+    email: string;
+    phone: string;
+    address: string;
+    website: string;
+  };
+  foundedDate?: string;
+  taxId?: string;
+}
+
+export interface CompanyDocument {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  uploadedAt: string;
 }
 
 export interface EntityTemplate {
@@ -120,7 +140,18 @@ export interface Agent {
   language: string;
   region: string;
   mobileNumber: string;
+  specialty?: string;
+  voice?: string;
   websiteName?: string;
   domain?: string;
   customContext?: string;
+}
+
+export interface VoicebotUser {
+  email: string;
+  fullName: string;
+  company: string;
+  subscription: string;
+  verified: string;
+  lastLogin: string;
 }

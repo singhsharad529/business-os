@@ -15,7 +15,11 @@ export const CompanyRoute = () => {
         );
     }
 
-    if (!user || (user.role !== "company_admin" && user.role !== "super_admin")) {
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (user.role !== "company_admin" && user.role !== "super_admin" && user.role !== "standard_user") {
         return <Navigate to="/login" replace />;
     }
 
