@@ -109,7 +109,7 @@ export function CallDetails({ call }: CallDetailsProps) {
 
             {/* Recording Audio Player */}
             {(call.stereoRecordingUrl || call.recordingUrl || call.recordings?.stereo) && (
-                <div className="sticky bottom-0 bg-white border-t border-border-subtle p-4 -mx-6 mb--6 shadow-lg rounded-b-2xl">
+                <div className="sticky bottom-0 bg-white border-t border-border-subtle p-4 mb-4 shadow-lg rounded-2xl">
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                             <Volume2 className="w-5 h-5" />

@@ -7,6 +7,7 @@ import NewAgent from "@/components/voicebot/NewAgent";
 import voiceBotService from "@/api/voicebotService";
 import { useData } from "@/contexts/DataContext";
 import CardsLoader from "@/components/common/CardsLoader";
+import TableLoader from "@/components/common/TableLoader";
 import EditAgent from "@/components/voicebot/EditAgent";
 import TestCall from "@/components/voicebot/TestCall";
 import { toast } from "@/hooks/useToast";
@@ -200,7 +201,9 @@ export default function VoicebotCalls() {
                     </div>
                 </div>
 
-                {loading ? <CardsLoader /> : (
+                {loading ? (
+                    isOpenedCalls ? <TableLoader rows={5} columns={5} /> : <CardsLoader />
+                ) : (
                     <div className="flex flex-col min-h-[500px]">
                         {
                             agents && agents.agents && agents.agents.length > 0 ? (
