@@ -16,9 +16,6 @@ import Modal from "@/components/common/Modal"
 import { FileSpreadsheet, Trash2 } from "lucide-react"
 
 function VoicebotLeadDatabase() {
-    const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
-    const [isCampaignSheetOpen, setIsCampaignSheetOpen] = useState(false);
-    const [currentStep, setCurrentStep] = useState(1);
     const [searchQuery, setSearchQuery] = useState("");
 
     // Column Visibility State
@@ -30,13 +27,6 @@ function VoicebotLeadDatabase() {
         expertise: true,
         lastCalled: true
     });
-    const [showColumnToggle, setShowColumnToggle] = useState(false);
-
-    // Campaign Data State
-    const [campaignName, setCampaignName] = useState("");
-    const [selectedAgent, setSelectedAgent] = useState("");
-    const [scheduleType, setScheduleType] = useState("immediate");
-    const [concurrency, setConcurrency] = useState(5);
     const { leadDatabaseData, setLeadDatabaseData } = useData();
     const [userdataLoading, setUserDataLoading] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -58,23 +48,6 @@ function VoicebotLeadDatabase() {
             user.leadCompany.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [leads, searchQuery]);
-
-    const handleSelectLead = (email: string) => {
-        setSelectedLeads(prev =>
-            prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
-        );
-    };
-
-    const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 4));
-    const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
-
-    const resetCampaign = () => {
-        setIsCampaignSheetOpen(false);
-        setCurrentStep(1);
-        setCampaignName("");
-        setSelectedAgent("");
-        setSelectedLeads([]);
-    };
 
     const getSampleFile = () => {
         const link = document.createElement("a");
@@ -155,13 +128,6 @@ function VoicebotLeadDatabase() {
                         >
                             <Upload className="w-4 h-4" />
                             Import Leads</button>
-                        <button
-                            onClick={() => setIsCampaignSheetOpen(true)}
-                            className="btn btn-primary flex items-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Create Campaign
-                        </button>
                     </div>
                 </div>
 
@@ -228,8 +194,8 @@ function VoicebotLeadDatabase() {
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-border-subtle/50">
-                                                        {filteredUsers.map((user, i) => (
-                                                            <tr key={user.id} className={`hover:bg-bg-alt/30 transition-colors ${selectedLeads.includes(user.leadEmail) ? 'bg-primary-soft/10' : ''}`}>
+                                                        {leads.map((user, i) => (
+                                                            <tr key={user.id} className={`hover:bg-bg-alt/30 transition-colors`}>
                                                                 <td className="py-4 px-3 text-center text-xs text-text-muted">{(currentPage - 1) * pageSize + i + 1}</td>
                                                                 {visibleColumns.email && <td className="py-4 px-3 text-sm text-text-main font-medium">{user.leadEmail}</td>}
                                                                 {visibleColumns.name && <td className="py-4 px-3 text-sm text-text-muted">{user.leadName}</td>}
@@ -391,265 +357,7 @@ function VoicebotLeadDatabase() {
                     </Tabs>
                 </div>
 
-
             </div>
-            {/* Campaign Creation SideSheet */}
-            <SideSheet
-                isOpen={isCampaignSheetOpen}
-                onClose={() => setIsCampaignSheetOpen(false)}
-                title="Create New Campaign"
-                size="md"
-            >
-                <div className="flex flex-col h-full">
-                    {/* Stepper */}
-                    <div className="flex items-center justify-between mb-8 relative">
-                        {[1, 2, 3, 4].map((step) => (
-                            <div key={step} className="flex flex-col items-center z-10">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${currentStep === step ? 'bg-primary text-white scale-110 shadow-glow' :
-                                    currentStep > step ? 'bg-success text-white' : 'bg-bg-alt text-text-muted'
-                                    }`}>
-                                    {currentStep > step ? <Check className="w-4 h-4" /> : step}
-                                </div>
-                                <span className="text-[10px] mt-2 font-bold uppercase tracking-wider text-text-muted text-center">
-                                    {step === 1 ? 'Leads' : step === 2 ? 'Details' : step === 3 ? 'Settings' : 'Review'}
-                                </span>
-                            </div>
-                        ))}
-                        <div className="absolute top-4 left-0 right-0 h-0.5 bg-bg-alt -z-0">
-                            <div
-                                className="h-full bg-primary transition-all duration-300"
-                                style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto">
-                        {currentStep === 1 && (
-                            <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-sm font-semibold text-text-main">Select Target Leads</label>
-                                        <span className="text-[10px] font-bold text-primary bg-primary-soft/30 px-2 py-0.5 rounded-full">{selectedLeads.length} selected</span>
-                                    </div>
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search leads..."
-                                            className="w-full pl-10 pr-4 py-2 bg-bg-alt/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2 max-h-[450px] overflow-y-auto pr-1">
-                                        {filteredUsers.map((user) => (
-                                            <div
-                                                key={user.leadEmail}
-                                                onClick={() => handleSelectLead(user.leadEmail)}
-                                                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3 ${selectedLeads.includes(user.leadEmail) ? 'border-primary bg-primary-soft/10 ring-1 ring-primary/20 shadow-sm' : 'border-border-subtle bg-bg-alt/30 hover:border-border-main'
-                                                    }`}
-                                            >
-                                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedLeads.includes(user.leadEmail) ? 'bg-primary border-primary' : 'border-border-subtle'
-                                                    }`}>
-                                                    {selectedLeads.includes(user.leadEmail) && <Check className="w-3 h-3 text-white" />}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="text-sm font-bold text-text-main truncate">{user.leadName}</div>
-                                                    <div className="text-[10px] text-text-muted truncate">{user.leadEmail} • {user.leadCompany}</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {currentStep === 2 && (
-                            <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-text-main">Campaign Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Q4 Sales Outreach"
-                                        className="w-full px-4 py-3 bg-bg-alt/50 border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none placeholder:text-text-muted/50"
-                                        value={campaignName}
-                                        onChange={(e) => setCampaignName(e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-sm font-semibold text-text-main">Select AI Agent</label>
-                                    <div className="grid grid-cols-1 gap-3">
-                                        {mockAgents.map((agent) => (
-                                            <div
-                                                key={agent.id}
-                                                onClick={() => setSelectedAgent(agent.id)}
-                                                className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${selectedAgent === agent.id ? 'border-primary bg-primary-soft/10 shadow-glow ring-1 ring-primary/30' : 'border-border-subtle bg-bg-alt/30 hover:border-border-main hover:bg-bg-alt/50'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${selectedAgent === agent.id ? 'bg-primary text-white' : 'bg-primary/10 text-primary group-hover:bg-primary/20'
-                                                        }`}>
-                                                        <User className="w-6 h-6" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-sm font-bold text-text-main">{agent.configuration}</div>
-                                                        <div className="flex flex-wrap gap-x-2 gap-y-1 mt-1">
-                                                            <span className="text-[10px] text-text-muted bg-bg-alt px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">{agent.industry}</span>
-                                                            <span className="text-[10px] text-text-muted bg-bg-alt px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">{agent.language}</span>
-                                                            <span className="text-[10px] text-text-muted bg-bg-alt px-1.5 py-0.5 rounded uppercase font-bold tracking-tight">{agent.region}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {selectedAgent === agent.id && (
-                                                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg animate-in zoom-in">
-                                                        <Check className="w-4 h-4 text-white" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {currentStep === 3 && (
-                            <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="space-y-4">
-                                    <label className="text-sm font-semibold text-text-main">Call Schedule</label>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button
-                                            onClick={() => setScheduleType("immediate")}
-                                            className={`p-4 rounded-xl border text-center transition-all ${scheduleType === "immediate" ? 'border-primary bg-primary-soft/10 ring-1 ring-primary' : 'border-border-subtle bg-bg-alt/30'
-                                                }`}
-                                        >
-                                            <Zap className={`w-5 h-5 mx-auto mb-2 ${scheduleType === "immediate" ? 'text-primary' : 'text-text-muted'}`} />
-                                            <div className="text-xs font-bold text-text-main">Immediate</div>
-                                            <div className="text-[10px] text-text-muted">Start now</div>
-                                        </button>
-                                        <button
-                                            onClick={() => setScheduleType("scheduled")}
-                                            className={`p-4 rounded-xl border text-center transition-all ${scheduleType === "scheduled" ? 'border-primary bg-primary-soft/10 ring-1 ring-primary' : 'border-border-subtle bg-bg-alt/30'
-                                                }`}
-                                        >
-                                            <Clock className={`w-5 h-5 mx-auto mb-2 ${scheduleType === "scheduled" ? 'text-primary' : 'text-text-muted'}`} />
-                                            <div className="text-xs font-bold text-text-main">Scheduled</div>
-                                            <div className="text-[10px] text-text-muted">Pick a time</div>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {scheduleType === "scheduled" && (
-                                    <div className="animate-in fade-in zoom-in-95 duration-200">
-                                        <input
-                                            type="datetime-local"
-                                            className="w-full px-4 py-3 bg-bg-alt/50 border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none"
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-sm font-semibold text-text-main">Max Simultaneous Calls</label>
-                                        <span className="text-primary font-bold text-sm">{concurrency}</span>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="50"
-                                        value={concurrency}
-                                        onChange={(e) => setConcurrency(parseInt(e.target.value))}
-                                        className="w-full h-1.5 bg-primary-soft rounded-lg appearance-none cursor-pointer accent-primary"
-                                    />
-                                    <div className="flex justify-between text-[10px] text-text-muted font-bold uppercase tracking-tighter">
-                                        <span>Conservative</span>
-                                        <span>Aggressive</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {currentStep === 4 && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="card-gradient rounded-2xl p-6 overflow-hidden relative">
-                                    <div className="relative z-10">
-                                        <div className="text-[10px] font-bold uppercase opacity-80 mb-1">Final Review</div>
-                                        <div className="text-2xl font-bold">{campaignName || "Untitled Campaign"}</div>
-                                        <div className="flex items-center gap-4 mt-4">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] opacity-70">Target Leads</span>
-                                                <span className="text-lg font-bold">{selectedLeads.length}</span>
-                                            </div>
-                                            <div className="w-px h-8 bg-white/20" />
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] opacity-70">Agent</span>
-                                                <span className="text-lg font-bold">{mockAgents.find(a => a.id === selectedAgent)?.configuration || "None"}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
-                                </div>
-
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-4 bg-bg-alt/30 rounded-xl border border-border-subtle">
-                                        <div className="flex items-center gap-3">
-                                            <Calendar className="w-4 h-4 text-text-muted" />
-                                            <span className="text-sm text-text-main">Schedule</span>
-                                        </div>
-                                        <span className="text-sm font-bold text-text-main capitalize">{scheduleType}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 bg-bg-alt/30 rounded-xl border border-border-subtle">
-                                        <div className="flex items-center gap-3">
-                                            <Zap className="w-4 h-4 text-text-muted" />
-                                            <span className="text-sm text-text-main">Power Mode</span>
-                                        </div>
-                                        <span className="text-sm font-bold text-text-main">{concurrency} Concurrent</span>
-                                    </div>
-                                </div>
-
-                                {selectedLeads.length === 0 && (
-                                    <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 flex items-start gap-3">
-                                        <XCircle className="w-5 h-5 text-danger mt-0.5" />
-                                        <div>
-                                            <div className="text-sm font-bold text-danger">No Leads Selected</div>
-                                            <div className="text-xs text-text-muted">Please go back to step 1 and select at least one lead.</div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-6 mt-6 border-t border-border-subtle">
-                        {currentStep > 1 && (
-                            <button
-                                onClick={prevStep}
-                                className="flex-1 px-4 py-3 rounded-xl border border-border-subtle text-sm font-bold text-text-main hover:bg-bg-alt transition-colors"
-                            >
-                                Back
-                            </button>
-                        )}
-                        <button
-                            disabled={
-                                (currentStep === 1 && selectedLeads.length === 0) ||
-                                (currentStep === 2 && (!campaignName || !selectedAgent))
-                            }
-                            onClick={() => {
-                                if (currentStep === 4) {
-                                    alert("Campaign launched successfully!");
-                                    resetCampaign();
-                                } else {
-                                    nextStep();
-                                }
-                            }}
-                            className="flex-[2] btn btn-primary py-3 rounded-xl flex items-center justify-center gap-2"
-                        >
-                            {currentStep === 4 ? 'Launch Campaign' : 'Next Step'}
-                            {currentStep !== 4 && <ChevronRight className="w-4 h-4" />}
-                        </button>
-                    </div>
-                </div>
-            </SideSheet>
 
             {/* Import Leads Modal */}
             <Modal
@@ -730,7 +438,7 @@ function VoicebotLeadDatabase() {
                     </div>
                 </div>
             </Modal>
-        </div>
+        </div >
     )
 }
 
