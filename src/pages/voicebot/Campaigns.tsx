@@ -14,7 +14,10 @@ import {
     Activity,
     MoreHorizontal,
     Phone,
-    RotateCcw
+    RotateCcw,
+    Wallet,
+    Home,
+    ArrowLeft
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
@@ -29,6 +32,7 @@ interface Campaign {
     leadsCount: number;
     agentName: string;
     startDate: string;
+    endDate?: string;
     progress: number;
 }
 
@@ -71,8 +75,57 @@ const DUMMY_CAMPAIGNS: Campaign[] = [
     }
 ];
 
+interface TemplateConfig {
+    id: string;
+    value: string;
+    label: string;
+    description: string;
+}
+
+interface TemplateRole {
+    role: string;
+    icon: any;
+    color: string;
+    configurations: TemplateConfig[];
+}
+
+
+const AGENT_TEMPLATES: TemplateRole[] = [
+    {
+        role: "Sales",
+        icon: Target,
+        color: "primary",
+        configurations: [
+            { id: "s1", value: "outbound_sales", label: "Outbound Sales", description: "Proactive outreach to potential customers" },
+            { id: "s2", value: "inbound_sales", label: "Inbound Support", description: "Handle incoming customer inquiries" },
+            { id: "s3", value: "sales_followup", label: "Follow-up Agent", description: "Follow up with leads and existing customers" }
+        ]
+    },
+    {
+        role: "Finance",
+        icon: Wallet,
+        color: "success",
+        configurations: [
+            { id: "f1", value: "account_support", label: "Account Support", description: "Help with account inquiries and transactions" },
+            { id: "f2", value: "loan_advisor", label: "Loan Advisor", description: "Provide loan information and guidance" },
+            { id: "f3", value: "investment_consultant", label: "Investment Consultant", description: "Investment and portfolio management guidance" }
+        ]
+    },
+    {
+        role: "Realty",
+        icon: Home,
+        color: "accent",
+        configurations: [
+            { id: "r1", value: "property_listing", label: "Property Listing Agent", description: "Help clients list properties for sale or rent" },
+            { id: "r2", value: "buyer_agent", label: "Buyer's Agent", description: "Assist buyers in finding properties" },
+            { id: "r3", value: "rental_specialist", label: "Rental Specialist", description: "Specialize in rental property services" }
+        ]
+    }
+];
+
+
 export default function Campaigns() {
-    const { agents, leadDatabaseData } = useData();
+    const { leadDatabaseData } = useData();
     console.log('leadsdb', leadDatabaseData);
 
     const [isCampaignSheetOpen, setIsCampaignSheetOpen] = useState(false);
@@ -86,17 +139,27 @@ export default function Campaigns() {
 
     // Campaign List State
     const [campaigns, setCampaigns] = useState<Campaign[]>(DUMMY_CAMPAIGNS);
+    const [agentTemplates, setAgentTemplates] = useState<TemplateRole[]>(AGENT_TEMPLATES);
+    const [linkNumbers, setLinkNumbers] = useState<string[]>(["+919876543210", "+919876543211", "+919876543212", "+919876543213", "+919876543214"]);
+    const [linkNumbersLoading, setLinkNumbersLoading] = useState(false);
+    const [linkedNumber, setLinkedNumber] = useState<string>("")
+
     const [searchTerm, setSearchTerm] = useState("");
 
     // Create Campaign Form State
     const [campaignName, setCampaignName] = useState("");
     const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
     const [selectedAgent, setSelectedAgent] = useState("");
-    const [scheduleType, setScheduleType] = useState("immediate");
     const [startDate, setStartDate] = useState("");
-    const [concurrency, setConcurrency] = useState(5);
+    const [endDate, setEndDate] = useState("");
     const [maxRetries, setMaxRetries] = useState(3);
-    const [callDelay, setCallDelay] = useState(30);
+    const [callsPerDay, setCallsPerDay] = useState(5);
+
+    // Agent Selection Type & Template State
+    const [agentSelectionTab, setAgentSelectionTab] = useState<"existing" | "templates">("templates");
+    const [templateStep, setTemplateStep] = useState<"industries" | "configs" | "link-number">("industries");
+    const [selectedTemplateRole, setSelectedTemplateRole] = useState<TemplateRole | null>(null);
+    const [selectedTemplateConfig, setSelectedTemplateConfig] = useState<TemplateConfig | null>(null);
 
     const fetchAgents = async () => {
         setAgentsLoading(true);
@@ -170,10 +233,14 @@ export default function Campaigns() {
         setCampaignName("");
         setSelectedLeads([]);
         setSelectedAgent("");
-        setScheduleType("immediate");
+        setAgentSelectionTab("existing");
+        setTemplateStep("industries");
+        setSelectedTemplateRole(null);
+        setSelectedTemplateConfig(null);
         setStartDate("");
-        setConcurrency(5);
+        setEndDate("");
         setMaxRetries(3);
+        setCallsPerDay(5);
         setLeadSearchText("");
     };
 
@@ -181,10 +248,13 @@ export default function Campaigns() {
         const newCampaign: Campaign = {
             id: `c${campaigns.length + 1}`,
             name: campaignName,
-            status: scheduleType === "immediate" ? "Active" : "Scheduled",
+            status: "Scheduled",
             leadsCount: selectedLeads.length,
-            agentName: apiAgents.find((a: any) => a.vapiId === selectedAgent)?.name || "Unknown Agent",
+            agentName: agentSelectionTab === "existing"
+                ? (apiAgents.find((a: any) => a.vapiId === selectedAgent)?.name || "Unknown Agent")
+                : (selectedTemplateConfig?.label || "Unknown Agent"),
             startDate: startDate || new Date().toISOString(),
+            endDate: endDate,
             progress: 0
         };
         setCampaigns([newCampaign, ...campaigns]);
@@ -451,52 +521,102 @@ export default function Campaigns() {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <label className="text-sm font-bold text-text-main">Choose Calling Agent</label>
-                                    <div className="grid grid-cols-1 gap-3">
-                                        {agentsLoading ? (
-                                            <div className="space-y-3">
-                                                {[1, 2, 3].map((i) => (
-                                                    <div key={i} className="h-20 bg-bg animate-pulse rounded-2xl border border-border-subtle" />
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-bold text-text-main">Choose Calling Agent</label>
+
+                                    </div>
+                                    <div className="space-y-4 animate-in fade-in duration-300">
+                                        {templateStep === "industries" && (
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {agentTemplates.map((role) => (
+                                                    <button
+                                                        key={role.role}
+                                                        onClick={() => {
+                                                            setSelectedTemplateRole(role);
+                                                            setTemplateStep("configs");
+                                                        }}
+                                                        className="group flex items-center justify-between p-4 rounded-2xl border border-border-subtle hover:border-primary hover:shadow-glow-sm bg-white transition-all text-left"
+                                                    >
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={`p-3 rounded-xl bg-${role.color}/10 text-${role.color} group-hover:bg-${role.color} group-hover:text-white transition-all`}>
+                                                                <role.icon className="w-6 h-6" />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="font-bold text-text-main">{role.role}</h4>
+                                                                <p className="text-[10px] text-text-muted">{role.configurations.length} Templates Available</p>
+                                                            </div>
+                                                        </div>
+                                                        <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors" />
+                                                    </button>
                                                 ))}
                                             </div>
-                                        ) : apiAgents.length > 0 ? apiAgents.map((agent: any) => (
-                                            <div
-                                                key={agent.id}
-                                                onClick={() => setSelectedAgent(agent.vapiId)}
-                                                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${selectedAgent === agent.vapiId
-                                                    ? 'border-primary bg-primary/5 shadow-glow-sm ring-1 ring-primary/30'
-                                                    : 'border-border-subtle bg-white hover:border-text-muted/30 shadow-soft'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${selectedAgent === agent.vapiId ? 'bg-primary text-white rotate-0' : 'bg-primary/10 text-primary rotate-3 group-hover:rotate-0'
-                                                        }`}>
-                                                        <User className="w-6 h-6" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-sm font-bold text-text-main">{agent.name}</div>
-                                                        <div className="flex flex-wrap gap-2 mt-1.5">
-                                                            <span className="text-[9px] text-text-muted bg-bg-alt px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter truncate max-w-[80px]">
-                                                                {agent.metadata?.department || agent.industry}
-                                                            </span>
-                                                            <span className="text-[9px] text-text-muted bg-bg-alt px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">
-                                                                {agent.metadata?.language || agent.language}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selectedAgent === agent.vapiId ? 'border-primary bg-primary text-white scale-110 shadow-lg' : 'border-border-subtle group-hover:border-primary/50'
-                                                    }`}>
-                                                    {selectedAgent === agent.vapiId && <Check className="w-4 h-4" />}
-                                                </div>
-                                            </div>
-                                        )) : (
-                                            <div className="text-center py-10 bg-bg rounded-2xl border border-dashed border-border-subtle">
-                                                <User className="w-10 h-10 text-text-muted mx-auto mb-2 opacity-20" />
-                                                <p className="text-xs text-text-muted">No agents found. Create one first.</p>
-                                            </div>
                                         )}
+                                        {
+                                            templateStep === "configs" && (
+                                                <div className="space-y-4">
+                                                    <button
+                                                        onClick={() => setTemplateStep("industries")}
+                                                        className="flex items-center gap-2 text-[10px] font-bold text-text-muted hover:text-primary transition-colors mb-2 uppercase tracking-wider"
+                                                    >
+                                                        <ArrowLeft className="w-3 h-3" />
+                                                        Back to Roles
+                                                    </button>
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        {selectedTemplateRole?.configurations.map((config) => (
+                                                            <button
+                                                                key={config.id}
+                                                                onClick={() => {
+                                                                    setSelectedTemplateConfig(config);
+                                                                    setTemplateStep("link-number");
+
+                                                                }}
+                                                                className={`group p-4 rounded-xl border transition-all text-left ${selectedTemplateConfig?.id === config.id
+                                                                    ? 'border-primary bg-primary/5 shadow-glow-sm'
+                                                                    : 'border-border-subtle hover:border-primary/50 bg-white'
+                                                                    }`}
+                                                            >
+                                                                <div className="flex items-center justify-between">
+                                                                    <h4 className={`text-sm font-bold ${selectedTemplateConfig?.id === config.id ? 'text-primary' : 'text-text-main'}`}>{config.label}</h4>
+                                                                    {selectedTemplateConfig?.id === config.id && <Check className="w-4 h-4 text-primary" />}
+                                                                </div>
+                                                                <p className="text-[10px] text-text-muted mt-1">{config.description}</p>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                        {
+                                            templateStep === "link-number" && (
+                                                <div className="space-y-4">
+                                                    <button
+                                                        onClick={() => setTemplateStep("configs")}
+                                                        className="flex items-center gap-2 text-[10px] font-bold text-text-muted hover:text-primary transition-colors mb-2 uppercase tracking-wider"
+                                                    >
+                                                        <ArrowLeft className="w-3 h-3" />
+                                                        Back to Config
+                                                    </button>
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        <Select
+                                                            value={linkedNumber}
+                                                            onValueChange={setLinkedNumber}
+                                                        >
+                                                            <SelectTrigger className="w-full">
+                                                                <SelectValue placeholder="Choose a number to link" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {linkNumbers.map((number) => (
+                                                                    <SelectItem key={number} value={number}>
+                                                                        {number}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                            )}
                                     </div>
+
                                 </div>
                             </div>
                         )}
@@ -506,44 +626,28 @@ export default function Campaigns() {
                                 <div className="space-y-4">
                                     <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-primary" />
-                                        Scheduling
+                                        Campaign Duration
                                     </h4>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button
-                                            onClick={() => setScheduleType("immediate")}
-                                            className={`p-4 rounded-2xl border text-center transition-all group ${scheduleType === "immediate"
-                                                ? 'border-primary bg-primary/5 ring-1 ring-primary ring-inset shadow-glow-sm'
-                                                : 'border-border-subtle bg-white hover:border-text-muted/30'
-                                                }`}
-                                        >
-                                            <Zap className={`w-6 h-6 mx-auto mb-2 transition-transform group-hover:scale-110 ${scheduleType === "immediate" ? 'text-primary' : 'text-text-muted'}`} />
-                                            <div className="text-xs font-bold text-text-main">Immediate</div>
-                                            <div className="text-[10px] text-text-muted mt-1">Start campaign now</div>
-                                        </button>
-                                        <button
-                                            onClick={() => setScheduleType("scheduled")}
-                                            className={`p-4 rounded-2xl border text-center transition-all group ${scheduleType === "scheduled"
-                                                ? 'border-primary bg-primary/5 ring-1 ring-primary ring-inset shadow-glow-sm'
-                                                : 'border-border-subtle bg-white hover:border-text-muted/30'
-                                                }`}
-                                        >
-                                            <Clock className={`w-6 h-6 mx-auto mb-2 transition-transform group-hover:scale-110 ${scheduleType === "scheduled" ? 'text-primary' : 'text-text-muted'}`} />
-                                            <div className="text-xs font-bold text-text-main">Scheduled</div>
-                                            <div className="text-[10px] text-text-muted mt-1">Pick future date</div>
-                                        </button>
-                                    </div>
-
-                                    {scheduleType === "scheduled" && (
-                                        <div className="animate-in fade-in zoom-in-95 duration-300">
-                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1 mb-1.5 block">Launch Date & Time</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Start Date</label>
                                             <input
-                                                type="datetime-local"
+                                                type="date"
                                                 value={startDate}
                                                 onChange={(e) => setStartDate(e.target.value)}
                                                 className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none shadow-sm"
                                             />
                                         </div>
-                                    )}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">End Date</label>
+                                            <input
+                                                type="date"
+                                                value={endDate}
+                                                onChange={(e) => setEndDate(e.target.value)}
+                                                className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none shadow-sm"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-6">
@@ -551,28 +655,6 @@ export default function Campaigns() {
                                         <Activity className="w-4 h-4 text-primary" />
                                         Advanced Controls
                                     </h4>
-
-                                    <div className="space-y-4 bg-bg/30 p-5 rounded-2xl border border-border-subtle">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <label className="text-xs font-bold text-text-main uppercase tracking-tighter">Concurrency</label>
-                                                <p className="text-[10px] text-text-muted">Simultaneous calls</p>
-                                            </div>
-                                            <span className="text-primary font-black text-xl">{concurrency}</span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="1"
-                                            max="50"
-                                            value={concurrency}
-                                            onChange={(e) => setConcurrency(parseInt(e.target.value))}
-                                            className="w-full h-1.5 bg-primary/10 rounded-lg appearance-none cursor-pointer accent-primary"
-                                        />
-                                        <div className="flex justify-between text-[8px] text-text-muted font-bold uppercase tracking-widest">
-                                            <span>Conservative</span>
-                                            <span>Aggressive</span>
-                                        </div>
-                                    </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
@@ -589,16 +671,18 @@ export default function Campaigns() {
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Retry Delay</label>
+                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Calls/Day</label>
                                             <select
-                                                value={callDelay}
-                                                onChange={(e) => setCallDelay(parseInt(e.target.value))}
+                                                value={callsPerDay}
+                                                onChange={(e) => setCallsPerDay(parseInt(e.target.value))}
                                                 className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                                             >
-                                                <option value={15}>15 Mins</option>
-                                                <option value={30}>30 Mins</option>
-                                                <option value={60}>1 Hour</option>
-                                                <option value={1440}>24 Hours</option>
+                                                <option value={1} >1</option>
+                                                <option value={2} >2</option>
+                                                <option value={5} >5</option>
+                                                <option value={10} >10</option>
+                                                <option value={20} >20</option>
+                                                <option value={50} >50</option>
                                             </select>
                                         </div>
                                     </div>
@@ -608,21 +692,34 @@ export default function Campaigns() {
 
                         {currentStep === 4 && (
                             <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="card-gradient rounded-2xl p-6 overflow-hidden relative shadow-glow">
-                                    <div className="relative z-10 text-white">
-                                        <div className="text-[10px] font-bold uppercase opacity-80 mb-1 tracking-widest">Confirm Configuration</div>
-                                        <div className="text-2xl font-black">{campaignName || "Untitled Campaign"}</div>
+                                <div className="card-gradient rounded-2xl p-4 overflow-hidden relative shadow-glow">
+                                    <div className="relative z-10">
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <div>
+                                                <div className="text-[10px] font-bold uppercase opacity-80 mb-1 tracking-widest">Campaign Name</div>
+                                                <div className="text-2xl font-black">{campaignName || "Untitled Campaign"}</div>
+                                            </div>
+                                            <div className="bg-white/10 rounded-xl">
+                                                <span className="text-[10px] opacity-70 uppercase font-black">Linked Number</span>
+                                                <div className="text-sm font-bold mt-1 truncate">
+                                                    {linkedNumber || "Not Set"}
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                        <div className="grid grid-cols-2 gap-4 mt-6">
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
                                             <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10">
                                                 <span className="text-[10px] opacity-70 uppercase font-black">Target</span>
                                                 <div className="text-xl font-black mt-0.5">{selectedLeads.length} Leads</div>
                                             </div>
                                             <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 overflow-hidden">
                                                 <span className="text-[10px] opacity-70 uppercase font-black">AI Agent</span>
-                                                <div className="text-sm font-bold mt-1 truncate">{apiAgents.find((a: any) => a.vapiId === selectedAgent)?.name || "Not Set"}</div>
+                                                <div className="text-sm font-bold mt-1 truncate">
+                                                    {selectedTemplateRole?.role || "Not Set"} - {selectedTemplateConfig?.label || "Not Set"}
+                                                </div>
                                             </div>
                                         </div>
+
                                     </div>
                                     <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse" />
                                 </div>
@@ -633,27 +730,30 @@ export default function Campaigns() {
                                             <div className="p-2 bg-primary/10 rounded-lg">
                                                 <Calendar className="w-4 h-4 text-primary" />
                                             </div>
-                                            <span className="text-xs font-bold text-text-main">Schedule</span>
+                                            <span className="text-xs font-bold text-text-main">Campaign Period</span>
                                         </div>
-                                        <span className="text-xs font-bold text-primary capitalize">{scheduleType === 'immediate' ? 'Instant Launch' : startDate}</span>
+                                        <div className="text-right">
+                                            <div className="text-[10px] font-bold text-primary">{startDate || 'Start Date Not Set'}</div>
+                                            <div className="text-[9px] text-text-muted">to {endDate || 'End Date Not Set'}</div>
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-accent/10 rounded-lg">
                                                 <Zap className="w-4 h-4 text-accent" />
                                             </div>
-                                            <span className="text-xs font-bold text-text-main">Power Mode</span>
+                                            <span className="text-xs font-bold text-text-main">Daily Volume</span>
                                         </div>
-                                        <span className="text-xs font-bold text-text-main">{concurrency} Concurrent Lines</span>
+                                        <span className="text-xs font-bold text-text-main">{callsPerDay} Calls/Day</span>
                                     </div>
                                     <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-warning/10 rounded-lg">
                                                 <RotateCcw className="w-4 h-4 text-warning" />
                                             </div>
-                                            <span className="text-xs font-bold text-text-main">Persistence</span>
+                                            <span className="text-xs font-bold text-text-main">Retry Policy</span>
                                         </div>
-                                        <span className="text-xs font-bold text-text-main">{maxRetries} Retries every {callDelay >= 60 ? `${callDelay / 60}h` : `${callDelay}m`}</span>
+                                        <span className="text-xs font-bold text-text-main">{maxRetries} Retries</span>
                                     </div>
                                 </div>
 
@@ -691,7 +791,7 @@ export default function Campaigns() {
                         <button
                             disabled={
                                 (currentStep === 1 && selectedLeads.length === 0) ||
-                                (currentStep === 2 && (!campaignName || !selectedAgent))
+                                (currentStep === 2 && (!campaignName || !selectedTemplateConfig))
                             }
                             onClick={() => {
                                 if (currentStep === 4) {
