@@ -65,6 +65,21 @@ const voiceBotService = {
       },
     });
   },
+  getLeadDatabaseData: (
+    params: { page: number; page_size: number },
+    config: AxiosRequestConfig
+  ) => apiService.get(`vapi/lead-database`, { ...config, params }),
+  importLeadDatabaseData: (config: AxiosRequestConfig, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiService.post("vapi/lead-database/upload", formData, {
+      ...config,
+      headers: {
+        ...config.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };
 
 export default voiceBotService;

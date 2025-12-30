@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Languages, Briefcase, MoveLeft, Trash } from "lucide-react";
+import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Languages, Briefcase, MoveLeft, Trash, Loader2 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { CallDetails } from "@/components/voicebot/CallDetails";
@@ -12,6 +12,7 @@ import EditAgent from "@/components/voicebot/EditAgent";
 import TestCall from "@/components/voicebot/TestCall";
 import { toast } from "@/hooks/useToast";
 import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function VoicebotCalls() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -222,7 +223,7 @@ export default function VoicebotCalls() {
                                                     <h3 className="text-lg font-bold text-text-main mb-1 truncate">{agent.name}</h3>
                                                     <div className="flex items-center gap-2 text-text-muted mb-4 text-xs">
                                                         <Briefcase className="w-3 h-3" />
-                                                        <span className="uppercase">{agent.metadata.department}</span>
+                                                        <span >{agent.metadata.department.charAt(0).toUpperCase() + agent.metadata.department.slice(1)}</span>
                                                     </div>
 
                                                     <div className="space-y-2.5 mb-6">
@@ -236,7 +237,7 @@ export default function VoicebotCalls() {
                                                         </div> */}
                                                         <div className="flex items-center gap-2 text-text-main font-medium">
                                                             <Phone className="w-3.5 h-3.5 text-primary" />
-                                                            <span className="text-xs">{agent && agent.phoneNumbers && agent.phoneNumbers.length > 0 ? agent.phoneNumbers[0].number : ""}</span>
+                                                            <span className="text-xs">{agent && agent.phoneNumbers && agent.phoneNumbers.length > 0 ? agent.phoneNumbers[0].number : "Number Not Linked"}</span>
                                                         </div>
                                                     </div>
 
@@ -385,14 +386,15 @@ export default function VoicebotCalls() {
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Duration</th>
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Type</th>
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Date</th>
+                                                                <th className="text-left py-2 px-3 text-xs font-semibold">View</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {filteredCallLogs.map((call) => (
                                                                 <tr
                                                                     key={call.id}
-                                                                    className={`hover:bg-bg transition-colors cursor-pointer ${detailLoading ? 'opacity-50 pointer-events-none' : ''}`}
-                                                                    onClick={() => handleCallClick(call)}
+                                                                    className={`hover:bg-bg transition-colors ${detailLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                                                                // onClick={() => handleCallClick(call)}
                                                                 >
                                                                     <td className="py-2.5 px-3">
                                                                         <div className="text-xs font-medium">
@@ -419,6 +421,15 @@ export default function VoicebotCalls() {
 
                                                                     <td className="py-2.5 px-3 text-xs text-text-muted">
                                                                         {new Date(call.startedAt).toLocaleString()}
+                                                                    </td>
+                                                                    <td className="py-2.5 px-3 text-xs text-text-muted">
+                                                                        {
+                                                                            detailLoading ? (
+                                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                            ) : (
+                                                                                <button className="text-primary font-semibold cursor-pointer" onClick={() => handleCallClick(call)}>View</button>
+                                                                            )
+                                                                        }
                                                                     </td>
                                                                 </tr>
                                                             ))}
@@ -473,8 +484,9 @@ export default function VoicebotCalls() {
                 {selectedAgentToEdit && (
                     <EditAgent
                         agent={selectedAgentToEdit}
+                        setSelectedAgentToEdit={setSelectedAgentToEdit}
                         onSuccess={() => {
-                            setIsEditAgentOpen(false);
+                            // setIsEditAgentOpen(false);
                             getAllAgents();
                         }}
                         onCancel={() => setIsEditAgentOpen(false)}
