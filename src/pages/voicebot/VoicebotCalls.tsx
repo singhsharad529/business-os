@@ -51,11 +51,11 @@ export default function VoicebotCalls() {
         try {
             setLoading(true);
             const response = await voiceBotService.getAllAgents({});
-            console.log(response);
+            // console.log(response);
             setAgents(response);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             toast.danger("Failed to get agents");
         } finally {
             setLoading(false);
@@ -78,7 +78,7 @@ export default function VoicebotCalls() {
             setIsDeleteAlertOpen(false);
             setAgentToDelete(null);
         } catch (error) {
-            console.error(error);
+            // console.error(error);
             toast.danger("Failed to delete agent");
         } finally {
             setDeleteLoading(false);
@@ -94,7 +94,7 @@ export default function VoicebotCalls() {
             setSelectedCall(response);
             setIsSideSheetOpen(true);
         } catch (error) {
-            console.error(error);
+            // console.error(error);
             toast.danger("Failed to load call details");
         } finally {
             setDetailLoading(false);
@@ -122,7 +122,7 @@ export default function VoicebotCalls() {
             }, {});
             setCallLogs(response.reports || []);
         } catch (error) {
-            console.error(error);
+            // console.error(error);
             toast.danger("Failed to get call reports");
         } finally {
             setLoading(false);
@@ -133,11 +133,11 @@ export default function VoicebotCalls() {
         try {
             setLoading(true);
             const response = await voiceBotService.getCallLogs({});
-            console.log(response);
+            // console.log(response);
             // setCalls(response);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             toast.danger("Failed to get call logs");
         } finally {
             setLoading(false);
