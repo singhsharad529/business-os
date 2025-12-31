@@ -80,6 +80,16 @@ const voiceBotService = {
       },
     });
   },
+  getAgentTemplates: (config: AxiosRequestConfig) =>
+    apiService.get("templates/list", config),
+  testCall: (
+    data: { assistantId: string; customerNumber: string; customerName: string },
+    config: AxiosRequestConfig
+  ) => apiService.post("templates/test-outbound-call", data, config),
+  publishAgent: (
+    data: { assistantId: string; name: string; phoneNumberId?: string },
+    config: AxiosRequestConfig
+  ) => apiService.post("templates/publish", data, config),
 };
 
 export default voiceBotService;

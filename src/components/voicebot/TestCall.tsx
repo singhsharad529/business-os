@@ -1,30 +1,39 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
     BotMessageSquare,
     Phone,
-    Briefcase,
     ArrowLeft,
-    Loader2,
     Clock,
     PhoneCall,
-    PhoneOff,
     History as HistoryIcon,
     Plus,
     Home,
     Wallet,
     Target,
     Dot,
-    ChevronRight,
     User,
-    MessageSquare
+    MessageSquare,
+    Loader2,
+    User2,
+    BookPlus
 } from "lucide-react";
 import { toast } from "@/hooks/useToast";
+import voiceBotService from "@/api/voicebotService";
+import { AxiosRequestConfig } from "axios";
+import { Skeleton } from "../ui/skeleton";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface TestCallProps {
     onCancel: () => void;
 }
 
-type Step = "select-role" | "select-config" | "input-number" | "simulating" | "completed";
+type Step = "select-template" | "input-number" | "simulating" | "completed";
 type Tab = "new" | "history";
 
 interface TemplateConfig {
@@ -34,45 +43,8 @@ interface TemplateConfig {
     description: string;
 }
 
-interface TemplateRole {
-    role: string;
-    icon: any;
-    color: string;
-    configurations: TemplateConfig[];
-}
 
-const AGENT_TEMPLATES: TemplateRole[] = [
-    {
-        role: "Sales",
-        icon: Target,
-        color: "primary",
-        configurations: [
-            { id: "s1", value: "outbound_sales", label: "Outbound Sales", description: "Proactive outreach to potential customers" },
-            { id: "s2", value: "inbound_sales", label: "Inbound Support", description: "Handle incoming customer inquiries" },
-            { id: "s3", value: "sales_followup", label: "Follow-up Agent", description: "Follow up with leads and existing customers" }
-        ]
-    },
-    {
-        role: "Finance",
-        icon: Wallet,
-        color: "success",
-        configurations: [
-            { id: "f1", value: "account_support", label: "Account Support", description: "Help with account inquiries and transactions" },
-            { id: "f2", value: "loan_advisor", label: "Loan Advisor", description: "Provide loan information and guidance" },
-            { id: "f3", value: "investment_consultant", label: "Investment Consultant", description: "Investment and portfolio management guidance" }
-        ]
-    },
-    {
-        role: "Realty",
-        icon: Home,
-        color: "accent",
-        configurations: [
-            { id: "r1", value: "property_listing", label: "Property Listing Agent", description: "Help clients list properties for sale or rent" },
-            { id: "r2", value: "buyer_agent", label: "Buyer's Agent", description: "Assist buyers in finding properties" },
-            { id: "r3", value: "rental_specialist", label: "Rental Specialist", description: "Specialize in rental property services" }
-        ]
-    }
-];
+
 
 interface TestCallRecord {
     id: string;
@@ -141,16 +113,39 @@ const DUMMY_HISTORY: TestCallRecord[] = [
     }
 ];
 
+
+interface Number {
+    id: string;
+    vapiId: string;
+    orgId: string;
+    provider: string;
+    number: string;
+    credentialId: string;
+    assistantId: string;
+    name: string;
+    status: string;
+    twilioAccountSid: string;
+    twilioAuthToken: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+
 export default function TestCall({ onCancel }: TestCallProps) {
     const [activeTab, setActiveTab] = useState<Tab>("new");
-    const [step, setStep] = useState<Step>("select-role");
-    const [selectedRole, setSelectedRole] = useState<TemplateRole | null>(null);
-    const [selectedConfig, setSelectedConfig] = useState<TemplateConfig | null>(null);
-    const [phoneNumber, setPhoneNumber] = useState("");
-    const [simStatus, setSimStatus] = useState<"initiating" | "ongoing" | "completed">("initiating");
-    const [timer, setTimer] = useState(0);
+    const [step, setStep] = useState<Step>("select-template");
+    const [phoneNumber, setPhoneNumber] = useState<string>("");
+    const [name, setName] = useState<string>("");
     const [history, setHistory] = useState<TestCallRecord[]>([]);
     const [selectedHistoryItem, setSelectedHistoryItem] = useState<TestCallRecord | null>(null);
+    const [templates, setTemplates] = useState<any | null>(null);
+    const [templatesLoading, setTemplatesLoading] = useState(false);
+    const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
+    const [initialCallLoading, setInitialCallLoading] = useState(false);
+    const [unassignedNumbers, setUnassignedNumbers] = useState<Number[]>([]);
+    const [publishLoading, setPublishLoading] = useState<boolean>(false);
+    const [selectedNumber, setSelectedNumber] = useState<string>("");
+
 
     useEffect(() => {
         const savedHistory = localStorage.getItem("test_call_history");
@@ -166,21 +161,6 @@ export default function TestCall({ onCancel }: TestCallProps) {
         }
     }, []);
 
-    const saveToHistory = (record: TestCallRecord) => {
-        const updatedHistory = [record, ...history].slice(0, 20);
-        setHistory(updatedHistory);
-        localStorage.setItem("test_call_history", JSON.stringify(updatedHistory));
-    };
-
-    useEffect(() => {
-        let interval: any;
-        if (step === "simulating" && simStatus === "ongoing") {
-            interval = setInterval(() => {
-                setTimer(prev => prev + 1);
-            }, 1000);
-        }
-        return () => clearInterval(interval);
-    }, [step, simStatus]);
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -188,49 +168,102 @@ export default function TestCall({ onCancel }: TestCallProps) {
         return `${mins}:${secs.toString().padStart(2, "0")}`;
     };
 
-    const handleStartCall = () => {
-        if (!phoneNumber) {
-            toast.danger("Please enter your phone number");
-            return;
-        }
-        setStep("simulating");
-        setSimStatus("initiating");
-        setTimer(0);
-
-        // Simulate call progression
-        setTimeout(() => {
-            setSimStatus("ongoing");
-            // End call after 15 seconds automatically for simulation
-            setTimeout(() => {
-                setSimStatus("completed");
-                const newRecord: TestCallRecord = {
-                    id: Math.random().toString(36).substr(2, 9),
-                    agentName: selectedConfig?.label || "Unknown Agent",
-                    agentRole: selectedRole?.role || "General",
-                    phoneNumber: phoneNumber,
-                    duration: 15, // Mock duration
-                    timestamp: new Date().toISOString(),
-                    status: "completed",
-                    summary: "The test call was completed successfully. This is a simulated summary for your test interaction.",
-                    messages: [
-                        { role: "assistant", message: "Hi! This is a test call from your Business OS agent.", secondsFromStart: 1 },
-                        { role: "user", message: "Hello, I can hear you clearly.", secondsFromStart: 5 },
-                        { role: "assistant", message: "Great! This confirms the outbound calling system is working as expected.", secondsFromStart: 10 },
-                        { role: "user", message: "Awesome, thanks for the test.", secondsFromStart: 14 }
-                    ]
-                };
-                saveToHistory(newRecord);
-                setStep("completed");
-            }, 15000);
-        }, 3000);
-    };
-
     const handleRetry = () => {
-        setStep("select-role");
-        setSelectedRole(null);
-        setSelectedConfig(null);
+        setStep("select-template");
         setPhoneNumber("");
+        setName("");
+        setSelectedTemplate(null);
     };
+
+
+    const getAgentTemplates = async (page: number = 1, pageSize: number = 10) => {
+        try {
+            setTemplatesLoading(true);
+            const config: AxiosRequestConfig = {
+                params: {
+                    page,
+                    page_size: pageSize
+                }
+            };
+            const response = await voiceBotService.getAgentTemplates(config);
+            console.log(response);
+            setTemplates(response);
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to fetch agent templates");
+        }
+        finally {
+            setTemplatesLoading(false);
+        }
+    }
+
+
+    const getUnassignedNumbers = async () => {
+        try {
+            const response = await voiceBotService.getNumbers({});
+            console.log(response.unassignedPhoneNumbers);
+            setUnassignedNumbers(response.unassignedPhoneNumbers);
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to fetch unassigned numbers");
+        }
+        finally {
+
+        }
+    }
+
+    const initialCall = async () => {
+        try {
+            setInitialCallLoading(true);
+            const data = {
+                assistantId: selectedTemplate?.vapiId,
+                customerNumber: phoneNumber,
+                customerName: name
+            }
+            const response = await voiceBotService.testCall(data, {});
+            console.log(response);
+            setStep("simulating");
+            getUnassignedNumbers();
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to make initial call");
+        }
+        finally {
+            setInitialCallLoading(false);
+        }
+    }
+
+
+    const publishAgent = async () => {
+        try {
+            setPublishLoading(true);
+            const data = {
+                assistantId: selectedTemplate?.vapiId,
+                name: selectedTemplate?.name,
+                phoneNumberId: selectedNumber
+            }
+            const response = await voiceBotService.publishAgent(data, {});
+            console.log(response);
+            toast.success("Agent published successfully");
+            handleRetry();
+
+        } catch (error) {
+            toast.danger("Failed to publish agent");
+        }
+        finally {
+            setPublishLoading(false);
+        }
+    }
+
+    useEffect(() => {
+
+        if (activeTab === "new" && !templates) {
+            getAgentTemplates();
+        }
+
+    }, [activeTab])
+
+
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
@@ -260,74 +293,54 @@ export default function TestCall({ onCancel }: TestCallProps) {
 
             <div className="flex-1 overflow-y-auto px-1">
                 {activeTab === "new" ? (
-                    <div className="space-y-6 pb-6">
-                        {step === "select-role" && (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                <div>
-                                    <h3 className="text-lg font-bold text-text-main">Select Industry</h3>
-                                    <p className="text-sm text-text-muted">Choose a template category for your test agent.</p>
-                                </div>
-                                <div className="grid grid-cols-1 gap-4">
-                                    {AGENT_TEMPLATES.map((role) => (
-                                        <button
-                                            key={role.role}
-                                            onClick={() => {
-                                                setSelectedRole(role);
-                                                setStep("select-config");
-                                            }}
-                                            className="group flex items-center justify-between p-4 rounded-2xl border border-border-subtle hover:border-primary hover:shadow-glow-sm bg-white transition-all text-left"
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className={`p-3 rounded-xl bg-${role.color}/10 text-${role.color} group-hover:bg-${role.color} group-hover:text-white transition-all`}>
-                                                    <role.icon className="w-6 h-6" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-bold text-text-main">{role.role}</h4>
-                                                    <p className="text-xs text-text-muted">{role.configurations.length} Templates Available</p>
-                                                </div>
-                                            </div>
-                                            <ChevronRight className="w-5 h-5 text-text-muted group-hover:text-primary transition-colors" />
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
-                        {step === "select-config" && (
-                            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <button
-                                    onClick={() => setStep("select-role")}
-                                    className="flex items-center gap-2 text-xs text-text-muted hover:text-primary transition-colors mb-2"
-                                >
-                                    <ArrowLeft className="w-3 h-3" />
-                                    Back to Industries
-                                </button>
+
+
+                        {step === "select-template" && (
+                            <div className="grid grid-cols-1 gap-4">
                                 <div>
-                                    <h3 className="text-lg font-bold text-text-main">{selectedRole?.role} Templates</h3>
-                                    <p className="text-sm text-text-muted">Pick a specialized configuration for the call.</p>
+                                    <h3 className="text-lg font-bold text-text-main">Select Template</h3>
+                                    <p className="text-sm text-text-muted">Choose a template for your test agent.</p>
                                 </div>
-                                <div className="grid grid-cols-1 gap-3">
-                                    {selectedRole?.configurations.map((config) => (
+                                {
+                                    templatesLoading ? (
+                                        <div className="flex flex-col gap-4 w-full">
+                                            <Skeleton className="w-full h-20 rounded-xl" />
+                                            <Skeleton className="w-full h-20 rounded-xl" />
+                                            <Skeleton className="w-full h-20 rounded-xl" />
+                                            <Skeleton className="w-full h-20 rounded-xl" />
+                                        </div>
+                                    ) : templates?.agents?.map((template: any) => (
                                         <button
-                                            key={config.id}
+                                            key={template.id}
                                             onClick={() => {
-                                                setSelectedConfig(config);
+                                                setSelectedTemplate(template);
                                                 setStep("input-number");
                                             }}
-                                            className="group p-4 rounded-xl border border-border-subtle hover:border-primary hover:bg-primary/5 transition-all text-left"
+                                            className="group flex items-center gap-4 p-4 rounded-xl border border-border-subtle hover:border-primary hover:bg-primary/5 transition-all text-left"
                                         >
-                                            <h4 className="text-sm font-bold text-text-main group-hover:text-primary">{config.label}</h4>
-                                            <p className="text-xs text-text-muted mt-1">{config.description}</p>
+
+                                            <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                                <BotMessageSquare className="w-5 h-5" />
+                                            </div>
+
+                                            <div>
+                                                <h4 className="text-sm font-bold text-text-main group-hover:text-primary">{template.name}</h4>
+                                                <p className="text-xs text-text-muted mt-1">{template.metadata.department[0].toUpperCase()}{template.metadata.department.slice(1)}</p>
+                                                <p className="text-xs text-text-muted mt-1">{template.metadata.language}</p>
+                                            </div>
+
                                         </button>
-                                    ))}
-                                </div>
+                                    ))
+                                }
                             </div>
                         )}
 
                         {step === "input-number" && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div className="space-y-6 duration-300">
                                 <button
-                                    onClick={() => setStep("select-config")}
+                                    onClick={() => setStep("select-template")}
                                     className="flex items-center gap-2 text-xs text-text-muted hover:text-primary transition-colors mb-2"
                                 >
                                     <ArrowLeft className="w-3 h-3" />
@@ -335,12 +348,12 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 </button>
                                 <div className="flex flex-col items-center text-center space-y-4">
                                     <div className={`w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary`}>
-                                        {selectedRole && <selectedRole.icon className="w-8 h-8" />}
+                                        <Phone className="w-8 h-8" />
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-text-main">Ready for Test Call?</h3>
                                         <p className="text-sm text-text-muted px-6">
-                                            The <span className="font-semibold text-text-main">{selectedConfig?.label}</span> will call you to simulate a conversation.
+                                            <span className="font-semibold text-text-main">{selectedTemplate?.name}</span> will call you.
                                         </p>
                                     </div>
                                 </div>
@@ -363,16 +376,34 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                                 className="w-full bg-white border border-border-subtle rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                             />
                                         </div>
+
+
+                                        <label className="text-xs font-semibold text-text-main flex items-center gap-2">
+                                            Your Name
+                                            <span className="text-[10px] font-normal text-text-muted px-1.5 py-0.5 bg-bg border border-border-subtle rounded text-primary">Required</span>
+                                        </label>
+                                        <div className="relative">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
+                                                <User2 className="w-4 h-4" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                placeholder="Enter your name"
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                className="w-full bg-white border border-border-subtle rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            />
+                                        </div>
                                     </div>
 
                                     <button
-                                        onClick={handleStartCall}
+                                        onClick={initialCall}
                                         className="btn btn-primary w-full py-4 rounded-xl text-sm font-bold shadow-glow-primary"
                                     >
-                                        Start My Test Call
+                                        {initialCallLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Start My Test Call"}
                                     </button>
                                 </div>
-                                <div className="p-4 bg-bg rounded-xl border border-border-subtle flex gap-3">
+                                <div className="flex items-center p-2 bg-bg rounded-xl border border-border-subtle gap-3">
                                     <div className="p-2 bg-white rounded-lg border border-border-subtle">
                                         <Clock className="w-4 h-4 text-primary" />
                                     </div>
@@ -388,7 +419,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 <div className="relative">
                                     <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping scale-150" />
                                     <div className="absolute inset-0 bg-primary/10 rounded-full animate-pulse scale-125" />
-                                    <div className="relative w-24 h-24 bg-primary rounded-full flex items-center justify-center text-white shadow-glow">
+                                    <div className="relative w-20 h-20 bg-primary rounded-full flex items-center justify-center text-white shadow-glow">
                                         <PhoneCall className="w-10 h-10" />
                                     </div>
                                 </div>
@@ -396,79 +427,78 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 <div className="text-center space-y-2">
                                     <div className="flex items-center justify-center gap-2 text-primary font-bold uppercase tracking-widest text-[10px]">
                                         <Dot className="w-4 h-4 animate-bounce" />
-                                        {simStatus === "initiating" ? "Initiating Call" : "Call Ongoing"}
+                                        Initiated Call
                                     </div>
-                                    <h3 className="text-xl font-bold text-text-main">{selectedConfig?.label}</h3>
+                                    <h3 className="text-xl font-bold text-text-main">{selectedTemplate?.name}</h3>
+                                    <p className="text-sm text-text-muted">Please pick up the call</p>
                                     <p className="text-sm text-text-muted">{phoneNumber}</p>
                                 </div>
 
-                                <div className="bg-bg border border-border-subtle rounded-3xl px-8 py-4 flex flex-col items-center">
-                                    <span className="text-[10px] uppercase font-bold text-text-muted tracking-tighter">Call Duration</span>
-                                    <span className="text-2xl font-mono font-bold text-text-main">{formatTime(timer)}</span>
-                                </div>
 
-                                <div className="space-y-4 w-full">
-                                    <div className="flex flex-col gap-2">
-                                        <div className="flex justify-between text-[10px] font-bold text-text-muted uppercase">
-                                            <span>Processing</span>
-                                            <span>{simStatus === "initiating" ? "15%" : "65%"}</span>
-                                        </div>
-                                        <div className="h-1.5 w-full bg-border-subtle rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-primary transition-all duration-1000"
-                                                style={{ width: simStatus === "initiating" ? "15%" : "65%" }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <p className="text-center text-xs text-text-muted italic">
-                                        Simulating a real conversation with {selectedRole?.role} AI...
-                                    </p>
-                                </div>
-                            </div>
-                        )}
 
-                        {step === "completed" && (
-                            <div className="flex flex-col items-center justify-center py-10 space-y-8 animate-in zoom-in-95 duration-500">
-                                <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center text-success border border-success/20">
-                                    <PhoneOff className="w-10 h-10" />
-                                </div>
-
-                                <div className="text-center space-y-2">
-                                    <h3 className="text-2xl font-bold text-text-main">Call Completed</h3>
-                                    <p className="text-sm text-text-muted max-w-[280px]">
-                                        Your simulation with <span className="text-primary font-bold">{selectedConfig?.label}</span> has finished successfully.
-                                    </p>
-                                </div>
-
-                                <div className="w-full grid grid-cols-2 gap-3">
-                                    <div className="p-4 rounded-2xl bg-bg border border-border-subtle text-center">
-                                        <span className="text-[10px] font-bold text-text-muted uppercase block">Duration</span>
-                                        <span className="text-lg font-bold text-text-main">0:15</span>
-                                    </div>
-                                    <div className="p-4 rounded-2xl bg-bg border border-border-subtle text-center">
-                                        <span className="text-[10px] font-bold text-text-muted uppercase block">Sentiment</span>
-                                        <span className="text-lg font-bold text-success">Positive</span>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3 w-full">
+                                <div className="w-full flex items-center justify-center gap-2">
                                     <button
                                         onClick={() => setActiveTab("history")}
-                                        className="btn btn-secondary w-full py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                                        className="btn btn-secondary w-full py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
                                     >
                                         <HistoryIcon className="w-4 h-4" />
                                         View History
                                     </button>
                                     <button
                                         onClick={handleRetry}
-                                        className="btn btn-primary w-full py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                                        className="btn btn-primary w-full py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
                                     >
                                         <Plus className="w-4 h-4" />
                                         New Test Call
                                     </button>
                                 </div>
+
+                                <hr className="my-4" />
+
+                                <div>
+                                    <p className="text-lg font-bold text-text-main">Publish Agent</p>
+
+                                </div>
+                                <div className="w-full flex flex-col gap-2">
+                                    <div>
+                                        <p className="text-md font-bold text-text-main">Agent Name</p>
+                                        <input type="text" value={selectedTemplate?.name} className="input input-bordered w-full disabled:opacity-50" disabled />
+                                    </div>
+                                    <div>
+                                        <p className="text-md font-bold text-text-main">Select Number</p>
+
+                                        <Select
+                                            value={selectedNumber}
+                                            onValueChange={(value) => setSelectedNumber(value)}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Select Number" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+
+                                                {unassignedNumbers.map((number: Number) => (
+                                                    <SelectItem key={number?.id} value={number?.vapiId}>
+                                                        {number?.number}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                <div className="w-full">
+                                    <button
+                                        onClick={publishAgent}
+                                        className="btn btn-primary w-full py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                                    >
+                                        <BookPlus className="w-4 h-4" />
+                                        {publishLoading ? "Publishing..." : "Publish Agent"}
+                                    </button>
+                                </div>
                             </div>
                         )}
+
+
                     </div>
                 ) : (
                     /* History Tab */

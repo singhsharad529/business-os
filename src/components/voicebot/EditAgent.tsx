@@ -26,7 +26,6 @@ interface Number {
 }
 
 function EditAgent({ agent, setSelectedAgentToEdit, onSuccess, onCancel }: EditAgentProps) {
-    console.log('agent info', agent);
 
     const [agentRole, setAgentRole] = useState<Item[]>([]);
     const [configurations, setConfigurations] = useState<Item[]>([]);
