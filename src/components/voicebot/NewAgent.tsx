@@ -84,8 +84,6 @@ function NewAgent({ onCancel, getAllAgents }: NewAgentProps) {
             ]);
 
             console.log(agentRoles, agentLanguages, numbers);
-
-
             setAgentRole(agentRoles.agentRoles);
             setLanguages(agentLanguages.languages);
             setNumbers(numbers.unassignedPhoneNumbers);
