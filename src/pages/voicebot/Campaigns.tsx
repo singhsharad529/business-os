@@ -17,7 +17,14 @@ import {
     RotateCcw,
     Wallet,
     Home,
-    ArrowLeft
+    ArrowLeft,
+    PhoneOff,
+    CheckCircle2,
+    AlertCircle,
+    Eye,
+    TrendingUp,
+    Timer,
+    Edit
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
@@ -173,6 +180,28 @@ export default function Campaigns() {
     const [selectedTemplateRole, setSelectedTemplateRole] = useState<TemplateRole | null>(null);
     const [selectedTemplateConfig, setSelectedTemplateConfig] = useState<TemplateConfig | null>(null);
 
+    // Selected Campaign Detail State
+    const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+
+    const CAMPAIGN_STATS = {
+        totalCalls: 1250,
+        successCalls: 850,
+        failedCalls: 120,
+        notConnectedCalls: 280,
+        avgDuration: "2m 15s",
+        successRate: "68%",
+        connectedLeads: "970",
+        conversionRate: "24%"
+    };
+
+    const CAMPAIGN_CALLS = [
+        { id: "call1", phoneNumber: "+1 (555) 123-4567", status: "Completed", duration: "2m 30s", date: "2025-12-28 10:30 AM" },
+        { id: "call2", phoneNumber: "+1 (555) 987-6543", status: "Failed", duration: "0m 45s", date: "2025-12-28 11:15 AM" },
+        { id: "call3", phoneNumber: "+1 (555) 456-7890", status: "Not Connected", duration: "0m 00s", date: "2025-12-28 12:00 PM" },
+        { id: "call4", phoneNumber: "+1 (555) 234-5678", status: "Completed", duration: "1m 15s", date: "2025-12-28 01:45 PM" },
+        { id: "call5", phoneNumber: "+1 (555) 876-5432", status: "Completed", duration: "3m 20s", date: "2025-12-28 02:30 PM" },
+    ];
+
     const fetchAgents = async () => {
         setAgentsLoading(true);
         try {
@@ -289,132 +318,307 @@ export default function Campaigns() {
     return (
         <>
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-text-main">Campaigns</h1>
-                        <p className="text-text-muted mt-1">Monitor and manage your automated calling campaigns</p>
-                    </div>
-                    <button
-                        onClick={() => setIsCampaignSheetOpen(true)}
-                        className="btn btn-primary flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Create Campaign
-                    </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                                <Target className="w-5 h-5" />
+                {!selectedCampaign ? (
+                    <>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-3xl font-bold text-text-main">Campaigns</h1>
+                                <p className="text-text-muted mt-1">Monitor and manage your automated calling campaigns</p>
                             </div>
-                            <span className="text-[10px] font-bold text-success uppercase tracking-wider">+12%</span>
+                            <button
+                                onClick={() => setIsCampaignSheetOpen(true)}
+                                className="btn btn-primary flex items-center gap-2"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Create Campaign
+                            </button>
                         </div>
-                        <div className="text-2xl font-bold text-text-main">12</div>
-                        <div className="text-xs text-text-muted mt-1">Total Campaigns</div>
-                    </div>
-                    <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-accent/10 rounded-lg text-accent">
-                                <Activity className="w-5 h-5" />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                        <Target className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-[10px] font-bold text-success uppercase tracking-wider">+12%</span>
+                                </div>
+                                <div className="text-2xl font-bold text-text-main">12</div>
+                                <div className="text-xs text-text-muted mt-1">Total Campaigns</div>
                             </div>
-                            <span className="text-[10px] font-bold text-success uppercase tracking-wider">+5%</span>
-                        </div>
-                        <div className="text-2xl font-bold text-text-main">4</div>
-                        <div className="text-xs text-text-muted mt-1">Active Now</div>
-                    </div>
-                    <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-success/10 rounded-lg text-success">
-                                <Phone className="w-5 h-5" />
+                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="p-2 bg-accent/10 rounded-lg text-accent">
+                                        <Activity className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-[10px] font-bold text-success uppercase tracking-wider">+5%</span>
+                                </div>
+                                <div className="text-2xl font-bold text-text-main">4</div>
+                                <div className="text-xs text-text-muted mt-1">Active Now</div>
+                            </div>
+                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="p-2 bg-success/10 rounded-lg text-success">
+                                        <Phone className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="text-2xl font-bold text-text-main">1,280</div>
+                                <div className="text-xs text-text-muted mt-1">Calls Made</div>
+                            </div>
+                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="p-2 bg-warning/10 rounded-lg text-warning">
+                                        <BarChart3 className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="text-2xl font-bold text-text-main">34%</div>
+                                <div className="text-xs text-text-muted mt-1">Avg. Conversion</div>
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-text-main">1,280</div>
-                        <div className="text-xs text-text-muted mt-1">Calls Made</div>
-                    </div>
-                    <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="p-2 bg-warning/10 rounded-lg text-warning">
-                                <BarChart3 className="w-5 h-5" />
+
+                        <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">Campaign List</h3>
+                                <div className="relative w-full md:w-80">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search campaigns..."
+                                        className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="border-b border-border-subtle bg-bg/30">
+                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Campaign Name</th>
+                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
+                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Leads</th>
+                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Agent</th>
+                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Start Date</th>
+                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Progress</th>
+                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border-subtle">
+                                        {campaigns.map((camp) => (
+                                            <tr
+                                                key={camp.id}
+                                                className="group hover:bg-bg/40 transition-colors"
+                                            >
+                                                <td className="py-4 px-4">
+                                                    <div className="text-sm font-bold text-text-main">{camp.name}</div>
+                                                    <div className="text-[10px] text-text-muted mt-0.5 whitespace-nowrap">ID: {camp.id}</div>
+                                                </td>
+                                                <td className="py-4 px-4">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${camp.status === 'Active' ? 'bg-success/10 text-success border border-success/20' :
+                                                        camp.status === 'Scheduled' ? 'bg-primary/10 text-primary border border-primary/20' :
+                                                            camp.status === 'Paused' ? 'bg-warning/10 text-warning border border-warning/20' :
+                                                                'bg-bg-alt text-text-muted border border-border-subtle'
+                                                        }`}>
+                                                        {camp.status}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-4 text-xs font-medium text-text-main">{camp.leadsCount}</td>
+                                                <td className="py-4 px-4 text-xs text-text-muted">{camp.agentName}</td>
+                                                <td className="py-4 px-4 text-xs text-text-muted">{new Date(camp.startDate).toLocaleDateString()}</td>
+                                                <td className="py-4 px-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex-1 min-w-[60px] h-1.5 bg-border-subtle rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full transition-all duration-500 ${camp.status === 'Active' ? 'bg-primary' : 'bg-text-muted/30'}`}
+                                                                style={{ width: `${camp.progress}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-text-main">{camp.progress}%</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 px-4 text-right">
+                                                    <button className="p-2 hover:bg-white rounded-lg transition-colors text-text-muted hover:text-primary"
+
+                                                        onClick={() => setSelectedCampaign(camp)}
+
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-text-main">34%</div>
-                        <div className="text-xs text-text-muted mt-1">Avg. Conversion</div>
-                    </div>
-                </div>
+                    </>
+                ) : (
+                    <div className="space-y-8 animate-in fade-in duration-500">
+                        {/* Selected Campaign Header */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setSelectedCampaign(null)}
+                                    className="p-2 hover:bg-bg-alt rounded-xl border border-border-subtle text-text-muted hover:text-primary transition-all active:scale-95"
+                                >
+                                    <ArrowLeft className="w-5 h-5" />
+                                </button>
+                                <div>
+                                    <div className="flex items-center gap-3">
+                                        <h1 className="text-3xl font-bold text-text-main">{selectedCampaign.name}</h1>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${selectedCampaign.status === 'Active' ? 'bg-success/10 text-success border border-success/20' :
+                                            selectedCampaign.status === 'Scheduled' ? 'bg-primary/10 text-primary border border-primary/20' :
+                                                selectedCampaign.status === 'Paused' ? 'bg-warning/10 text-warning border border-warning/20' :
+                                                    'bg-bg-alt text-text-muted border border-border-subtle'
+                                            }`}>
+                                            {selectedCampaign.status}
+                                        </span>
+                                    </div>
+                                    <p className="text-text-muted mt-1 flex items-center gap-2">
+                                        <Calendar className="w-4 h-4" />
+                                        Created on {new Date(selectedCampaign.startDate).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button className="btn btn-primary flex items-center gap-2">
+                                    <Edit className="w-4 h-4" />
+                                    Edit Campaign
+                                </button>
+                            </div>
+                        </div>
 
-                <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">Campaign List</h3>
-                        <div className="relative w-full md:w-80">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                            <input
-                                type="text"
-                                placeholder="Search campaigns..."
-                                className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                        {/* Selected Campaign Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                            {[
+                                { label: "Total Calls", value: CAMPAIGN_STATS.totalCalls, icon: Phone, color: "primary" },
+                                { label: "Success", value: CAMPAIGN_STATS.successCalls, icon: CheckCircle2, color: "success" },
+                                { label: "Failed", value: CAMPAIGN_STATS.failedCalls, icon: XCircle, color: "danger" },
+                                { label: "Not Connected", value: CAMPAIGN_STATS.notConnectedCalls, icon: PhoneOff, color: "warning" },
+                                { label: "Avg Duration", value: CAMPAIGN_STATS.avgDuration, icon: Timer, color: "accent" },
+                                { label: "Success Rate", value: CAMPAIGN_STATS.successRate, icon: TrendingUp, color: "success" },
+                                { label: "Connected", value: CAMPAIGN_STATS.connectedLeads, icon: User, color: "primary" },
+                                { label: "Conversion", value: CAMPAIGN_STATS.conversionRate, icon: BarChart3, color: "success" },
+                            ].map((stat, i) => (
+                                <div key={i} className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+
+                                    <div>
+                                        <div className="text-lg font-bold text-text-main leading-tight">{stat.value}</div>
+                                        <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">{stat.label}</div>
+                                    </div>
+                                    <div className={`p-2 bg-${stat.color}/10 text-${stat.color} rounded-lg w-fit mb-2`}>
+                                        <stat.icon className="w-6 h-6" />
+                                    </div>
+
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Calls Table */}
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">Call History</h3>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] text-text-muted">Showing last 5 calls</span>
+                                        </div>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="border-b border-border-subtle bg-bg/30">
+                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Phone Number</th>
+                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
+                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Duration</th>
+                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Date</th>
+                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border-subtle">
+                                                {CAMPAIGN_CALLS.map((call) => (
+                                                    <tr key={call.id} className="group hover:bg-bg/40 transition-colors">
+                                                        <td className="py-4 px-4 text-xs font-bold text-text-main">{call.phoneNumber}</td>
+                                                        <td className="py-4 px-4">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${call.status === 'Completed' ? 'bg-success/10 text-success border border-success/20' :
+                                                                call.status === 'Failed' ? 'bg-danger/10 text-danger border border-danger/20' :
+                                                                    'bg-warning/10 text-warning border border-warning/20'
+                                                                }`}>
+                                                                {call.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-4 px-4 text-xs text-text-muted">{call.duration}</td>
+                                                        <td className="py-4 px-4 text-xs text-text-muted">{call.date}</td>
+                                                        <td className="py-4 px-4 text-right">
+                                                            <button className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary active:scale-90 flex items-center gap-2 justify-end ml-auto group/btn">
+                                                                <span className="text-[10px] font-bold opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">View Details</span>
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button className="w-full mt-6 py-3 border border-dashed border-border-subtle rounded-xl text-[10px] font-bold text-text-muted hover:text-primary hover:border-primary transition-all uppercase tracking-widest">
+                                        View All Call Logs
+                                    </button>
+                                </div>
+                            </div>
+                            {/* Campaign Info Card */}
+                            <div className="lg:col-span-1 space-y-6">
+                                <div className="card p-6 border border-border-subtle shadow-soft h-full">
+                                    <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-6">Campaign Information</h3>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
+                                            <span className="text-xs text-text-muted">Agent</span>
+                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.agentName}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
+                                            <span className="text-xs text-text-muted">Target Leads</span>
+                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.leadsCount}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
+                                            <span className="text-xs text-text-muted">Linked Number</span>
+                                            <span className="text-xs font-bold text-text-main">+91 98765 43210</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
+                                            <span className="text-xs text-text-muted">Retries</span>
+                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.maxRetries || 3}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
+                                            <span className="text-xs text-text-muted">Calls per Day</span>
+                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.callsPerDay || 50}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
+                                            <span className="text-xs text-text-muted">Follow Ups</span>
+                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.followUps || 1}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2">
+                                            <span className="text-xs text-text-muted">Time Window</span>
+                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.startTime || '09:00'} - {selectedCampaign.settings?.endTime || '18:00'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="mt-8 pt-6 border-t border-border-subtle">
+                                        <div className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-4">Overall Progress</div>
+                                        <div className="w-full h-2 bg-bg-alt rounded-full overflow-hidden mb-2">
+                                            <div
+                                                className="h-full bg-primary"
+                                                style={{ width: `${selectedCampaign.progress}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between text-[10px] font-bold">
+                                            <span className="text-primary">{selectedCampaign.progress}% Completed</span>
+                                            <span className="text-text-muted">{selectedCampaign.leadsCount} Total</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
                         </div>
                     </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="border-b border-border-subtle bg-bg/30">
-                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Campaign Name</th>
-                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
-                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Leads</th>
-                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Agent</th>
-                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Start Date</th>
-                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Progress</th>
-                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border-subtle">
-                                {campaigns.map((camp) => (
-                                    <tr key={camp.id} className="group hover:bg-bg/40 transition-colors">
-                                        <td className="py-4 px-4">
-                                            <div className="text-sm font-bold text-text-main">{camp.name}</div>
-                                            <div className="text-[10px] text-text-muted mt-0.5 whitespace-nowrap">ID: {camp.id}</div>
-                                        </td>
-                                        <td className="py-4 px-4">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${camp.status === 'Active' ? 'bg-success/10 text-success border border-success/20' :
-                                                camp.status === 'Scheduled' ? 'bg-primary/10 text-primary border border-primary/20' :
-                                                    camp.status === 'Paused' ? 'bg-warning/10 text-warning border border-warning/20' :
-                                                        'bg-bg-alt text-text-muted border border-border-subtle'
-                                                }`}>
-                                                {camp.status}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 px-4 text-xs font-medium text-text-main">{camp.leadsCount}</td>
-                                        <td className="py-4 px-4 text-xs text-text-muted">{camp.agentName}</td>
-                                        <td className="py-4 px-4 text-xs text-text-muted">{new Date(camp.startDate).toLocaleDateString()}</td>
-                                        <td className="py-4 px-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex-1 min-w-[60px] h-1.5 bg-border-subtle rounded-full overflow-hidden">
-                                                    <div
-                                                        className={`h-full transition-all duration-500 ${camp.status === 'Active' ? 'bg-primary' : 'bg-text-muted/30'}`}
-                                                        style={{ width: `${camp.progress}%` }}
-                                                    />
-                                                </div>
-                                                <span className="text-[10px] font-bold text-text-main">{camp.progress}%</span>
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 text-right">
-                                            <button className="p-2 hover:bg-white rounded-lg transition-colors text-text-muted hover:text-primary">
-                                                <MoreHorizontal className="w-4 h-4" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-
+                )}
             </div>
             {/* Create Campaign Sidesheet */}
             <SideSheet
@@ -423,7 +627,7 @@ export default function Campaigns() {
                 title="Create New Campaign"
                 size="md"
             >
-                <div className="flex flex-col h-full bg-white">
+                <div className="flex flex-col h-full">
                     {/* Stepper */}
                     <div className="flex items-center justify-between mb-8 px-2 relative">
                         {[1, 2, 3, 4].map((step) => (
@@ -899,7 +1103,7 @@ export default function Campaigns() {
                         </button>
                     </div>
                 </div>
-            </SideSheet>
+            </SideSheet >
         </>
     );
 }
