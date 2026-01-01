@@ -34,6 +34,14 @@ interface Campaign {
     startDate: string;
     endDate?: string;
     progress: number;
+    settings?: {
+        maxRetries: number;
+        callsPerDay: number;
+        followUps: number;
+        timeZone: string;
+        startTime: string;
+        endTime: string;
+    };
 }
 
 const DUMMY_CAMPAIGNS: Campaign[] = [
@@ -154,6 +162,10 @@ export default function Campaigns() {
     const [endDate, setEndDate] = useState("");
     const [maxRetries, setMaxRetries] = useState(3);
     const [callsPerDay, setCallsPerDay] = useState(5);
+    const [followUps, setFollowUps] = useState(1);
+    const [timeZone, setTimeZone] = useState("UTC");
+    const [startTime, setStartTime] = useState("09:00");
+    const [endTime, setEndTime] = useState("17:00");
 
     // Agent Selection Type & Template State
     const [agentSelectionTab, setAgentSelectionTab] = useState<"existing" | "templates">("templates");
@@ -241,6 +253,10 @@ export default function Campaigns() {
         setEndDate("");
         setMaxRetries(3);
         setCallsPerDay(5);
+        setFollowUps(1);
+        setTimeZone("UTC");
+        setStartTime("09:00");
+        setEndTime("17:00");
         setLeadSearchText("");
     };
 
@@ -255,7 +271,15 @@ export default function Campaigns() {
                 : (selectedTemplateConfig?.label || "Unknown Agent"),
             startDate: startDate || new Date().toISOString(),
             endDate: endDate,
-            progress: 0
+            progress: 0,
+            settings: {
+                maxRetries: maxRetries,
+                callsPerDay: callsPerDay,
+                followUps: followUps,
+                timeZone: timeZone,
+                startTime: startTime,
+                endTime: endTime
+            }
         };
         setCampaigns([newCampaign, ...campaigns]);
         toast.success("Campaign launched successfully!");
@@ -683,7 +707,60 @@ export default function Campaigns() {
                                                 <option value={10} >10</option>
                                                 <option value={20} >20</option>
                                                 <option value={50} >50</option>
+                                                <option value={100} >100</option>
                                             </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow Ups</label>
+                                            <select
+                                                value={followUps}
+                                                onChange={(e) => setFollowUps(parseInt(e.target.value))}
+                                                className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                            >
+                                                <option value={0}>No Follow Up</option>
+                                                <option value={1}>1 Follow Up</option>
+                                                <option value={2}>2 Follow Ups</option>
+                                                <option value={3}>3 Follow Ups</option>
+                                                <option value={5}>5 Follow Ups</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Time Zone</label>
+                                            <select
+                                                value={timeZone}
+                                                onChange={(e) => setTimeZone(e.target.value)}
+                                                className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                            >
+                                                <option value="UTC">UTC (GMT+00:00)</option>
+                                                <option value="America/New_York">Eastern Time (GMT-05:00)</option>
+                                                <option value="America/Chicago">Central Time (GMT-06:00)</option>
+                                                <option value="America/Denver">Mountain Time (GMT-07:00)</option>
+                                                <option value="America/Los_Angeles">Pacific Time (GMT-08:00)</option>
+                                                <option value="Asia/Kolkata">India Standard Time (GMT+05:30)</option>
+                                                <option value="Europe/London">London (GMT+00:00)</option>
+                                                <option value="Europe/Paris">Paris (GMT+01:00)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Timing (Start)</label>
+                                            <input
+                                                type="time"
+                                                value={startTime}
+                                                onChange={(e) => setStartTime(e.target.value)}
+                                                className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Timing (End)</label>
+                                            <input
+                                                type="time"
+                                                value={endTime}
+                                                onChange={(e) => setEndTime(e.target.value)}
+                                                className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -748,12 +825,27 @@ export default function Campaigns() {
                                     </div>
                                     <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-warning/10 rounded-lg">
-                                                <RotateCcw className="w-4 h-4 text-warning" />
+                                            <div className="p-2 bg-success/10 rounded-lg">
+                                                <RotateCcw className="w-4 h-4 text-success" />
                                             </div>
-                                            <span className="text-xs font-bold text-text-main">Retry Policy</span>
+                                            <span className="text-xs font-bold text-text-main">Follow Ups & Retries</span>
                                         </div>
-                                        <span className="text-xs font-bold text-text-main">{maxRetries} Retries</span>
+                                        <div className="text-right">
+                                            <span className="text-xs font-bold text-text-main">{followUps} Follow Ups</span>
+                                            <div className="text-[9px] text-text-muted">{maxRetries} Max Retries</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-warning/10 rounded-lg">
+                                                <Clock className="w-4 h-4 text-warning" />
+                                            </div>
+                                            <span className="text-xs font-bold text-text-main">Timing & Zone</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-xs font-bold text-text-main">{startTime} - {endTime}</div>
+                                            <div className="text-[9px] text-text-muted">{timeZone}</div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -800,9 +892,9 @@ export default function Campaigns() {
                                     nextStep();
                                 }
                             }}
-                            className="flex-[2] btn btn-primary py-3.5 rounded-xl flex items-center justify-center gap-2 group transition-all"
+                            className="flex-[2] btn btn-primary py-3 rounded-xl text-xs font-bold shadow-glow-sm flex items-center justify-center gap-2 group transition-all"
                         >
-                            <span className="text-sm font-bold uppercase tracking-widest">{currentStep === 4 ? 'Launch Campaign' : 'Next Step'}</span>
+                            {currentStep === 4 ? 'Launch Campaign' : 'Next Step'}
                             {currentStep !== 4 && <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                         </button>
                     </div>
