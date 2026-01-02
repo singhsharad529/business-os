@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Phone, Mail, User, Calendar, Plus, Trash2, Save, Activity, Edit2, X, ChevronRight, MessageSquare, Clock } from "lucide-react"
+import { Phone, Mail, User, Calendar, Plus, Trash2, Save, Activity, Edit2, X, ChevronRight, MessageSquare, Clock, Loader2 } from "lucide-react"
 import { Lead } from "@/types/voicebotTypes"
 import voiceBotService from "@/api/voicebotService"
 import { toast } from "@/hooks/useToast"
@@ -22,9 +22,49 @@ export function LeadDetails({ lead: initialLead, onUpdate, onDelete, onClose }: 
     );
     const [loading, setLoading] = useState(false);
     const [selectedCall, setSelectedCall] = useState<any>(null);
+    const [activeTab, setActiveTab] = useState("overview");
 
     // Filter calls for this lead (by phone)
-    const leadCalls = mockCallSessions.filter(c => c.customerPhone === initialLead.leadPhoneNumber);
+    const dummyCalls = [
+        {
+            sessionId: "call_dummy_1",
+            customerPhone: "+1 (555) 123-4567",
+            status: "Completed",
+            duration: "2m 30s",
+            startTime: "2025-12-28 10:30 AM",
+            type: "Outbound",
+            summary: "Product inquiry call which was successfully completed."
+        },
+        {
+            sessionId: "call_dummy_2",
+            customerPhone: "+1 (555) 987-6543",
+            status: "Failed",
+            duration: "0m 45s",
+            startTime: "2025-12-28 11:15 AM",
+            type: "Outbound",
+            summary: "Call failed due to technical issues on the customer side."
+        },
+        {
+            sessionId: "call_dummy_3",
+            customerPhone: "+1 (555) 456-7890",
+            status: "Not Connected",
+            duration: "0m 00s",
+            startTime: "2025-12-28 12:00 PM",
+            type: "Outbound",
+            summary: "Customer did not pick up the call."
+        },
+        {
+            sessionId: "call_dummy_4",
+            customerPhone: "+1 (555) 234-5678",
+            status: "Completed",
+            duration: "1m 15s",
+            startTime: "2025-12-28 01:45 PM",
+            type: "Outbound",
+            summary: "Brief follow-up call regarding the last interaction."
+        },
+    ];
+
+    const leadCalls = [...mockCallSessions.filter(c => c.customerPhone === initialLead.leadPhoneNumber), ...dummyCalls];
 
     const handleSave = async () => {
         try {
@@ -119,9 +159,9 @@ export function LeadDetails({ lead: initialLead, onUpdate, onDelete, onClose }: 
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/10 rounded-full blur-3xl -ml-12 -mb-12" />
             </div>
 
-            <Tabs defaultValue="overview" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <div className="flex text-center justify-between">
-                    <TabsList className="bg-bg-alt/40 border border-border-subtle p-1 mb-6 rounded-2xl overflow-hidden shadow-soft">
+                    <TabsList className="bg-bg-alt/40 border border-border-subtle p-1 mb-4 rounded-2xl overflow-hidden shadow-soft">
                         <TabsTrigger value="overview" className="flex-1 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-soft">
                             <User className="w-4 h-4 mr-2" />
                             Details
@@ -132,27 +172,29 @@ export function LeadDetails({ lead: initialLead, onUpdate, onDelete, onClose }: 
                         </TabsTrigger>
                     </TabsList>
 
-                    <div>
-                        <button
-                            onClick={() => {
-                                if (isEditing) setEditedLead(initialLead);
-                                setIsEditing(!isEditing);
-                            }}
-                            className={`btn ${isEditing ? 'btn-secondary' : 'btn-primary'} !rounded-xl group shadow-sm`}
-                        >
-                            {isEditing ? (
-                                <>
-                                    <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
-                                    Cancel
-                                </>
-                            ) : (
-                                <>
-                                    <Edit2 className="w-4 h-4 group-hover:-rotate-12 transition-transform duration-200" />
-                                    Edit Profile
-                                </>
-                            )}
-                        </button>
-                    </div>
+                    {activeTab === 'overview' && (
+                        <div>
+                            <button
+                                onClick={() => {
+                                    if (isEditing) setEditedLead(initialLead);
+                                    setIsEditing(!isEditing);
+                                }}
+                                className={`btn ${isEditing ? 'btn-secondary' : 'btn-primary'} !rounded-xl group shadow-sm`}
+                            >
+                                {isEditing ? (
+                                    <>
+                                        <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
+                                        Cancel
+                                    </>
+                                ) : (
+                                    <>
+                                        <Edit2 className="w-4 h-4 group-hover:-rotate-12 transition-transform duration-200" />
+                                        Edit Profile
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <TabsContent value="overview" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -284,14 +326,13 @@ export function LeadDetails({ lead: initialLead, onUpdate, onDelete, onClose }: 
                             <button
                                 onClick={handleSave}
                                 disabled={loading}
-                                className="flex-1 btn btn-primary py-4 rounded-2xl flex items-center justify-center gap-3 shadow-glow-primary"
+                                className="btn btn-primary flex-1 rounded-xl"
                             >
-                                {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
-                                <span className="text-base">Save Profile Changes</span>
+                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Profile Changes"}
                             </button>
                         </div>
                     ) : (
-                        <div className="flex justify-end pt-4">
+                        <div className="flex justify-end">
                             <button
                                 onClick={handleDelete}
                                 className="text-xs font-bold text-danger/60 hover:text-danger flex items-center gap-1.5 px-4 py-2 rounded-xl hover:bg-danger/5 transition-all"
@@ -308,7 +349,7 @@ export function LeadDetails({ lead: initialLead, onUpdate, onDelete, onClose }: 
                         <div className="space-y-4">
                             <button
                                 onClick={() => setSelectedCall(null)}
-                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-bold hover:bg-primary/20 transition-all mb-4"
+                                className="inline-flex items-center gap-2 px-3 rounded-lg text-primary text-sm font-bold transition-all mb-2"
                             >
                                 <ChevronRight className="w-4 h-4 rotate-180" />
                                 Back to Call List
@@ -335,13 +376,19 @@ export function LeadDetails({ lead: initialLead, onUpdate, onDelete, onClose }: 
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-200 ${call.status === 'Completed' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
+                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-200 ${call.status === 'Completed' ? 'bg-success/10 text-success' :
+                                                        call.status === 'Failed' ? 'bg-danger/10 text-danger' :
+                                                            'bg-text-muted/10 text-text-muted'
+                                                        }`}>
                                                         <Phone className="w-6 h-6" />
                                                     </div>
                                                     <div>
                                                         <div className="text-base font-bold text-text-main flex items-center gap-2">
                                                             ID: {call.sessionId.substring(0, 8)}...
-                                                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest ${call.status === 'Completed' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
+                                                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest ${call.status === 'Completed' ? 'bg-success/10 text-success' :
+                                                                call.status === 'Failed' ? 'bg-danger/10 text-danger' :
+                                                                    'bg-text-muted/10 text-text-muted'
+                                                                }`}>
                                                                 {call.status}
                                                             </span>
                                                         </div>
