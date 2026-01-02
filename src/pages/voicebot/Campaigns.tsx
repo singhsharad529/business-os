@@ -31,6 +31,8 @@ import { useData } from "@/contexts/DataContext";
 import { toast } from "@/hooks/useToast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import voiceBotService from "@/api/voicebotService";
+import { CallDetails } from "@/components/voicebot/CallDetails";
+import { Loader2 } from "lucide-react";
 
 interface Campaign {
     id: string;
@@ -140,9 +142,6 @@ const AGENT_TEMPLATES: TemplateRole[] = [
 
 
 export default function Campaigns() {
-    const { leadDatabaseData } = useData();
-    console.log('leadsdb', leadDatabaseData);
-
     const [isCampaignSheetOpen, setIsCampaignSheetOpen] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
 
@@ -183,6 +182,11 @@ export default function Campaigns() {
     // Selected Campaign Detail State
     const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
 
+    // Call Detail View State
+    const [selectedCallForDetail, setSelectedCallForDetail] = useState<any>(null);
+    const [isCallDetailSheetOpen, setIsCallDetailSheetOpen] = useState(false);
+    const [callDetailLoadingId, setCallDetailLoadingId] = useState<string | null>(null);
+
     const CAMPAIGN_STATS = {
         totalCalls: 1250,
         successCalls: 850,
@@ -195,11 +199,11 @@ export default function Campaigns() {
     };
 
     const CAMPAIGN_CALLS = [
-        { id: "call1", phoneNumber: "+1 (555) 123-4567", status: "Completed", duration: "2m 30s", date: "2025-12-28 10:30 AM" },
-        { id: "call2", phoneNumber: "+1 (555) 987-6543", status: "Failed", duration: "0m 45s", date: "2025-12-28 11:15 AM" },
-        { id: "call3", phoneNumber: "+1 (555) 456-7890", status: "Not Connected", duration: "0m 00s", date: "2025-12-28 12:00 PM" },
-        { id: "call4", phoneNumber: "+1 (555) 234-5678", status: "Completed", duration: "1m 15s", date: "2025-12-28 01:45 PM" },
-        { id: "call5", phoneNumber: "+1 (555) 876-5432", status: "Completed", duration: "3m 20s", date: "2025-12-28 02:30 PM" },
+        { id: "call1", vapiId: "mock-vapi-1", phoneNumber: "+1 (555) 123-4567", status: "Completed", duration: "2m 30s", date: "2025-12-28 10:30 AM" },
+        { id: "call2", vapiId: "mock-vapi-2", phoneNumber: "+1 (555) 987-6543", status: "Failed", duration: "0m 45s", date: "2025-12-28 11:15 AM" },
+        { id: "call3", vapiId: "mock-vapi-3", phoneNumber: "+1 (555) 456-7890", status: "Not Connected", duration: "0m 00s", date: "2025-12-28 12:00 PM" },
+        { id: "call4", vapiId: "mock-vapi-4", phoneNumber: "+1 (555) 234-5678", status: "Completed", duration: "1m 15s", date: "2025-12-28 01:45 PM" },
+        { id: "call5", vapiId: "mock-vapi-5", phoneNumber: "+1 (555) 876-5432", status: "Completed", duration: "3m 20s", date: "2025-12-28 02:30 PM" },
     ];
 
     const fetchAgents = async () => {
@@ -237,6 +241,42 @@ export default function Campaigns() {
         fetchAgents();
         fetchLeads();
     }, []);
+
+    const handleViewCallDetails = async (call: any) => {
+        if (!call.vapiId) return;
+
+        // If it's a mock ID, we can show mock data
+        if (call.vapiId.startsWith('mock-vapi-')) {
+            setSelectedCallForDetail({
+                vapiId: call.vapiId,
+                customerNumber: call.phoneNumber,
+                status: call.status,
+                startedAt: new Date().toISOString(),
+                summary: "This is a mock summary for a campaign call outreach. The candidate expressed interest in the property listing and requested a follow-up email with more details.",
+                messages: [
+                    { role: "bot", message: "Hello! This is a follow-up call regarding the property listing you viewed.", secondsFromStart: 2 },
+                    { role: "user", message: "Oh hi, yes I remember. Can you tell me more about the pricing?", secondsFromStart: 10 },
+                    { role: "bot", message: "Certainly! The current asking price is $450,000, and it's open to negotiation.", secondsFromStart: 18 },
+                    { role: "user", message: "That sounds interesting. Could you send me an email with the details?", secondsFromStart: 25 },
+                    { role: "bot", message: "Of course, I'll send that right away to your registered email address.", secondsFromStart: 32 }
+                ]
+            });
+            setIsCallDetailSheetOpen(true);
+            return;
+        }
+
+        try {
+            setCallDetailLoadingId(call.id);
+            const response = await voiceBotService.getCallDetail(call.vapiId, {});
+            setSelectedCallForDetail(response);
+            setIsCallDetailSheetOpen(true);
+        } catch (error) {
+            console.error("Failed to fetch call details:", error);
+            toast.danger("Failed to load call details");
+        } finally {
+            setCallDetailLoadingId(null);
+        }
+    };
 
     // Filtering for Leads in Sidesheet
     const [leadSearchText, setLeadSearchText] = useState("");
@@ -437,7 +477,7 @@ export default function Campaigns() {
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-4 text-right">
-                                                    <button className="p-2 hover:bg-white rounded-lg transition-colors text-text-muted hover:text-primary"
+                                                    <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
 
                                                         onClick={() => setSelectedCampaign(camp)}
 
@@ -518,10 +558,17 @@ export default function Campaigns() {
                             {/* Calls Table */}
                             <div className="lg:col-span-2 space-y-4">
                                 <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
-                                    <div className="flex items-center justify-between mb-6">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                                         <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">Call History</h3>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] text-text-muted">Showing last 5 calls</span>
+                                        <div className="relative w-full md:w-80">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search calls..."
+                                                className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                            // value={searchTerm}
+                                            // onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
                                         </div>
                                     </div>
                                     <div className="overflow-x-auto">
@@ -550,9 +597,16 @@ export default function Campaigns() {
                                                         <td className="py-4 px-4 text-xs text-text-muted">{call.duration}</td>
                                                         <td className="py-4 px-4 text-xs text-text-muted">{call.date}</td>
                                                         <td className="py-4 px-4 text-right">
-                                                            <button className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary active:scale-90 flex items-center gap-2 justify-end ml-auto group/btn">
-                                                                <span className="text-[10px] font-bold opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">View Details</span>
-                                                                <Eye className="w-4 h-4" />
+                                                            <button
+                                                                className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary active:scale-90 flex items-center gap-2 justify-end ml-auto group/btn"
+                                                                onClick={() => handleViewCallDetails(call)}
+                                                                disabled={!!callDetailLoadingId}
+                                                            >
+                                                                {callDetailLoadingId === call.id ? (
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                ) : (
+                                                                    <Eye className="w-4 h-4" />
+                                                                )}
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -560,9 +614,7 @@ export default function Campaigns() {
                                             </tbody>
                                         </table>
                                     </div>
-                                    <button className="w-full mt-6 py-3 border border-dashed border-border-subtle rounded-xl text-[10px] font-bold text-text-muted hover:text-primary hover:border-primary transition-all uppercase tracking-widest">
-                                        View All Call Logs
-                                    </button>
+
                                 </div>
                             </div>
                             {/* Campaign Info Card */}
@@ -1104,6 +1156,14 @@ export default function Campaigns() {
                     </div>
                 </div>
             </SideSheet >
+            <SideSheet
+                isOpen={isCallDetailSheetOpen}
+                onClose={() => setIsCallDetailSheetOpen(false)}
+                title="Call Details"
+                size="md"
+            >
+                {selectedCallForDetail && <CallDetails call={selectedCallForDetail} />}
+            </SideSheet>
         </>
     );
 }
