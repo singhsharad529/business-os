@@ -1,4 +1,4 @@
-import { QuickAgentSetupRequest } from "@/types/voicebotTypes";
+import { QuickAgentSetupRequest, Lead } from "@/types/voicebotTypes";
 import apiService from "./apiService";
 import { AxiosRequestConfig } from "axios";
 
@@ -90,6 +90,10 @@ const voiceBotService = {
     data: { assistantId: string; name: string; phoneNumberId?: string },
     config: AxiosRequestConfig
   ) => apiService.post("templates/publish", data, config),
+  updateLead: (id: string, data: Partial<Lead>, config: AxiosRequestConfig) =>
+    apiService.patch(`vapi/lead-database/${id}`, data, config),
+  deleteLead: (id: string, config: AxiosRequestConfig) =>
+    apiService.delete(`vapi/lead-database/${id}`, config),
 };
 
 export default voiceBotService;
