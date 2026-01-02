@@ -24,7 +24,8 @@ import {
     Eye,
     TrendingUp,
     Timer,
-    Edit
+    Edit,
+    BotMessageSquare
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
@@ -33,6 +34,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import voiceBotService from "@/api/voicebotService";
 import { CallDetails } from "@/components/voicebot/CallDetails";
 import { Loader2 } from "lucide-react";
+import { AxiosRequestConfig } from "axios";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Campaign {
     id: string;
@@ -47,9 +50,11 @@ interface Campaign {
         maxRetries: number;
         callsPerDay: number;
         followUps: number;
+        followUpDelays: number[];
         timeZone: string;
         startTime: string;
         endTime: string;
+        days: string[];
     };
 }
 
@@ -169,13 +174,15 @@ export default function Campaigns() {
     const [maxRetries, setMaxRetries] = useState(3);
     const [callsPerDay, setCallsPerDay] = useState(5);
     const [followUps, setFollowUps] = useState(1);
+    const [followUpDelays, setFollowUpDelays] = useState<number[]>([1]);
     const [timeZone, setTimeZone] = useState("UTC");
     const [startTime, setStartTime] = useState("09:00");
     const [endTime, setEndTime] = useState("17:00");
+    const [selectedDays, setSelectedDays] = useState<string[]>(["Mon", "Tue", "Wed", "Thu", "Fri"]);
 
     // Agent Selection Type & Template State
     const [agentSelectionTab, setAgentSelectionTab] = useState<"existing" | "templates">("templates");
-    const [templateStep, setTemplateStep] = useState<"industries" | "configs" | "link-number">("industries");
+    const [templateStep, setTemplateStep] = useState<"select-template" | "link-number">("select-template");
     const [selectedTemplateRole, setSelectedTemplateRole] = useState<TemplateRole | null>(null);
     const [selectedTemplateConfig, setSelectedTemplateConfig] = useState<TemplateConfig | null>(null);
 
@@ -186,6 +193,11 @@ export default function Campaigns() {
     const [selectedCallForDetail, setSelectedCallForDetail] = useState<any>(null);
     const [isCallDetailSheetOpen, setIsCallDetailSheetOpen] = useState(false);
     const [callDetailLoadingId, setCallDetailLoadingId] = useState<string | null>(null);
+
+    const [templates, setTemplates] = useState<any | null>(null);
+    const [templatesLoading, setTemplatesLoading] = useState(false);
+    const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
+
 
     const CAMPAIGN_STATS = {
         totalCalls: 1250,
@@ -315,7 +327,7 @@ export default function Campaigns() {
         setSelectedLeads([]);
         setSelectedAgent("");
         setAgentSelectionTab("existing");
-        setTemplateStep("industries");
+        setTemplateStep("select-template");
         setSelectedTemplateRole(null);
         setSelectedTemplateConfig(null);
         setStartDate("");
@@ -323,9 +335,11 @@ export default function Campaigns() {
         setMaxRetries(3);
         setCallsPerDay(5);
         setFollowUps(1);
+        setFollowUpDelays([1]);
         setTimeZone("UTC");
         setStartTime("09:00");
         setEndTime("17:00");
+        setSelectedDays(["Mon", "Tue", "Wed", "Thu", "Fri"]);
         setLeadSearchText("");
     };
 
@@ -345,15 +359,38 @@ export default function Campaigns() {
                 maxRetries: maxRetries,
                 callsPerDay: callsPerDay,
                 followUps: followUps,
+                followUpDelays: followUpDelays,
                 timeZone: timeZone,
                 startTime: startTime,
-                endTime: endTime
+                endTime: endTime,
+                days: selectedDays
             }
         };
         setCampaigns([newCampaign, ...campaigns]);
         toast.success("Campaign launched successfully!");
         resetForm();
     };
+
+    const getAgentTemplates = async (page: number = 1, pageSize: number = 10) => {
+        try {
+            setTemplatesLoading(true);
+            const config: AxiosRequestConfig = {
+                params: {
+                    page,
+                    page_size: pageSize
+                }
+            };
+            const response = await voiceBotService.getAgentTemplates(config);
+            console.log(response);
+            setTemplates(response);
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to fetch agent templates");
+        }
+        finally {
+            setTemplatesLoading(false);
+        }
+    }
 
     return (
         <>
@@ -642,13 +679,30 @@ export default function Campaigns() {
                                             <span className="text-xs text-text-muted">Calls per Day</span>
                                             <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.callsPerDay || 50}</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
-                                            <span className="text-xs text-text-muted">Follow Ups</span>
-                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.followUps || 1}</span>
+                                        <div className="flex flex-col py-2 border-b border-border-subtle/50">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs text-text-muted">Follow Ups</span>
+                                                <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.followUps || 0} Attempts</span>
+                                            </div>
+                                            {selectedCampaign.settings?.followUpDelays && selectedCampaign.settings.followUpDelays.length > 0 && (
+                                                <div className="mt-1 flex gap-1">
+                                                    {selectedCampaign.settings.followUpDelays.map((d, i) => (
+                                                        <span key={i} className="text-[9px] bg-bg-alt px-1.5 py-0.5 rounded border border-border-subtle text-text-muted">
+                                                            Day {d}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="flex justify-between items-center py-2">
+                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Time Window</span>
                                             <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.startTime || '09:00'} - {selectedCampaign.settings?.endTime || '18:00'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2">
+                                            <span className="text-xs text-text-muted">Calling Days</span>
+                                            <span className="text-xs font-bold text-text-main">
+                                                {selectedCampaign.settings?.days?.length === 7 ? 'Everyday' : (selectedCampaign.settings?.days?.join(', ') || 'Mon, Tue, Wed, Thu, Fri')}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="mt-8 pt-6 border-t border-border-subtle">
@@ -800,81 +854,61 @@ export default function Campaigns() {
                                     />
                                 </div>
 
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-sm font-bold text-text-main">Choose Calling Agent</label>
 
-                                    </div>
+
+
+                                <div className="space-y-4">
                                     <div className="space-y-4 animate-in fade-in duration-300">
-                                        {templateStep === "industries" && (
-                                            <div className="grid grid-cols-1 gap-3">
-                                                {agentTemplates.map((role) => (
-                                                    <button
-                                                        key={role.role}
-                                                        onClick={() => {
-                                                            setSelectedTemplateRole(role);
-                                                            setTemplateStep("configs");
-                                                        }}
-                                                        className="group flex items-center justify-between p-4 rounded-2xl border border-border-subtle hover:border-primary hover:shadow-glow-sm bg-white transition-all text-left"
-                                                    >
-                                                        <div className="flex items-center gap-4">
-                                                            <div className={`p-3 rounded-xl bg-${role.color}/10 text-${role.color} group-hover:bg-${role.color} group-hover:text-white transition-all`}>
-                                                                <role.icon className="w-6 h-6" />
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="font-bold text-text-main">{role.role}</h4>
-                                                                <p className="text-[10px] text-text-muted">{role.configurations.length} Templates Available</p>
-                                                            </div>
+                                        {templateStep === "select-template" && (
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-text-main">Select Template</h3>
+                                                    <p className="text-sm text-text-muted">Choose a template for your test agent.</p>
+                                                </div>
+                                                {
+                                                    templatesLoading ? (
+                                                        <div className="flex flex-col gap-4 w-full">
+                                                            <Skeleton className="w-full h-20 rounded-xl" />
+                                                            <Skeleton className="w-full h-20 rounded-xl" />
+                                                            <Skeleton className="w-full h-20 rounded-xl" />
+                                                            <Skeleton className="w-full h-20 rounded-xl" />
                                                         </div>
-                                                        <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors" />
-                                                    </button>
-                                                ))}
+                                                    ) : templates?.templates?.map((template: any) => (
+                                                        <button
+                                                            key={template.id}
+                                                            onClick={() => {
+                                                                setSelectedTemplate(template);
+                                                                setTemplateStep("link-number");
+                                                            }}
+                                                            className="group flex items-center gap-4 p-4 rounded-xl border border-border-subtle hover:border-primary hover:bg-primary/5 transition-all text-left"
+                                                        >
+
+                                                            <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                                                <BotMessageSquare className="w-5 h-5" />
+                                                            </div>
+
+                                                            <div>
+                                                                <h4 className="text-sm font-bold text-text-main group-hover:text-primary">{template.name}</h4>
+                                                                <p className="text-xs text-text-muted mt-1">{template.metadata.department[0].toUpperCase()}{template.metadata.department.slice(1)}</p>
+                                                                <p className="text-xs text-text-muted mt-1">{template.language}</p>
+                                                            </div>
+
+                                                        </button>
+                                                    ))
+                                                }
                                             </div>
                                         )}
-                                        {
-                                            templateStep === "configs" && (
-                                                <div className="space-y-4">
-                                                    <button
-                                                        onClick={() => setTemplateStep("industries")}
-                                                        className="flex items-center gap-2 text-[10px] font-bold text-text-muted hover:text-primary transition-colors mb-2 uppercase tracking-wider"
-                                                    >
-                                                        <ArrowLeft className="w-3 h-3" />
-                                                        Back to Roles
-                                                    </button>
-                                                    <div className="grid grid-cols-1 gap-3">
-                                                        {selectedTemplateRole?.configurations.map((config) => (
-                                                            <button
-                                                                key={config.id}
-                                                                onClick={() => {
-                                                                    setSelectedTemplateConfig(config);
-                                                                    setTemplateStep("link-number");
 
-                                                                }}
-                                                                className={`group p-4 rounded-xl border transition-all text-left ${selectedTemplateConfig?.id === config.id
-                                                                    ? 'border-primary bg-primary/5 shadow-glow-sm'
-                                                                    : 'border-border-subtle hover:border-primary/50 bg-white'
-                                                                    }`}
-                                                            >
-                                                                <div className="flex items-center justify-between">
-                                                                    <h4 className={`text-sm font-bold ${selectedTemplateConfig?.id === config.id ? 'text-primary' : 'text-text-main'}`}>{config.label}</h4>
-                                                                    {selectedTemplateConfig?.id === config.id && <Check className="w-4 h-4 text-primary" />}
-                                                                </div>
-                                                                <p className="text-[10px] text-text-muted mt-1">{config.description}</p>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
 
                                         {
                                             templateStep === "link-number" && (
                                                 <div className="space-y-4">
                                                     <button
-                                                        onClick={() => setTemplateStep("configs")}
+                                                        onClick={() => setTemplateStep("select-template")}
                                                         className="flex items-center gap-2 text-[10px] font-bold text-text-muted hover:text-primary transition-colors mb-2 uppercase tracking-wider"
                                                     >
                                                         <ArrowLeft className="w-3 h-3" />
-                                                        Back to Config
+                                                        Back to Select Template
                                                     </button>
                                                     <div className="grid grid-cols-1 gap-3">
                                                         <Select
@@ -966,11 +1000,29 @@ export default function Campaigns() {
                                                 <option value={100} >100</option>
                                             </select>
                                         </div>
+
+
+                                    </div>
+
+                                    <div className="space-y-4">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow Ups</label>
                                             <select
                                                 value={followUps}
-                                                onChange={(e) => setFollowUps(parseInt(e.target.value))}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value);
+                                                    setFollowUps(val);
+                                                    // Adjust delays array to match count
+                                                    setFollowUpDelays(prev => {
+                                                        const newDelays = [...prev];
+                                                        if (val > prev.length) {
+                                                            for (let i = prev.length; i < val; i++) newDelays.push(1);
+                                                        } else {
+                                                            return newDelays.slice(0, val);
+                                                        }
+                                                        return newDelays;
+                                                    });
+                                                }}
                                                 className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                                             >
                                                 <option value={0}>No Follow Up</option>
@@ -980,23 +1032,59 @@ export default function Campaigns() {
                                                 <option value={5}>5 Follow Ups</option>
                                             </select>
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Time Zone</label>
-                                            <select
-                                                value={timeZone}
-                                                onChange={(e) => setTimeZone(e.target.value)}
-                                                className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
-                                            >
-                                                <option value="UTC">UTC (GMT+00:00)</option>
-                                                <option value="America/New_York">Eastern Time (GMT-05:00)</option>
-                                                <option value="America/Chicago">Central Time (GMT-06:00)</option>
-                                                <option value="America/Denver">Mountain Time (GMT-07:00)</option>
-                                                <option value="America/Los_Angeles">Pacific Time (GMT-08:00)</option>
-                                                <option value="Asia/Kolkata">India Standard Time (GMT+05:30)</option>
-                                                <option value="Europe/London">London (GMT+00:00)</option>
-                                                <option value="Europe/Paris">Paris (GMT+01:00)</option>
-                                            </select>
-                                        </div>
+
+
+                                    </div>
+
+                                    <div>
+                                        {followUps > 0 && (
+                                            <div className="w-[full] space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow-up Schedule (Days)</label>
+
+                                                {followUpDelays.map((delay, index) => (
+                                                    <div key={index} className="flex items-center gap-3 bg-bg-alt/30 p-2 rounded-xl border border-border-subtle/50">
+                                                        <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
+                                                            #{index + 1}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[12px] text-text-muted">Wait</span>
+                                                            <input
+                                                                type="number"
+                                                                min={1}
+                                                                value={delay}
+                                                                onChange={(e) => {
+                                                                    const newVal = parseInt(e.target.value) || 1;
+                                                                    const newDelays = [...followUpDelays];
+                                                                    newDelays[index] = newVal;
+                                                                    setFollowUpDelays(newDelays);
+                                                                }}
+                                                                className="w-16 px-2 py-1 bg-white border border-border-subtle rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary"
+                                                            />
+                                                            <span className="text-[12px] text-text-muted">days after {index === 0 ? 'the initial call' : `follow-up #${index}`}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Time Zone</label>
+                                        <select
+                                            value={timeZone}
+                                            onChange={(e) => setTimeZone(e.target.value)}
+                                            className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                        >
+                                            <option value="UTC">UTC (GMT+00:00)</option>
+                                            <option value="America/New_York">Eastern Time (GMT-05:00)</option>
+                                            <option value="America/Chicago">Central Time (GMT-06:00)</option>
+                                            <option value="America/Denver">Mountain Time (GMT-07:00)</option>
+                                            <option value="America/Los_Angeles">Pacific Time (GMT-08:00)</option>
+                                            <option value="Asia/Kolkata">India Standard Time (GMT+05:30)</option>
+                                            <option value="Europe/London">London (GMT+00:00)</option>
+                                            <option value="Europe/Paris">Paris (GMT+01:00)</option>
+                                        </select>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
@@ -1048,7 +1136,7 @@ export default function Campaigns() {
                                             <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 overflow-hidden">
                                                 <span className="text-[10px] opacity-70 uppercase font-black">AI Agent</span>
                                                 <div className="text-sm font-bold mt-1 truncate">
-                                                    {selectedTemplateRole?.role || "Not Set"} - {selectedTemplateConfig?.label || "Not Set"}
+                                                    {selectedTemplate?.name || "Not Set"}
                                                 </div>
                                             </div>
                                         </div>
@@ -1088,6 +1176,9 @@ export default function Campaigns() {
                                         </div>
                                         <div className="text-right">
                                             <span className="text-xs font-bold text-text-main">{followUps} Follow Ups</span>
+                                            <div className="text-[9px] text-text-muted">
+                                                {followUpDelays.length > 0 ? `Days: ${followUpDelays.join(', ')}` : 'No delays'}
+                                            </div>
                                             <div className="text-[9px] text-text-muted">{maxRetries} Max Retries</div>
                                         </div>
                                     </div>
@@ -1096,11 +1187,10 @@ export default function Campaigns() {
                                             <div className="p-2 bg-warning/10 rounded-lg">
                                                 <Clock className="w-4 h-4 text-warning" />
                                             </div>
-                                            <span className="text-xs font-bold text-text-main">Timing & Zone</span>
+                                            <span className="text-xs font-bold text-text-main">Timing</span>
                                         </div>
                                         <div className="text-right">
                                             <div className="text-xs font-bold text-text-main">{startTime} - {endTime}</div>
-                                            <div className="text-[9px] text-text-muted">{timeZone}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -1139,13 +1229,16 @@ export default function Campaigns() {
                         <button
                             disabled={
                                 (currentStep === 1 && selectedLeads.length === 0) ||
-                                (currentStep === 2 && (!campaignName || !selectedTemplateConfig))
+                                (currentStep === 2 && (!campaignName || !selectedTemplate))
                             }
                             onClick={() => {
                                 if (currentStep === 4) {
                                     handleLaunch();
                                 } else {
                                     nextStep();
+                                    if (templateStep === "select-template") {
+                                        getAgentTemplates();
+                                    }
                                 }
                             }}
                             className="flex-[2] btn btn-primary py-3 rounded-xl text-xs font-bold shadow-glow-sm flex items-center justify-center gap-2 group transition-all"
