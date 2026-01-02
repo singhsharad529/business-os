@@ -18,6 +18,7 @@ export interface Lead {
   leadExpertiseDomain: string;
   createdAt: string;
   updatedAt: string;
+  attributes?: Record<string, any>;
 }
 
 export interface Pagination {

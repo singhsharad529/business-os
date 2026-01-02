@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Phone, User, BarChart, Activity, Mail, XCircle, Calendar, Database, Download, Upload, Plus, Search, ChevronRight, Check, X, Clock, Zap } from "lucide-react"
+import { Phone, User, BarChart, Activity, Mail, XCircle, Calendar, Database, Download, Upload, Plus, Search, ChevronRight, Check, X, Clock, Zap, Eye, FileSpreadsheet, Trash2 } from "lucide-react"
 import { mockCallSessions, mockAnalyses, mockVoicebotActions } from "@/data/mockData"
 import { mockAgents } from "@/data/agentMockData"
 import { SideSheet } from "@/components/SideSheet"
@@ -9,11 +9,11 @@ import { useData } from "@/contexts/DataContext"
 import voiceBotService from "@/api/voicebotService"
 import TableLoader from "@/components/common/TableLoader"
 import Pagination from "@/components/common/Pagination"
-import { LeadDatabaseResponse } from "@/types/voicebotTypes";
+import { LeadDatabaseResponse, Lead } from "@/types/voicebotTypes";
 import sampleFile from "@/assets/files/leads_data_sample.xlsx";
 import { toast } from "@/hooks/useToast"
 import Modal from "@/components/common/Modal"
-import { FileSpreadsheet, Trash2 } from "lucide-react"
+import { LeadDetails } from "@/components/voicebot/LeadDetails"
 
 function VoicebotLeadDatabase() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -35,6 +35,9 @@ function VoicebotLeadDatabase() {
     const [actionsPage, setActionsPage] = useState(1);
     const [leaddbfile, setLeaddbfile] = useState<File | null>(null);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+    const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+    const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
 
     const pageSize = 10;
 
@@ -191,6 +194,8 @@ function VoicebotLeadDatabase() {
                                                             {visibleColumns.phone && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone</th>}
                                                             {visibleColumns.expertise && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Expertise</th>}
                                                             {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>}
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
+
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-border-subtle/50">
@@ -211,6 +216,17 @@ function VoicebotLeadDatabase() {
                                                                 {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
                                                                     {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
                                                                 </td>}
+                                                                <td className="py-4 px-3 text-sm text-text-muted">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setSelectedLead(user);
+                                                                            setIsDetailSheetOpen(true);
+                                                                        }}
+                                                                        className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                                                    >
+                                                                        <Eye className="w-4 h-4" />
+                                                                    </button>
+                                                                </td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
@@ -438,6 +454,23 @@ function VoicebotLeadDatabase() {
                     </div>
                 </div>
             </Modal>
+
+            {/* Lead Details SideSheet */}
+            <SideSheet
+                isOpen={isDetailSheetOpen}
+                onClose={() => setIsDetailSheetOpen(false)}
+                title="Lead Profile Details"
+                size="md"
+            >
+                {selectedLead && (
+                    <LeadDetails
+                        lead={selectedLead}
+                        onClose={() => setIsDetailSheetOpen(false)}
+                        onUpdate={() => getLeadDatabaseData(currentPage, pageSize)}
+                        onDelete={() => getLeadDatabaseData(currentPage, pageSize)}
+                    />
+                )}
+            </SideSheet>
         </div >
     )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Languages, Briefcase, MoveLeft, Trash, Loader2 } from "lucide-react";
+import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Languages, Briefcase, MoveLeft, Trash, Loader2, Eye, Edit } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { CallDetails } from "@/components/voicebot/CallDetails";
@@ -249,6 +249,7 @@ export default function VoicebotCalls() {
                                                                 setIsEditAgentOpen(true);
                                                             }}
                                                         >
+                                                            <Edit className="w-3 h-3" />
                                                             Edit Agent
                                                         </button>
                                                         <button
@@ -386,7 +387,7 @@ export default function VoicebotCalls() {
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Duration</th>
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Type</th>
                                                                 <th className="text-left py-2 px-3 text-xs font-semibold">Date</th>
-                                                                <th className="text-left py-2 px-3 text-xs font-semibold">View</th>
+                                                                <th className="text-left py-2 px-3 text-xs font-semibold">Action</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -427,7 +428,9 @@ export default function VoicebotCalls() {
                                                                             detailLoading ? (
                                                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                                                             ) : (
-                                                                                <button className="text-primary font-semibold cursor-pointer" onClick={() => handleCallClick(call)}>View</button>
+                                                                                <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer" onClick={() => handleCallClick(call)}>
+                                                                                    <Eye className="w-4 h-4" />
+                                                                                </button>
                                                                             )
                                                                         }
                                                                     </td>
