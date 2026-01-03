@@ -36,6 +36,7 @@ import { CallDetails } from "@/components/voicebot/CallDetails";
 import { Loader2 } from "lucide-react";
 import { AxiosRequestConfig } from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Campaign {
     id: string;
@@ -198,6 +199,16 @@ export default function Campaigns() {
     const [templatesLoading, setTemplatesLoading] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
 
+    // Column Visibility State
+    const [visibleColumns, setVisibleColumns] = useState({
+        email: true,
+        name: true,
+        company: true,
+        phone: true,
+        expertise: true,
+        lastCalled: true
+    });
+
 
     const CAMPAIGN_STATS = {
         totalCalls: 1250,
@@ -217,6 +228,66 @@ export default function Campaigns() {
         { id: "call4", vapiId: "mock-vapi-4", phoneNumber: "+1 (555) 234-5678", status: "Completed", duration: "1m 15s", date: "2025-12-28 01:45 PM" },
         { id: "call5", vapiId: "mock-vapi-5", phoneNumber: "+1 (555) 876-5432", status: "Completed", duration: "3m 20s", date: "2025-12-28 02:30 PM" },
     ];
+
+    const Campaign_Leads = [
+        {
+            id: "e74b2bda-8b4f-49b9-80e0-50f10dba2993",
+            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
+            sourceFileId: "dc501c5f-699f-4cc7-9dea-a254dc0b2bae",
+            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
+            leadName: "Shellen",
+            leadPhoneNumber: "+1-555-0123",
+            leadEmail: "sarah.j@vertexsolutions.com",
+            lastCalledAt: "2025-12-26T14:30:00",
+            leadCompany: "Vertex Solutions",
+            leadExpertiseDomain: "SaaS Sales",
+            createdAt: "2025-12-27T14:39:47.256",
+            updatedAt: "2025-12-27T14:39:47.256"
+        },
+        {
+            id: "3b1434eb-0a52-4b58-8f15-3b50a88ed946",
+            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
+            sourceFileId: "495664c5-b9d6-4cc6-bd33-bbbf01063863",
+            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
+            leadName: "John Doe",
+            leadPhoneNumber: "+1-555-0123",
+            leadEmail: "sarah.j@vertexsolutions.com",
+            lastCalledAt: "2025-12-26T14:30:00",
+            leadCompany: "Vertex Solutions",
+            leadExpertiseDomain: "SaaS Sales",
+            createdAt: "2025-12-27T14:17:18.496",
+            updatedAt: "2025-12-27T14:17:18.496"
+        },
+        {
+            id: "6d47e6c5-3d9f-4197-97c3-85435b2fcd97",
+            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
+            sourceFileId: "78efe98c-2190-40f6-8231-71dd4cfc7896",
+            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
+            leadName: "Rajesh Kumar",
+            leadPhoneNumber: "+91-98765-43210",
+            leadEmail: "rajesh.k@innovatefin.in",
+            lastCalledAt: "2025-12-24T10:15:00",
+            leadCompany: "InnovateFin",
+            leadExpertiseDomain: "Fintech",
+            createdAt: "2025-12-27T12:16:33.911",
+            updatedAt: "2025-12-27T12:16:33.911"
+        },
+        {
+            id: "24425da7-b613-4a9d-8c89-a2fd789fd091",
+            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
+            sourceFileId: "78efe98c-2190-40f6-8231-71dd4cfc7896",
+            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
+            leadName: "Elena Rodriguez",
+            leadPhoneNumber: "+34-91-555-0199",
+            leadEmail: "elena.rod@greenscape.es",
+            lastCalledAt: "2025-12-27T09:45:00",
+            leadCompany: "GreenScape",
+            leadExpertiseDomain: "Renewable Energy",
+            createdAt: "2025-12-27T12:16:33.911",
+            updatedAt: "2025-12-27T12:16:33.911"
+        },
+
+    ]
 
     const fetchAgents = async () => {
         setAgentsLoading(true);
@@ -566,95 +637,31 @@ export default function Campaigns() {
                         </div>
 
                         {/* Selected Campaign Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
-                            {[
-                                { label: "Total Calls", value: CAMPAIGN_STATS.totalCalls, icon: Phone, color: "primary" },
-                                { label: "Success", value: CAMPAIGN_STATS.successCalls, icon: CheckCircle2, color: "success" },
-                                { label: "Failed", value: CAMPAIGN_STATS.failedCalls, icon: XCircle, color: "danger" },
-                                { label: "Not Connected", value: CAMPAIGN_STATS.notConnectedCalls, icon: PhoneOff, color: "warning" },
-                                { label: "Avg Duration", value: CAMPAIGN_STATS.avgDuration, icon: Timer, color: "accent" },
-                                { label: "Success Rate", value: CAMPAIGN_STATS.successRate, icon: TrendingUp, color: "success" },
-                                { label: "Connected", value: CAMPAIGN_STATS.connectedLeads, icon: User, color: "primary" },
-                                { label: "Conversion", value: CAMPAIGN_STATS.conversionRate, icon: BarChart3, color: "success" },
-                            ].map((stat, i) => (
-                                <div key={i} className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-4">
+                                {[
+                                    { label: "Total Calls", value: CAMPAIGN_STATS.totalCalls, icon: Phone, color: "primary" },
+                                    { label: "Success", value: CAMPAIGN_STATS.successCalls, icon: CheckCircle2, color: "success" },
+                                    { label: "Failed", value: CAMPAIGN_STATS.failedCalls, icon: XCircle, color: "danger" },
+                                    { label: "Not Connected", value: CAMPAIGN_STATS.notConnectedCalls, icon: PhoneOff, color: "warning" },
+                                    { label: "Avg Duration", value: CAMPAIGN_STATS.avgDuration, icon: Timer, color: "accent" },
+                                    { label: "Success Rate", value: CAMPAIGN_STATS.successRate, icon: TrendingUp, color: "success" },
+                                    { label: "Connected", value: CAMPAIGN_STATS.connectedLeads, icon: User, color: "primary" },
+                                    { label: "Conversion", value: CAMPAIGN_STATS.conversionRate, icon: BarChart3, color: "success" },
+                                ].map((stat, i) => (
+                                    <div key={i} className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
 
-                                    <div>
-                                        <div className="text-lg font-bold text-text-main leading-tight">{stat.value}</div>
-                                        <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">{stat.label}</div>
-                                    </div>
-                                    <div className={`p-2 bg-${stat.color}/10 text-${stat.color} rounded-lg w-fit mb-2`}>
-                                        <stat.icon className="w-6 h-6" />
-                                    </div>
-
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Calls Table */}
-                            <div className="lg:col-span-2 space-y-4">
-                                <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                                        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">Call History</h3>
-                                        <div className="relative w-full md:w-80">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                            <input
-                                                type="text"
-                                                placeholder="Search calls..."
-                                                className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                            // value={searchTerm}
-                                            // onChange={(e) => setSearchTerm(e.target.value)}
-                                            />
+                                        <div>
+                                            <div className="text-lg font-bold text-text-main leading-tight">{stat.value}</div>
+                                            <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">{stat.label}</div>
                                         </div>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left">
-                                            <thead>
-                                                <tr className="border-b border-border-subtle bg-bg/30">
-                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Phone Number</th>
-                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
-                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Duration</th>
-                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Date</th>
-                                                    <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-border-subtle">
-                                                {CAMPAIGN_CALLS.map((call) => (
-                                                    <tr key={call.id} className="group hover:bg-bg/40 transition-colors">
-                                                        <td className="py-4 px-4 text-xs font-bold text-text-main">{call.phoneNumber}</td>
-                                                        <td className="py-4 px-4">
-                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${call.status === 'Completed' ? 'bg-success/10 text-success border border-success/20' :
-                                                                call.status === 'Failed' ? 'bg-danger/10 text-danger border border-danger/20' :
-                                                                    'bg-warning/10 text-warning border border-warning/20'
-                                                                }`}>
-                                                                {call.status}
-                                                            </span>
-                                                        </td>
-                                                        <td className="py-4 px-4 text-xs text-text-muted">{call.duration}</td>
-                                                        <td className="py-4 px-4 text-xs text-text-muted">{call.date}</td>
-                                                        <td className="py-4 px-4 text-right">
-                                                            <button
-                                                                className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary active:scale-90 flex items-center gap-2 justify-end ml-auto group/btn"
-                                                                onClick={() => handleViewCallDetails(call)}
-                                                                disabled={!!callDetailLoadingId}
-                                                            >
-                                                                {callDetailLoadingId === call.id ? (
-                                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                                ) : (
-                                                                    <Eye className="w-4 h-4" />
-                                                                )}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        <div className={`p-2 bg-${stat.color}/10 text-${stat.color} rounded-lg w-fit mb-2`}>
+                                            <stat.icon className="w-6 h-6" />
+                                        </div>
 
-                                </div>
+                                    </div>
+                                ))}
                             </div>
-                            {/* Campaign Info Card */}
                             <div className="lg:col-span-1 space-y-6">
                                 <div className="card p-6 border border-border-subtle shadow-soft h-full">
                                     <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-6">Campaign Information</h3>
@@ -720,6 +727,136 @@ export default function Campaigns() {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow transition-all">
+                            {/* Calls Table */}
+
+                            <Tabs defaultValue="leads" className="w-full">
+                                <TabsList className="bg-primary-soft/50 p-1 mb-2">
+                                    <TabsTrigger value="leads" className="px-6">Leads</TabsTrigger>
+                                    <TabsTrigger value="calls" className="px-6">Calls History</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="leads">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-border-subtle">
+                                                    <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
+                                                    {visibleColumns.email && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>}
+                                                    {visibleColumns.name && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>}
+                                                    {visibleColumns.company && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>}
+                                                    {visibleColumns.phone && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone</th>}
+                                                    {visibleColumns.expertise && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Expertise</th>}
+                                                    {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>}
+                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
+
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border-subtle/50">
+                                                {Campaign_Leads.map((user, i) => (
+                                                    <tr key={user.id} className={`hover:bg-bg-alt/30 transition-colors`}>
+                                                        <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
+                                                        {visibleColumns.email && <td className="py-4 px-3 text-sm text-text-main font-medium">{user.leadEmail}</td>}
+                                                        {visibleColumns.name && <td className="py-4 px-3 text-sm text-text-muted">{user.leadName}</td>}
+                                                        {visibleColumns.company && <td className="py-4 px-3 text-sm text-text-muted">{user.leadCompany}</td>}
+                                                        {visibleColumns.phone && <td className="py-4 px-3 text-sm text-text-muted">{user.leadPhoneNumber}</td>}
+                                                        {visibleColumns.expertise && (
+                                                            <td className="py-4 px-3">
+                                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-bg-alt text-text-muted`}>
+                                                                    {user.leadExpertiseDomain}
+                                                                </span>
+                                                            </td>
+                                                        )}
+                                                        {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
+                                                            {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
+                                                        </td>}
+                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                            <button
+                                                                // onClick={() => {
+                                                                //     setSelectedLead(user);
+                                                                //     setIsDetailSheetOpen(true);
+                                                                // }}
+                                                                className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="calls">
+                                    <div className="lg:col-span-2 space-y-4">
+                                        <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
+                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                                <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">Call History</h3>
+                                                <div className="relative w-full md:w-80">
+                                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Search calls..."
+                                                        className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                                    // value={searchTerm}
+                                                    // onChange={(e) => setSearchTerm(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left">
+                                                    <thead>
+                                                        <tr className="border-b border-border-subtle bg-bg/30">
+                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Phone Number</th>
+                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
+                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Duration</th>
+                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Date</th>
+                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-border-subtle">
+                                                        {CAMPAIGN_CALLS.map((call) => (
+                                                            <tr key={call.id} className="group hover:bg-bg/40 transition-colors">
+                                                                <td className="py-4 px-4 text-xs font-bold text-text-main">{call.phoneNumber}</td>
+                                                                <td className="py-4 px-4">
+                                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${call.status === 'Completed' ? 'bg-success/10 text-success border border-success/20' :
+                                                                        call.status === 'Failed' ? 'bg-danger/10 text-danger border border-danger/20' :
+                                                                            'bg-warning/10 text-warning border border-warning/20'
+                                                                        }`}>
+                                                                        {call.status}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="py-4 px-4 text-xs text-text-muted">{call.duration}</td>
+                                                                <td className="py-4 px-4 text-xs text-text-muted">{call.date}</td>
+                                                                <td className="py-4 px-4 text-right">
+                                                                    <button
+                                                                        className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary active:scale-90 flex items-center gap-2 justify-end ml-auto group/btn"
+                                                                        onClick={() => handleViewCallDetails(call)}
+                                                                        disabled={!!callDetailLoadingId}
+                                                                    >
+                                                                        {callDetailLoadingId === call.id ? (
+                                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                                        ) : (
+                                                                            <Eye className="w-4 h-4" />
+                                                                        )}
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </TabsContent>
+
+
+                            </Tabs>
+
+                            {/* Campaign Info Card */}
+
 
 
                         </div>
@@ -1113,7 +1250,7 @@ export default function Campaigns() {
 
                         {currentStep === 4 && (
                             <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="card-gradient rounded-2xl p-4 overflow-hidden relative shadow-glow">
+                                <div className="card-gradient rounded-2xl p-4 overflow-hidden relative">
                                     <div className="relative z-10">
                                         <div className="grid grid-cols-2 gap-2 mt-2">
                                             <div>
