@@ -90,8 +90,20 @@ const voiceBotService = {
     data: { assistantId: string; name: string; phoneNumberId?: string },
     config: AxiosRequestConfig
   ) => apiService.post("templates/publish", data, config),
-  updateLead: (id: string, data: Partial<Lead>, config: AxiosRequestConfig) =>
-    apiService.patch(`vapi/lead-database/${id}`, data, config),
+  getLead: (id: string, config: AxiosRequestConfig) =>
+    apiService.get(`vapi/lead-database/${id}`, config),
+  updateLead: (
+    id: string,
+    data: {
+      leadName?: string;
+      leadEmail?: string;
+      leadPhoneNumber?: string;
+      leadCompany?: string;
+      leadExpertiseDomain?: string;
+      lastCalledAt?: string;
+    },
+    config: AxiosRequestConfig
+  ) => apiService.put(`vapi/lead-database/${id}`, data, config),
   deleteLead: (id: string, config: AxiosRequestConfig) =>
     apiService.delete(`vapi/lead-database/${id}`, config),
 };
