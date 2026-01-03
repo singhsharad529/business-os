@@ -216,7 +216,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
         try {
             setInitialCallLoading(true);
             const data = {
-                assistantId: selectedTemplate?.vapiId,
+                assistantId: selectedTemplate?.vapiAssistantId,
                 customerNumber: phoneNumber,
                 customerName: name
             }
@@ -238,7 +238,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
         try {
             setPublishLoading(true);
             const data = {
-                assistantId: selectedTemplate?.vapiId,
+                assistantId: selectedTemplate?.vapiAssistantId,
                 name: selectedTemplate?.name,
                 phoneNumberId: selectedNumber
             }
@@ -311,7 +311,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                             <Skeleton className="w-full h-20 rounded-xl" />
                                             <Skeleton className="w-full h-20 rounded-xl" />
                                         </div>
-                                    ) : templates?.agents?.map((template: any) => (
+                                    ) : templates?.templates?.map((template: any) => (
                                         <button
                                             key={template.id}
                                             onClick={() => {
@@ -328,7 +328,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                             <div>
                                                 <h4 className="text-sm font-bold text-text-main group-hover:text-primary">{template.name}</h4>
                                                 <p className="text-xs text-text-muted mt-1">{template.metadata.department[0].toUpperCase()}{template.metadata.department.slice(1)}</p>
-                                                <p className="text-xs text-text-muted mt-1">{template.metadata.language}</p>
+                                                <p className="text-xs text-text-muted mt-1">{template.language}</p>
                                             </div>
 
                                         </button>
@@ -586,7 +586,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 </div>
 
                                 {history.length > 0 ? (
-                                    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-white shadow-soft">
+                                    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-white">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
                                                 <tr className="bg-bg/50 border-b border-border-subtle">

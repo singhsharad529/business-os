@@ -12,7 +12,7 @@ export function CallDetails({ call }: CallDetailsProps) {
         { label: 'Customer', value: call.customer?.number || call.customerNumber },
         { label: 'AI Phone', value: call.phoneNumber },
         { label: 'Status', value: call.status || 'Ended' },
-        { label: 'Cost', value: `$${call.cost || call.costBreakdown?.total || '0.00'}` },
+        { label: 'Cost', value: `$${call.totalCost || call.cost?.total || '0.00'}` },
         { label: 'Started At', value: call.startedAt ? new Date(call.startedAt).toLocaleString() : 'N/A' },
         { label: 'Ended At', value: call.endedAt ? new Date(call.endedAt).toLocaleString() : 'N/A' },
     ];
@@ -24,12 +24,16 @@ export function CallDetails({ call }: CallDetailsProps) {
                 <div className="bg-bg rounded-xl p-3 border border-border-subtle flex flex-col items-center">
                     <Clock className="w-4 h-4 text-primary mb-1" />
                     <span className="text-[10px] text-text-muted">Type</span>
-                    <span className="text-[10px] font-semibold text-center leading-tight mt-1 truncate w-full">{call.type?.replace(/([A-Z])/g, ' $1').trim() || 'Call'}</span>
+                    <span className="text-[10px] font-semibold text-center leading-tight mt-1 truncate w-full">
+                        {call.type === 'outboundPhoneCall' ? 'Outbound' : call.type === 'inboundPhoneCall' ? 'Inbound' : 'Call'}
+                    </span>
                 </div>
                 <div className="bg-bg rounded-xl p-3 border border-border-subtle flex flex-col items-center">
                     <Bot className="w-4 h-4 text-accent mb-1" />
                     <span className="text-[10px] text-text-muted">Status</span>
-                    <span className="text-xs font-semibold capitalize">{call.status || 'Ended'}</span>
+                    <span className="text-[10px] font-semibold text-center leading-tight mt-1 truncate w-full">
+                        {call.status?.split('-').join(' ') || 'Ended'}
+                    </span>
                 </div>
                 <div className="bg-bg rounded-xl p-3 border border-border-subtle flex flex-col items-center">
                     <Calendar className="w-4 h-4 text-success mb-1" />
@@ -117,7 +121,7 @@ export function CallDetails({ call }: CallDetailsProps) {
                         <div className="flex-1">
                             <p className="text-[10px] font-bold text-text-main uppercase tracking-wider">Play Call Recording</p>
                             <audio controls className="w-full h-8 mt-1.5 opacity-90">
-                                <source src={call.stereoRecordingUrl || call.recordingUrl || call.recordings?.stereo} type="audio/wav" />
+                                <source src={call.stereoRecordingUrl || call.recordingUrl || call.recordings?.stereo || call.recordings?.mono} type="audio/wav" />
                             </audio>
                         </div>
                     </div>

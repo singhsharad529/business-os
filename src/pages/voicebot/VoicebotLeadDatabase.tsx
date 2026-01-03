@@ -464,7 +464,7 @@ function VoicebotLeadDatabase() {
             >
                 {selectedLead && (
                     <LeadDetails
-                        lead={selectedLead}
+                        leadId={selectedLead.id}
                         onClose={() => setIsDetailSheetOpen(false)}
                         onUpdate={() => getLeadDatabaseData(currentPage, pageSize)}
                         onDelete={() => getLeadDatabaseData(currentPage, pageSize)}

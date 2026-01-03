@@ -19,6 +19,7 @@ export interface Lead {
   createdAt: string;
   updatedAt: string;
   attributes?: Record<string, any>;
+  calls?: any[];
 }
 
 export interface Pagination {
