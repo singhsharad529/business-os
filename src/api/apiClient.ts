@@ -14,7 +14,7 @@ const baseURL = import.meta.env.VITE_VOICEBOT_URL;
 
 const apiClient = axios.create({
   baseURL, // Dynamically set baseURL
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
     accept: "application/json",
