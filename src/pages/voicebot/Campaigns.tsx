@@ -1107,8 +1107,8 @@ export default function Campaigns() {
                                         Advanced Controls
                                     </h4>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {/* <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Max Retries</label>
                                             <select
                                                 value={maxRetries}
@@ -1120,7 +1120,7 @@ export default function Campaigns() {
                                                 <option value={5}>5 Retries</option>
                                                 <option value={10}>10 Retries</option>
                                             </select>
-                                        </div>
+                                        </div> */}
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Calls/Day</label>
                                             <select
@@ -1166,7 +1166,6 @@ export default function Campaigns() {
                                                 <option value={1}>1 Follow Up</option>
                                                 <option value={2}>2 Follow Ups</option>
                                                 <option value={3}>3 Follow Ups</option>
-                                                <option value={5}>5 Follow Ups</option>
                                             </select>
                                         </div>
 
@@ -1266,11 +1265,11 @@ export default function Campaigns() {
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-2 mt-2">
-                                            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10">
+                                            <div className="rounded-xl p-3 border border-white/10">
                                                 <span className="text-[10px] opacity-70 uppercase font-black">Target</span>
                                                 <div className="text-xl font-black mt-0.5">{selectedLeads.length} Leads</div>
                                             </div>
-                                            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 overflow-hidden">
+                                            <div className="rounded-xl p-3 border border-white/10 overflow-hidden">
                                                 <span className="text-[10px] opacity-70 uppercase font-black">AI Agent</span>
                                                 <div className="text-sm font-bold mt-1 truncate">
                                                     {selectedTemplate?.name || "Not Set"}

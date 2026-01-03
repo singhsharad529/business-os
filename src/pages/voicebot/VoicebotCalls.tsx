@@ -177,29 +177,33 @@ export default function VoicebotCalls() {
                         <h1 className="text-3xl font-bold text-text-main">Agents & Calls History</h1>
                         <p className="text-text-muted mt-1">View and analyze all your AI agents & calls</p>
                     </div>
-                    <div className="flex gap-4">
-                        <button
-                            onClick={() => {
-                                if (user && !user.companyId) {
-                                    toast.danger("Please create a company from Company section to start using the voicebot");
+                    {
+                        !isOpenedCalls && (
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => {
+                                        if (user && !user.companyId) {
+                                            toast.danger("Please create a company from Company section to start using the voicebot");
 
-                                    return;
-                                }
-                                setIsNewAgentOpen(true)
-                            }}
-                            className="btn btn-primary flex items-center gap-1.5"
-                        >
-                            <BotMessageSquare className="w-3.5 h-3.5" />
-                            Create Agent
-                        </button>
-                        <button
-                            onClick={() => setIsTestCallOpen(true)}
-                            className="btn btn-primary flex items-center gap-1.5"
-                        >
-                            <Phone className="w-3.5 h-3.5" />
-                            Test Call
-                        </button>
-                    </div>
+                                            return;
+                                        }
+                                        setIsNewAgentOpen(true)
+                                    }}
+                                    className="btn btn-primary flex items-center gap-1.5"
+                                >
+                                    <BotMessageSquare className="w-3.5 h-3.5" />
+                                    Create Agent
+                                </button>
+                                <button
+                                    onClick={() => setIsTestCallOpen(true)}
+                                    className="btn btn-primary flex items-center gap-1.5"
+                                >
+                                    <Phone className="w-3.5 h-3.5" />
+                                    Test Call
+                                </button>
+                            </div>
+                        )
+                    }
                 </div>
 
                 {loading ? (

@@ -150,21 +150,7 @@ function VoicebotLeadDatabase() {
                         </div>
                         <div className="text-sm mb-2"><Phone className="w-6 h-6 text-primary opacity-80" /></div>
                     </div>
-                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div>
-                            <div className="text-3xl font-bold text-text-main">234</div>
-                            <div className="text-xs text-text-muted mt-2">Analysis</div>
-                        </div>
-                        <div className="text-sm mb-2"><BarChart className="w-6 h-6 text-primary opacity-80" /></div>
-                    </div>
 
-                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div>
-                            <div className="text-3xl font-bold text-text-main">400</div>
-                            <div className="text-xs text-text-muted mt-2">Actions</div>
-                        </div>
-                        <div className="text-sm mb-2">  <Activity className="w-6 h-6 text-primary opacity-80" /></div>
-                    </div>
                 </div>
 
                 <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow transition-all" >
@@ -172,8 +158,6 @@ function VoicebotLeadDatabase() {
                         <TabsList className="bg-primary-soft/50 p-1 mb-2">
                             <TabsTrigger value="users" className="px-6">Users ({pagination?.totalCount || filteredUsers.length})</TabsTrigger>
                             <TabsTrigger value="calls" className="px-6">Call Sessions ({mockCallSessions.length})</TabsTrigger>
-                            <TabsTrigger value="analyses" className="px-6">Analyses ({mockAnalyses.length})</TabsTrigger>
-                            <TabsTrigger value="actions" className="px-6">Actions ({mockVoicebotActions.length})</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="users">
