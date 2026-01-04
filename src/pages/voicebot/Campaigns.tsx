@@ -40,6 +40,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Lead } from "@/types/voicebotTypes";
 import { LeadDetails } from "@/components/voicebot/LeadDetails";
+import AddLead from "@/components/voicebot/AddLead";
 
 interface Campaign {
     id: string;
@@ -212,6 +213,8 @@ export default function Campaigns() {
     const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
     const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+    const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
+
 
     // Call Detail View State
     const [selectedCallForDetail, setSelectedCallForDetail] = useState<any>(null);
@@ -581,13 +584,13 @@ export default function Campaigns() {
                                 <table className="w-full text-left">
                                     <thead>
                                         <tr className="border-b border-border-subtle bg-bg/30">
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Campaign Name</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Leads</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Agent</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Start Date</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Progress</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Action</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Campaign Name</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Status</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Leads</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Agent</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Start Date</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Progress</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider  text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border-subtle">
@@ -758,15 +761,7 @@ export default function Campaigns() {
                                                     <span className="text-xs text-text-muted text-right">Days: 5, 8</span>
                                                 </div>
                                             </div>
-                                            {selectedCampaign.settings?.followUpDelays && selectedCampaign.settings.followUpDelays.length > 0 && (
-                                                <div className="mt-1 flex gap-1">
-                                                    {selectedCampaign.settings.followUpDelays.map((d, i) => (
-                                                        <span key={i} className="text-[9px] bg-bg-alt px-1.5 py-0.5 rounded border border-border-subtle text-text-muted">
-                                                            Day {d}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
+
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Time Window</span>
@@ -802,7 +797,9 @@ export default function Campaigns() {
                                             />
                                         </div>
                                         <div className="">
-                                            <button className="btn btn-primary rounded-full"><PlusIcon className="w-4 h-4" /> Add Lead</button>
+                                            <button className="btn btn-primary rounded-full"
+                                                onClick={() => setIsAddLeadSheetOpen(true)}
+                                            ><PlusIcon className="w-4 h-4" /> Add Lead</button>
                                         </div>
                                     </div>
                                     <div className="overflow-x-auto">
@@ -1476,6 +1473,19 @@ export default function Campaigns() {
                         onDelete={() => { }}
                     />
                 )}
+            </SideSheet>
+
+            {/* Add Lead SideSheet */}
+            <SideSheet
+                isOpen={isAddLeadSheetOpen}
+                onClose={() => setIsAddLeadSheetOpen(false)}
+                title="Add New Lead"
+                size="md"
+            >
+                <AddLead
+                    onClose={() => setIsAddLeadSheetOpen(false)}
+                // onAdd={() => getLeadDatabaseData(currentPage, pageSize)}
+                />
             </SideSheet>
         </>
     );

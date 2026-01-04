@@ -14,6 +14,7 @@ import sampleFile from "@/assets/files/leads_data_sample.xlsx";
 import { toast } from "@/hooks/useToast"
 import Modal from "@/components/common/Modal"
 import { LeadDetails } from "@/components/voicebot/LeadDetails"
+import AddLead from "@/components/voicebot/AddLead"
 
 function VoicebotLeadDatabase() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -39,6 +40,8 @@ function VoicebotLeadDatabase() {
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
     const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+    const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
+
 
     const pageSize = 10;
 
@@ -132,6 +135,11 @@ function VoicebotLeadDatabase() {
                         >
                             <Upload className="w-4 h-4" />
                             Import Leads</button>
+                        <button className="btn btn-primary flex items-center gap-2"
+                            onClick={() => setIsAddLeadSheetOpen(true)}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Lead</button>
                     </div>
                 </div>
 
@@ -368,6 +376,19 @@ function VoicebotLeadDatabase() {
                         onDelete={() => getLeadDatabaseData(currentPage, pageSize)}
                     />
                 )}
+            </SideSheet>
+
+            {/* Add Lead SideSheet */}
+            <SideSheet
+                isOpen={isAddLeadSheetOpen}
+                onClose={() => setIsAddLeadSheetOpen(false)}
+                title="Add New Lead"
+                size="md"
+            >
+                <AddLead
+                    onClose={() => setIsAddLeadSheetOpen(false)}
+                    onSuccess={() => getLeadDatabaseData(currentPage, pageSize)}
+                />
             </SideSheet>
         </div >
     )

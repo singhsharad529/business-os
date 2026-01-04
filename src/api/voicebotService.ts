@@ -106,6 +106,8 @@ const voiceBotService = {
   ) => apiService.put(`vapi/lead-database/${id}`, data, config),
   deleteLead: (id: string, config: AxiosRequestConfig) =>
     apiService.delete(`vapi/lead-database/${id}`, config),
+  createLead: (data: any, config: AxiosRequestConfig) =>
+    apiService.post("vapi/lead-database", data, config),
 };
 
 export default voiceBotService;
