@@ -42,6 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Lead } from "@/types/voicebotTypes";
 import { LeadDetails } from "@/components/voicebot/LeadDetails";
 import AddLead from "@/components/voicebot/AddLead";
+import { EditCampaign } from "@/components/voicebot/EditCampaign";
 
 interface Campaign {
     id: string;
@@ -215,6 +216,7 @@ export default function Campaigns() {
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
     const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
     const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
+    const [isEditCampaignSheetOpen, setIsEditCampaignSheetOpen] = useState(false);
 
 
     // Call Detail View State
@@ -848,7 +850,12 @@ export default function Campaigns() {
                                             <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.startTime || '09:00'} - {selectedCampaign.settings?.endTime || '18:00'}</span>
                                         </div>
                                         <div>
-                                            <button className="btn btn-primary w-full rounded-full"><Edit className="w-4 h-4" /> Edit Campaign</button>
+                                            <button
+                                                onClick={() => setIsEditCampaignSheetOpen(true)}
+                                                className="btn btn-primary w-full rounded-full"
+                                            >
+                                                <Edit className="w-4 h-4" /> Edit Campaign
+                                            </button>
                                         </div>
                                     </div>
 
@@ -1240,7 +1247,9 @@ export default function Campaigns() {
                                                 value={endDate}
                                                 onChange={(e) => setEndDate(e.target.value)}
                                                 className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none shadow-sm"
+                                                disabled
                                             />
+                                            <span className="text-[10px] text-text-subtle">End date will be updated automatically</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1566,6 +1575,25 @@ export default function Campaigns() {
                     onClose={() => setIsAddLeadSheetOpen(false)}
                 // onAdd={() => getLeadDatabaseData(currentPage, pageSize)}
                 />
+            </SideSheet>
+
+            {/* Edit Campaign SideSheet */}
+            <SideSheet
+                isOpen={isEditCampaignSheetOpen}
+                onClose={() => setIsEditCampaignSheetOpen(false)}
+                title="Edit Campaign Settings"
+                size="md"
+            >
+                {selectedCampaign && (
+                    <EditCampaign
+                        campaign={selectedCampaign}
+                        onClose={() => setIsEditCampaignSheetOpen(false)}
+                        onUpdate={(updated) => {
+                            setCampaigns(prev => prev.map(c => c.id === updated.id ? updated : c));
+                            setSelectedCampaign(updated);
+                        }}
+                    />
+                )}
             </SideSheet>
         </>
     );
