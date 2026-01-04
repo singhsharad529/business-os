@@ -900,7 +900,9 @@ export default function Campaigns() {
                                                     {visibleColumns.company && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>}
                                                     {visibleColumns.phone && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone</th>}
                                                     {visibleColumns.expertise && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Expertise</th>}
-                                                    {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>}
+                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Call Time</th>}
+
+                                                    {/* {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>} */}
                                                     <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
 
                                                 </tr>
@@ -920,9 +922,12 @@ export default function Campaigns() {
                                                                 </span>
                                                             </td>
                                                         )}
-                                                        {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
-                                                            {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
+                                                        {<td className="py-4 px-3 text-sm text-text-muted">
+                                                            {new Date().toLocaleString()}
                                                         </td>}
+                                                        {/* {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
+                                                            {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
+                                                        </td>} */}
                                                         <td className="py-4 px-3 text-sm text-text-muted">
                                                             <button
                                                                 // onClick={() => {
