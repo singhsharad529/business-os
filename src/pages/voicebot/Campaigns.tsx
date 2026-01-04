@@ -43,6 +43,7 @@ import { Lead } from "@/types/voicebotTypes";
 import { LeadDetails } from "@/components/voicebot/LeadDetails";
 import AddLead from "@/components/voicebot/AddLead";
 import { EditCampaign } from "@/components/voicebot/EditCampaign";
+import LeadFromDb from "@/components/voicebot/LeadFromDB";
 
 interface Campaign {
     id: string;
@@ -1571,9 +1572,9 @@ export default function Campaigns() {
                 title="Add New Lead"
                 size="md"
             >
-                <AddLead
+                <LeadFromDb
                     onClose={() => setIsAddLeadSheetOpen(false)}
-                // onAdd={() => getLeadDatabaseData(currentPage, pageSize)}
+                    onSuccess={() => { }}
                 />
             </SideSheet>
 
