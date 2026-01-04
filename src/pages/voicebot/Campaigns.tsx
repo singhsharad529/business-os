@@ -26,7 +26,8 @@ import {
     Timer,
     Edit,
     BotMessageSquare,
-    PlusIcon
+    PlusIcon,
+    Flag
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
@@ -678,33 +679,112 @@ export default function Campaigns() {
                             </div> */}
                         </div>
 
-                        <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        {/* Enhanced Campaign Progress & Timeline Card */}
+                        <div className="card rounded-2xl p-8 border border-border-subtle bg-gradient-to-br from-white via-white to-primary/5 shadow-soft hover:shadow-glow transition-all duration-500 overflow-hidden relative group">
+                            {/* Decorative background gradients */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-primary/10 transition-colors duration-700" />
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl -ml-24 -mb-24" />
 
-                            <div className="flex items-center gap-3 justify-between">
-                                <div>
-                                    <div className="text-sm font-bold text-text-main uppercase tracking-widest">Start Date</div>
-                                    <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">{new Date(selectedCampaign.startDate).toLocaleDateString()}</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm font-bold text-text-main uppercase tracking-widest">End Date</div>
-                                    <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">{new Date(selectedCampaign.startDate).toLocaleDateString()}</div>
+                            <div className="relative z-10">
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                                    {/* Left: Date Comparison & Timeline */}
+                                    <div className="flex-1 space-y-6">
+                                        <div className="flex items-center justify-between px-1">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
+                                                    <Calendar className="w-3 h-3 text-primary" />
+                                                    Start Date
+                                                </div>
+                                                <div className="text-sm font-bold text-text-main">{new Date(selectedCampaign.startDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                                            </div>
+
+                                            <div className="text-center group-hover:scale-110 transition-transform duration-500">
+                                                <div className="inline-flex items-center justify-center p-2 rounded-xl bg-primary-soft/30 border border-primary-soft/50 text-primary">
+                                                    <Zap className="w-5 h-5 animate-pulse" />
+                                                </div>
+                                                <div className="mt-1 text-[8px] font-black text-primary uppercase tracking-tighter">Running</div>
+                                            </div>
+
+                                            <div className="text-right space-y-1">
+                                                <div className="flex items-center gap-2 justify-end text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
+                                                    End Date (Est.)
+                                                    <Flag className="w-3 h-3 text-accent" />
+                                                </div>
+                                                <div className="text-sm font-bold text-text-main">
+                                                    {selectedCampaign.endDate
+                                                        ? new Date(selectedCampaign.endDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                        : new Date(new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Visualization of timeline */}
+                                        <div className="relative pt-4 pb-2">
+                                            <div className="h-2 w-full bg-bg-alt rounded-full overflow-hidden border border-border-subtle/50">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000 ease-out"
+                                                    style={{ width: `${Math.min(100, Math.max(0, ((new Date().getTime() - new Date(selectedCampaign.startDate).getTime()) / ((selectedCampaign.endDate ? new Date(selectedCampaign.endDate).getTime() : new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.startDate).getTime())) * 100))}%` }}
+                                                />
+                                            </div>
+
+                                            {/* Today Marker */}
+                                            <div
+                                                className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000 ease-out"
+                                                style={{ left: `${Math.min(95, Math.max(5, ((new Date().getTime() - new Date(selectedCampaign.startDate).getTime()) / ((selectedCampaign.endDate ? new Date(selectedCampaign.endDate).getTime() : new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.startDate).getTime())) * 100))}%` }}
+                                            >
+                                                <div className="text-[9px] font-black text-primary bg-primary-soft/50 px-2 py-0.5 rounded-full border border-primary-soft/50 mb-1 backdrop-blur-sm">TODAY</div>
+                                                <div className="w-0.5 h-6 bg-primary" />
+                                            </div>
+
+                                            <div className="flex justify-between mt-4">
+                                                <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
+                                                    <Clock className="w-3 h-3 text-primary/60" />
+                                                    {Math.max(0, Math.floor((new Date().getTime() - new Date(selectedCampaign.startDate).getTime()) / (1000 * 60 * 60 * 24)))} days elapsed
+                                                </div>
+                                                <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
+                                                    {Math.max(0, Math.ceil(((selectedCampaign.endDate ? new Date(selectedCampaign.endDate).getTime() : new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining
+                                                    <Timer className="w-3 h-3 text-accent/60" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Middle: Vertical Divider for LG screen */}
+                                    <div className="hidden lg:block w-px h-24 bg-gradient-to-b from-transparent via-border-subtle to-transparent mx-8 opacity-50" />
+
+                                    {/* Right: Progression Metrics */}
+                                    <div className="w-full lg:w-80 space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Campaign Progress</h4>
+                                            <span className="text-sm font-black text-success tabular-nums">{selectedCampaign.progress}%</span>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div className="w-full h-4 bg-bg-alt rounded-2xl overflow-hidden border border-border-subtle/30 p-1">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-success/60 to-success rounded-xl shadow-[0_0_10px_rgba(34,197,94,0.3)] transition-all duration-1000 ease-in-out"
+                                                    style={{ width: `${selectedCampaign.progress}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between px-1">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xl font-black text-text-main tabular-nums">
+                                                        {Math.round((selectedCampaign.progress / 100) * selectedCampaign.leadsCount)}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-success uppercase tracking-wider mt-0.5">Contacted</span>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-xl font-black text-text-muted tabular-nums">
+                                                        {selectedCampaign.leadsCount - Math.round((selectedCampaign.progress / 100) * selectedCampaign.leadsCount)}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider mt-0.5">Remaining</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className="mt-4 border-t border-border-subtle">
-                                <div className="text-[10px] font-bold text-text-muted uppercase tracking-widest my-4">Overall Progress</div>
-                                <div className="w-full h-2 bg-bg-alt rounded-full overflow-hidden mb-2">
-                                    <div
-                                        className="h-full bg-success/80 rounded-full transition-all ease-in-out duration-500"
-                                        style={{ width: `${selectedCampaign.progress}%` }}
-                                    />
-                                </div>
-                                <div className="flex justify-between text-[10px] font-bold">
-                                    <span className="text-success/80">{selectedCampaign.progress}% Completed</span>
-                                    <span className="text-text-muted">{selectedCampaign.leadsCount} Total Leads</span>
-                                </div>
-                            </div>
-
                         </div>
 
                         {/* Selected Campaign Stats */}

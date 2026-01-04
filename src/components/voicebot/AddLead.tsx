@@ -54,9 +54,8 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
                     {/* Lead Name */}
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-text-muted uppercase tracking-[0.1em] px-1 flex items-center gap-1.5">
-                            <User className="w-3 h-3" />
-                            Full Name *
+                        <label className="text-xs font-medium text-text-main block">
+                            Full Name <span className="text-danger">*</span>
                         </label>
                         <input
                             type="text"
@@ -71,9 +70,8 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
 
                     {/* Lead Phone Number */}
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-text-muted uppercase tracking-[0.1em] px-1 flex items-center gap-1.5">
-                            <Phone className="w-3 h-3" />
-                            Phone Number *
+                        <label className="text-xs font-medium text-text-main block">
+                            Phone Number <span className="text-danger">*</span>
                         </label>
                         <input
                             type="tel"
@@ -88,9 +86,8 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
 
                     {/* Lead Email */}
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-text-muted uppercase tracking-[0.1em] px-1 flex items-center gap-1.5">
-                            <Mail className="w-3 h-3" />
-                            Email Address
+                        <label className="text-xs font-medium text-text-main block">
+                            Email Address <span className="text-danger">*</span>
                         </label>
                         <input
                             type="email"
@@ -104,9 +101,8 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
 
                     {/* Lead Company */}
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-text-muted uppercase tracking-[0.1em] px-1 flex items-center gap-1.5">
-                            <Briefcase className="w-3 h-3" />
-                            Company
+                        <label className="text-xs font-medium text-text-main block">
+                            Company <span className="text-danger">*</span>
                         </label>
                         <input
                             type="text"
@@ -120,9 +116,8 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
 
                     {/* Lead Expertise Domain */}
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-text-muted uppercase tracking-[0.1em] px-1 flex items-center gap-1.5">
-                            <Globe className="w-3 h-3" />
-                            Expertise Domain
+                        <label className="text-xs font-medium text-text-main block">
+                            Expertise Domain <span className="text-danger">*</span>
                         </label>
                         <input
                             type="text"
@@ -162,12 +157,7 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
                 </div>
             </form>
 
-            <div className="p-4 rounded-xl bg-primary-soft/10 border border-primary-soft/20">
-                <div className="flex gap-3 text-xs text-text-muted leading-relaxed">
-                    <div className="text-primary mt-0.5">•</div>
-                    <div>Required fields are marked with an asterisk (*).</div>
-                </div>
-            </div>
+
         </div>
     )
 }
