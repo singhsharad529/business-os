@@ -25,7 +25,8 @@ import {
     TrendingUp,
     Timer,
     Edit,
-    BotMessageSquare
+    BotMessageSquare,
+    PlusIcon
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
@@ -37,6 +38,8 @@ import { Loader2 } from "lucide-react";
 import { AxiosRequestConfig } from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Lead } from "@/types/voicebotTypes";
+import { LeadDetails } from "@/components/voicebot/LeadDetails";
 
 interface Campaign {
     id: string;
@@ -48,14 +51,12 @@ interface Campaign {
     endDate?: string;
     progress: number;
     settings?: {
-        maxRetries: number;
         callsPerDay: number;
         followUps: number;
         followUpDelays: number[];
-        timeZone: string;
-        startTime: string;
-        endTime: string;
-        days: string[];
+        timeZone?: string;
+        startTime?: string;
+        endTime?: string;
     };
 }
 
@@ -65,18 +66,28 @@ const DUMMY_CAMPAIGNS: Campaign[] = [
         name: "Q4 Sales Outreach",
         status: "Active",
         leadsCount: 150,
-        agentName: "Outbound Sales",
+        agentName: "Reality - Rental Specialist",
         startDate: "2025-12-25T10:00:00Z",
-        progress: 65
+        progress: 65,
+        settings: {
+            callsPerDay: 1,
+            followUps: 2,
+            followUpDelays: [5, 8]
+        }
     },
     {
         id: "c2",
         name: "Healthcare Follow-up",
         status: "Scheduled",
         leadsCount: 85,
-        agentName: "Consultant-Healthcare",
+        agentName: "Reality - Consultant-Healthcare",
         startDate: "2026-01-05T09:00:00Z",
-        progress: 0
+        progress: 0,
+        settings: {
+            callsPerDay: 1,
+            followUps: 2,
+            followUpDelays: [5, 8]
+        }
     },
     {
         id: "c3",
@@ -85,7 +96,12 @@ const DUMMY_CAMPAIGNS: Campaign[] = [
         leadsCount: 200,
         agentName: "Property Listing Agent",
         startDate: "2025-12-20T14:30:00Z",
-        progress: 100
+        progress: 100,
+        settings: {
+            callsPerDay: 1,
+            followUps: 2,
+            followUpDelays: [5, 8]
+        }
     },
     {
         id: "c4",
@@ -94,7 +110,12 @@ const DUMMY_CAMPAIGNS: Campaign[] = [
         leadsCount: 50,
         agentName: "Account Support",
         startDate: "2025-12-23T11:00:00Z",
-        progress: 30
+        progress: 30,
+        settings: {
+            callsPerDay: 1,
+            followUps: 2,
+            followUpDelays: [5, 8]
+        }
     }
 ];
 
@@ -189,6 +210,8 @@ export default function Campaigns() {
 
     // Selected Campaign Detail State
     const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+    const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+    const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
 
     // Call Detail View State
     const [selectedCallForDetail, setSelectedCallForDetail] = useState<any>(null);
@@ -427,14 +450,12 @@ export default function Campaigns() {
             endDate: endDate,
             progress: 0,
             settings: {
-                maxRetries: maxRetries,
                 callsPerDay: callsPerDay,
                 followUps: followUps,
                 followUpDelays: followUpDelays,
                 timeZone: timeZone,
                 startTime: startTime,
                 endTime: endTime,
-                days: selectedDays
             }
         };
         setCampaigns([newCampaign, ...campaigns]);
@@ -463,6 +484,24 @@ export default function Campaigns() {
         }
     }
 
+
+    const selectLead = () => {
+        setIsDetailSheetOpen(true);
+        setSelectedLead({
+            id: "e74b2bda-8b4f-49b9-80e0-50f10dba2993",
+            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
+            sourceFileId: "dc501c5f-699f-4cc7-9dea-a254dc0b2bae",
+            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
+            leadName: "Shellen",
+            leadPhoneNumber: "+1-555-0123",
+            leadEmail: "sarah.j@vertexsolutions.com",
+            lastCalledAt: "2025-12-26T14:30:00",
+            leadCompany: "Vertex Solutions",
+            leadExpertiseDomain: "SaaS Sales",
+            createdAt: "2025-12-27T14:39:47.256",
+            updatedAt: "2025-12-27T14:39:47.256"
+        });
+    }
     return (
         <>
             <div className="space-y-6">
@@ -601,9 +640,9 @@ export default function Campaigns() {
                         </div>
                     </>
                 ) : (
-                    <div className="space-y-8 animate-in fade-in duration-500">
+                    <div className="space-y-6 animate-in fade-in duration-500">
                         {/* Selected Campaign Header */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setSelectedCampaign(null)}
@@ -622,18 +661,47 @@ export default function Campaigns() {
                                             {selectedCampaign.status}
                                         </span>
                                     </div>
-                                    <p className="text-text-muted mt-1 flex items-center gap-2">
+                                    {/* <p className="text-text-muted mt-1 flex items-center gap-2">
                                         <Calendar className="w-4 h-4" />
                                         Created on {new Date(selectedCampaign.startDate).toLocaleDateString()}
-                                    </p>
+                                    </p> */}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            {/* <div className="flex items-center gap-3">
                                 <button className="btn btn-primary flex items-center gap-2">
                                     <Edit className="w-4 h-4" />
                                     Edit Campaign
                                 </button>
+                            </div> */}
+                        </div>
+
+                        <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+
+                            <div className="flex items-center gap-3 justify-between">
+                                <div>
+                                    <div className="text-sm font-bold text-text-main uppercase tracking-widest">Start Date</div>
+                                    <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">{new Date(selectedCampaign.startDate).toLocaleDateString()}</div>
+                                </div>
+                                <div>
+                                    <div className="text-sm font-bold text-text-main uppercase tracking-widest">End Date</div>
+                                    <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">{new Date(selectedCampaign.startDate).toLocaleDateString()}</div>
+                                </div>
                             </div>
+
+                            <div className="mt-4 border-t border-border-subtle">
+                                <div className="text-[10px] font-bold text-text-muted uppercase tracking-widest my-4">Overall Progress</div>
+                                <div className="w-full h-2 bg-bg-alt rounded-full overflow-hidden mb-2">
+                                    <div
+                                        className="h-full bg-success/80 rounded-full transition-all ease-in-out duration-500"
+                                        style={{ width: `${selectedCampaign.progress}%` }}
+                                    />
+                                </div>
+                                <div className="flex justify-between text-[10px] font-bold">
+                                    <span className="text-success/80">{selectedCampaign.progress}% Completed</span>
+                                    <span className="text-text-muted">{selectedCampaign.leadsCount} Total Leads</span>
+                                </div>
+                            </div>
+
                         </div>
 
                         {/* Selected Campaign Stats */}
@@ -679,17 +747,16 @@ export default function Campaigns() {
                                             <span className="text-xs font-bold text-text-main">+91 98765 43210</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
-                                            <span className="text-xs text-text-muted">Retries</span>
-                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.maxRetries || 3}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Calls per Day</span>
                                             <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.callsPerDay || 50}</span>
                                         </div>
                                         <div className="flex flex-col py-2 border-b border-border-subtle/50">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-xs text-text-muted">Follow Ups</span>
-                                                <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.followUps || 0} Attempts</span>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs font-bold text-text-main text-right">2 Follow Ups</span>
+                                                    <span className="text-xs text-text-muted text-right">Days: 5, 8</span>
+                                                </div>
                                             </div>
                                             {selectedCampaign.settings?.followUpDelays && selectedCampaign.settings.followUpDelays.length > 0 && (
                                                 <div className="mt-1 flex gap-1">
@@ -705,26 +772,11 @@ export default function Campaigns() {
                                             <span className="text-xs text-text-muted">Time Window</span>
                                             <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.startTime || '09:00'} - {selectedCampaign.settings?.endTime || '18:00'}</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-2">
-                                            <span className="text-xs text-text-muted">Calling Days</span>
-                                            <span className="text-xs font-bold text-text-main">
-                                                {selectedCampaign.settings?.days?.length === 7 ? 'Everyday' : (selectedCampaign.settings?.days?.join(', ') || 'Mon, Tue, Wed, Thu, Fri')}
-                                            </span>
+                                        <div>
+                                            <button className="btn btn-primary w-full rounded-full"><Edit className="w-4 h-4" /> Edit Campaign</button>
                                         </div>
                                     </div>
-                                    <div className="mt-8 pt-6 border-t border-border-subtle">
-                                        <div className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-4">Overall Progress</div>
-                                        <div className="w-full h-2 bg-bg-alt rounded-full overflow-hidden mb-2">
-                                            <div
-                                                className="h-full bg-primary"
-                                                style={{ width: `${selectedCampaign.progress}%` }}
-                                            />
-                                        </div>
-                                        <div className="flex justify-between text-[10px] font-bold">
-                                            <span className="text-primary">{selectedCampaign.progress}% Completed</span>
-                                            <span className="text-text-muted">{selectedCampaign.leadsCount} Total</span>
-                                        </div>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -738,6 +790,21 @@ export default function Campaigns() {
                                     <TabsTrigger value="calls" className="px-6">Calls History</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="leads">
+                                    <div className="flex flex-col md:flex-row md:items-center gap-4 my-1 px-2">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search leads..."
+                                                className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                            // value={searchTerm}
+                                            // onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="">
+                                            <button className="btn btn-primary rounded-full"><PlusIcon className="w-4 h-4" /> Add Lead</button>
+                                        </div>
+                                    </div>
                                     <div className="overflow-x-auto">
                                         <table className="w-full">
                                             <thead>
@@ -777,6 +844,7 @@ export default function Campaigns() {
                                                                 //     setSelectedLead(user);
                                                                 //     setIsDetailSheetOpen(true);
                                                                 // }}
+                                                                onClick={selectLead}
                                                                 className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
                                                             >
                                                                 <Eye className="w-4 h-4" />
@@ -789,10 +857,9 @@ export default function Campaigns() {
                                     </div>
                                 </TabsContent>
                                 <TabsContent value="calls">
-                                    <div className="lg:col-span-2 space-y-4">
-                                        <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
-                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                                                <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">Call History</h3>
+                                    <div className="overflow-x-auto">
+                                        <div className="overflow-hidden">
+                                            <div className="flex flex-col md:flex-row md:items-center justify-end gap-4 my-1 px-2">
                                                 <div className="relative w-full md:w-80">
                                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                                                     <input
@@ -808,11 +875,11 @@ export default function Campaigns() {
                                                 <table className="w-full text-left">
                                                     <thead>
                                                         <tr className="border-b border-border-subtle bg-bg/30">
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Phone Number</th>
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Duration</th>
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Date</th>
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Action</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone Number</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Duration</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Date</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-border-subtle">
@@ -829,9 +896,9 @@ export default function Campaigns() {
                                                                 </td>
                                                                 <td className="py-4 px-4 text-xs text-text-muted">{call.duration}</td>
                                                                 <td className="py-4 px-4 text-xs text-text-muted">{call.date}</td>
-                                                                <td className="py-4 px-4 text-right">
+                                                                <td className="py-4 px-4">
                                                                     <button
-                                                                        className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary active:scale-90 flex items-center gap-2 justify-end ml-auto group/btn"
+                                                                        className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary active:scale-90 flex items-center gap-2  group/btn"
                                                                         onClick={() => handleViewCallDetails(call)}
                                                                         disabled={!!callDetailLoadingId}
                                                                     >
@@ -1392,6 +1459,23 @@ export default function Campaigns() {
                 size="md"
             >
                 {selectedCallForDetail && <CallDetails call={selectedCallForDetail} />}
+            </SideSheet>
+
+            {/* Lead Details SideSheet */}
+            <SideSheet
+                isOpen={isDetailSheetOpen}
+                onClose={() => setIsDetailSheetOpen(false)}
+                title="Lead Profile Details"
+                size="md"
+            >
+                {selectedLead && (
+                    <LeadDetails
+                        leadId={selectedLead.id}
+                        onClose={() => setIsDetailSheetOpen(false)}
+                        onUpdate={() => { }}
+                        onDelete={() => { }}
+                    />
+                )}
             </SideSheet>
         </>
     );
