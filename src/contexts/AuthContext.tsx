@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = () => {
       try {
         const storedUser = localStorage.getItem('businessos_user');
-        console.log('Stored user from localStorage:', storedUser);
+        // console.log('Stored user from localStorage:', storedUser);
 
         if (storedUser && storedUser !== 'undefined') {
           const parsedUser = JSON.parse(storedUser);
@@ -60,11 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           const companyResponse = await voiceBotService.getCompanyList({});
 
-          console.log('compay list', companyResponse);
+          // console.log('compay list', companyResponse);
 
           const companyId = companyResponse.companies.filter((company: any) => company.userId === response.user.id);
 
-          console.log('company id', companyId);
+          // console.log('company id', companyId);
 
           const userWithoutPassword = { ...response.user, companyId: companyId.length > 0 ? companyId[0].id : null, role: "company_admin" };
           setUser(userWithoutPassword);

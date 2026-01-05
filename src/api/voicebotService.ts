@@ -86,6 +86,8 @@ const voiceBotService = {
     data: { assistantId: string; customerNumber: string; customerName: string },
     config: AxiosRequestConfig
   ) => apiService.post("templates/test-outbound-call", data, config),
+  getHistoryTestCalls: (config: AxiosRequestConfig) =>
+    apiService.get("vapi/calls/reports", config),
   publishAgent: (
     data: { assistantId: string; name: string; phoneNumberId?: string },
     config: AxiosRequestConfig

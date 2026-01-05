@@ -7,12 +7,7 @@ import {
     PhoneCall,
     History as HistoryIcon,
     Plus,
-    Home,
-    Wallet,
-    Target,
     Dot,
-    User,
-    MessageSquare,
     Loader2,
     User2,
     BookPlus
@@ -21,6 +16,7 @@ import { toast } from "@/hooks/useToast";
 import voiceBotService from "@/api/voicebotService";
 import { AxiosRequestConfig } from "axios";
 import { Skeleton } from "../ui/skeleton";
+import { CallDetails } from "./CallDetails";
 import {
     Select,
     SelectContent,
@@ -28,6 +24,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import Pagination from "@/components/common/Pagination";
+import TableLoader from "../common/TableLoader";
 
 interface TestCallProps {
     onCancel: () => void;
@@ -136,8 +134,8 @@ export default function TestCall({ onCancel }: TestCallProps) {
     const [step, setStep] = useState<Step>("select-template");
     const [phoneNumber, setPhoneNumber] = useState<string>("");
     const [name, setName] = useState<string>("");
-    const [history, setHistory] = useState<TestCallRecord[]>([]);
-    const [selectedHistoryItem, setSelectedHistoryItem] = useState<TestCallRecord | null>(null);
+    const [history, setHistory] = useState<any>(null);
+    const [selectedHistoryItem, setSelectedHistoryItem] = useState<any | null>(null);
     const [templates, setTemplates] = useState<any | null>(null);
     const [templatesLoading, setTemplatesLoading] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
@@ -145,26 +143,47 @@ export default function TestCall({ onCancel }: TestCallProps) {
     const [unassignedNumbers, setUnassignedNumbers] = useState<Number[]>([]);
     const [publishLoading, setPublishLoading] = useState<boolean>(false);
     const [selectedNumber, setSelectedNumber] = useState<string>("");
+    const [pagination, setPagination] = useState<any>(null);
+    const [historyLoading, setHistoryLoading] = useState<boolean>(false);
 
+    const defaultPageSize = 10;
+    const fetchHistoryTestCalls = async (page: number = 1, pageSize: number = defaultPageSize) => {
+        try {
+            const config = {
+                params: {
+                    isTestCall: true,
+                    page,
+                    page_size: pageSize
+                }
+            };
+            setHistoryLoading(true);
+            const response = await voiceBotService.getHistoryTestCalls(config);
+            // console.log('response', response);
+            setHistory(response.reports);
+            setPagination(response.pagination);
+        } catch (error) {
+            console.error("Failed to fetch history test calls", error);
+            toast.danger("Failed to fetch history test calls");
+        }
+        finally {
+            setHistoryLoading(false);
+        }
+    }
+
+    const handlePageChange = (page: number) => {
+        fetchHistoryTestCalls(page, defaultPageSize);
+    };
 
     useEffect(() => {
-        const savedHistory = localStorage.getItem("test_call_history");
-        if (savedHistory) {
-            try {
-                setHistory(JSON.parse(savedHistory));
-            } catch (e) {
-                console.error("Failed to parse history", e);
-                setHistory(DUMMY_HISTORY);
-            }
-        } else {
-            setHistory(DUMMY_HISTORY);
-        }
+        fetchHistoryTestCalls();
     }, []);
 
 
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
+    const formatTime = (seconds: number | null) => {
+        if (!seconds) return "0:00";
+        const totalSeconds = Math.floor(seconds);
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
         return `${mins}:${secs.toString().padStart(2, "0")}`;
     };
 
@@ -514,138 +533,102 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 </button>
 
                                 <div className="space-y-6">
-                                    {/* Call Info Header */}
-                                    <div className="flex items-center justify-between p-4 bg-bg rounded-2xl border border-border-subtle">
-                                        <div className="flex flex-col">
-                                            <span className="text-xs font-bold text-text-main">{selectedHistoryItem.agentName}</span>
-                                            <span className="text-[10px] text-text-muted mt-1">{selectedHistoryItem.phoneNumber}</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter ${selectedHistoryItem.status === 'completed' ? 'bg-success/10 text-success border border-success/20' : 'bg-danger/10 text-danger border border-danger/20'
-                                                }`}>
-                                                {selectedHistoryItem.status}
-                                            </span>
-                                            <div className="text-[10px] text-text-muted mt-1">{formatTime(selectedHistoryItem.duration)}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Summary Section */}
-                                    {selectedHistoryItem.summary && (
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
-                                                    <BotMessageSquare className="w-3.5 h-3.5 text-primary" />
-                                                </div>
-                                                <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">Simulated Summary</h3>
-                                            </div>
-                                            <div className="bg-bg/50 rounded-xl p-4 border border-border-subtle italic text-xs text-text-main leading-relaxed">
-                                                "{selectedHistoryItem.summary}"
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Transcript Section */}
-                                    <div className="space-y-4 pt-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded bg-accent/10 flex items-center justify-center">
-                                                <MessageSquare className="w-3.5 h-3.5 text-accent" />
-                                            </div>
-                                            <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">Call Transcript</h3>
-                                        </div>
-                                        <div className="space-y-5 px-1">
-                                            {selectedHistoryItem.messages?.map((msg, index) => {
-                                                const isBot = msg.role === 'bot' || msg.role === 'assistant';
-                                                return (
-                                                    <div key={index} className={`flex gap-3 ${isBot ? 'flex-row' : 'flex-row-reverse'}`}>
-                                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${isBot ? 'bg-primary/20 text-primary' : 'bg-accent/20 text-accent'}`}>
-                                                            {isBot ? <BotMessageSquare className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
-                                                        </div>
-                                                        <div className={`flex flex-col gap-1 max-w-[85%] ${isBot ? 'items-start' : 'items-end'}`}>
-                                                            <div className={`relative rounded-xl p-3 text-xs leading-relaxed ${isBot
-                                                                ? 'bg-bg border border-border-subtle rounded-tl-none'
-                                                                : 'bg-primary text-white rounded-tr-none shadow-sm'
-                                                                }`}>
-                                                                <span>{msg.message}</span>
-                                                            </div>
-                                                            <div className="text-[9px] text-text-muted px-1">
-                                                                {msg.secondsFromStart ? `${msg.secondsFromStart}s` : ''}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
+                                    <CallDetails call={selectedHistoryItem} />
                                 </div>
                             </div>
                         ) : (
                             <>
                                 <div className="flex items-center justify-between px-1">
                                     <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Recent Test Calls</h3>
-                                    <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{history.length} Total</span>
+                                    <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{history?.length} Total</span>
                                 </div>
 
-                                {history.length > 0 ? (
-                                    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-white">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead>
-                                                <tr className="bg-bg/50 border-b border-border-subtle">
-                                                    <th className="py-3 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Agent</th>
-                                                    <th className="py-3 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-center">Duration</th>
-                                                    <th className="py-3 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-border-subtle">
-                                                {history.map((item) => (
-                                                    <tr
-                                                        key={item.id}
-                                                        onClick={() => setSelectedHistoryItem(item)}
-                                                        className="group hover:bg-bg/60 transition-all cursor-pointer"
-                                                    >
-                                                        <td className="py-4 px-4">
-                                                            <div className="flex flex-col">
-                                                                <span className="text-xs font-bold text-text-main group-hover:text-primary transition-colors leading-tight">{item.agentName}</span>
-                                                                <span className="text-[10px] text-text-muted flex items-center gap-1 mt-0.5">
-                                                                    <Phone className="w-2.5 h-2.5" />
-                                                                    {item.phoneNumber}
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-4 px-4 text-center">
-                                                            <div className="flex flex-col items-center">
-                                                                <span className="text-xs font-medium text-text-main">{formatTime(item.duration)}</span>
-                                                                <span className="text-[9px] text-text-muted mt-0.5">{new Date(item.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-4 px-4 text-right">
-                                                            <div className="flex flex-col items-end">
-                                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter ${item.status === 'completed' ? 'bg-success/10 text-success border border-success/20' : 'bg-danger/10 text-danger border border-danger/20'
-                                                                    }`}>
-                                                                    {item.status}
-                                                                </span>
-                                                                <span className="text-[9px] text-text-muted mt-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    View Detail →
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-20 bg-bg/50 rounded-3xl border border-dashed border-border-subtle">
-                                        <HistoryIcon className="w-12 h-12 text-text-muted mx-auto mb-4 opacity-20" />
-                                        <h4 className="text-sm font-bold text-text-main">No history yet</h4>
-                                        <p className="text-xs text-text-muted max-w-[200px] mx-auto mt-1">Start your first test call to see your activity here.</p>
-                                        <button
-                                            onClick={() => setActiveTab("new")}
-                                            className="mt-6 text-xs text-primary font-bold hover:underline"
-                                        >
-                                            Make test call now
-                                        </button>
-                                    </div>
-                                )}
+                                <>
+                                    {
+                                        historyLoading ? (
+                                            <TableLoader rows={4} columns={3} />
+                                        ) : (
+
+                                            <>
+                                                {history && history.length > 0 ? (
+                                                    <>
+                                                        <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-white">
+                                                            <table className="w-full text-left border-collapse">
+                                                                <thead>
+                                                                    <tr className="bg-bg/50 border-b border-border-subtle">
+                                                                        <th className="py-3 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Agent</th>
+                                                                        <th className="py-3 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-center">Duration</th>
+                                                                        <th className="py-3 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Status</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-border-subtle">
+                                                                    {history?.map((item: any) => (
+                                                                        <tr
+                                                                            key={item.id}
+                                                                            onClick={() => setSelectedHistoryItem(item)}
+                                                                            className="group hover:bg-bg/60 transition-all cursor-pointer"
+                                                                        >
+                                                                            <td className="py-4 px-4">
+                                                                                <div className="flex flex-col">
+                                                                                    <span className="text-xs font-bold text-text-main group-hover:text-primary transition-colors leading-tight">{item.assistantName || 'Unknown Agent'}</span>
+                                                                                    <span className="text-[10px] text-text-muted flex items-center gap-1 mt-0.5">
+                                                                                        <Phone className="w-2.5 h-2.5" />
+                                                                                        {item.customerNumber}
+                                                                                    </span>
+                                                                                </div>
+                                                                            </td>
+                                                                            <td className="py-4 px-4 text-center">
+                                                                                <div className="flex flex-col items-center">
+                                                                                    <span className="text-xs font-medium text-text-main">{formatTime(item.durationSeconds)}</span>
+                                                                                    <span className="text-[9px] text-text-muted mt-0.5">{new Date(item.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                                                                </div>
+                                                                            </td>
+                                                                            <td className="py-4 px-4 text-right">
+                                                                                <div className="flex flex-col items-end">
+                                                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter ${item.status === 'completed' || item.status === 'customer-ended-call' || item.status === 'assistant-ended-call'
+                                                                                        ? 'bg-success/10 text-success border border-success/20'
+                                                                                        : 'bg-danger/10 text-danger border border-danger/20'
+                                                                                        }`}>
+                                                                                        {item.status?.replace(/-/g, ' ')}
+                                                                                    </span>
+                                                                                    <span className="text-[9px] text-text-muted mt-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                        View Detail →
+                                                                                    </span>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        {pagination && (
+                                                            <Pagination
+                                                                currentPage={pagination?.page}
+                                                                totalPages={pagination?.totalPages}
+                                                                pageSize={pagination?.pageSize}
+                                                                totalCount={pagination?.totalCount}
+                                                                onPageChange={handlePageChange}
+                                                            />
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <div className="text-center py-20 bg-bg/50 rounded-3xl border border-dashed border-border-subtle">
+                                                        <HistoryIcon className="w-12 h-12 text-text-muted mx-auto mb-4 opacity-20" />
+                                                        <h4 className="text-sm font-bold text-text-main">No history yet</h4>
+                                                        <p className="text-xs text-text-muted max-w-[200px] mx-auto mt-1">Start your first test call to see your activity here.</p>
+                                                        <button
+                                                            onClick={() => setActiveTab("new")}
+                                                            className="mt-6 text-xs text-primary font-bold hover:underline"
+                                                        >
+                                                            Make test call now
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </>
+
+                                        )
+                                    }
+                                </>
                             </>
                         )}
                     </div>

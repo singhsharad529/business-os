@@ -181,7 +181,7 @@ export function Login() {
             <p className="text-xs text-text-muted text-center">
               Demo credentials:<br />
               Super Admin: admin@businessos.com / admin123<br />
-              Company Admin: john@acmeprocure.com / password
+              Company Admin: user@example.com / string
             </p>
           </div>
         </div>
