@@ -25,7 +25,9 @@ import {
     TrendingUp,
     Timer,
     Edit,
-    BotMessageSquare
+    BotMessageSquare,
+    PlusIcon,
+    Flag
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
@@ -37,6 +39,11 @@ import { Loader2 } from "lucide-react";
 import { AxiosRequestConfig } from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Lead } from "@/types/voicebotTypes";
+import { LeadDetails } from "@/components/voicebot/LeadDetails";
+import AddLead from "@/components/voicebot/AddLead";
+import { EditCampaign } from "@/components/voicebot/EditCampaign";
+import LeadFromDb from "@/components/voicebot/LeadFromDB";
 
 interface Campaign {
     id: string;
@@ -48,14 +55,12 @@ interface Campaign {
     endDate?: string;
     progress: number;
     settings?: {
-        maxRetries: number;
         callsPerDay: number;
         followUps: number;
         followUpDelays: number[];
-        timeZone: string;
-        startTime: string;
-        endTime: string;
-        days: string[];
+        timeZone?: string;
+        startTime?: string;
+        endTime?: string;
     };
 }
 
@@ -65,18 +70,28 @@ const DUMMY_CAMPAIGNS: Campaign[] = [
         name: "Q4 Sales Outreach",
         status: "Active",
         leadsCount: 150,
-        agentName: "Outbound Sales",
+        agentName: "Reality - Rental Specialist",
         startDate: "2025-12-25T10:00:00Z",
-        progress: 65
+        progress: 65,
+        settings: {
+            callsPerDay: 1,
+            followUps: 2,
+            followUpDelays: [5, 8]
+        }
     },
     {
         id: "c2",
         name: "Healthcare Follow-up",
         status: "Scheduled",
         leadsCount: 85,
-        agentName: "Consultant-Healthcare",
+        agentName: "Reality - Consultant-Healthcare",
         startDate: "2026-01-05T09:00:00Z",
-        progress: 0
+        progress: 0,
+        settings: {
+            callsPerDay: 1,
+            followUps: 2,
+            followUpDelays: [5, 8]
+        }
     },
     {
         id: "c3",
@@ -85,7 +100,12 @@ const DUMMY_CAMPAIGNS: Campaign[] = [
         leadsCount: 200,
         agentName: "Property Listing Agent",
         startDate: "2025-12-20T14:30:00Z",
-        progress: 100
+        progress: 100,
+        settings: {
+            callsPerDay: 1,
+            followUps: 2,
+            followUpDelays: [5, 8]
+        }
     },
     {
         id: "c4",
@@ -94,7 +114,12 @@ const DUMMY_CAMPAIGNS: Campaign[] = [
         leadsCount: 50,
         agentName: "Account Support",
         startDate: "2025-12-23T11:00:00Z",
-        progress: 30
+        progress: 30,
+        settings: {
+            callsPerDay: 1,
+            followUps: 2,
+            followUpDelays: [5, 8]
+        }
     }
 ];
 
@@ -189,6 +214,11 @@ export default function Campaigns() {
 
     // Selected Campaign Detail State
     const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+    const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+    const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+    const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
+    const [isEditCampaignSheetOpen, setIsEditCampaignSheetOpen] = useState(false);
+
 
     // Call Detail View State
     const [selectedCallForDetail, setSelectedCallForDetail] = useState<any>(null);
@@ -427,14 +457,12 @@ export default function Campaigns() {
             endDate: endDate,
             progress: 0,
             settings: {
-                maxRetries: maxRetries,
                 callsPerDay: callsPerDay,
                 followUps: followUps,
                 followUpDelays: followUpDelays,
                 timeZone: timeZone,
                 startTime: startTime,
                 endTime: endTime,
-                days: selectedDays
             }
         };
         setCampaigns([newCampaign, ...campaigns]);
@@ -463,6 +491,24 @@ export default function Campaigns() {
         }
     }
 
+
+    const selectLead = () => {
+        setIsDetailSheetOpen(true);
+        setSelectedLead({
+            id: "e74b2bda-8b4f-49b9-80e0-50f10dba2993",
+            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
+            sourceFileId: "dc501c5f-699f-4cc7-9dea-a254dc0b2bae",
+            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
+            leadName: "Shellen",
+            leadPhoneNumber: "+1-555-0123",
+            leadEmail: "sarah.j@vertexsolutions.com",
+            lastCalledAt: "2025-12-26T14:30:00",
+            leadCompany: "Vertex Solutions",
+            leadExpertiseDomain: "SaaS Sales",
+            createdAt: "2025-12-27T14:39:47.256",
+            updatedAt: "2025-12-27T14:39:47.256"
+        });
+    }
     return (
         <>
             <div className="space-y-6">
@@ -542,13 +588,13 @@ export default function Campaigns() {
                                 <table className="w-full text-left">
                                     <thead>
                                         <tr className="border-b border-border-subtle bg-bg/30">
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Campaign Name</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Leads</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Agent</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Start Date</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Progress</th>
-                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Action</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Campaign Name</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Status</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Leads</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Agent</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Start Date</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Progress</th>
+                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider  text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border-subtle">
@@ -601,9 +647,9 @@ export default function Campaigns() {
                         </div>
                     </>
                 ) : (
-                    <div className="space-y-8 animate-in fade-in duration-500">
+                    <div className="space-y-6 animate-in fade-in duration-500">
                         {/* Selected Campaign Header */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setSelectedCampaign(null)}
@@ -622,17 +668,125 @@ export default function Campaigns() {
                                             {selectedCampaign.status}
                                         </span>
                                     </div>
-                                    <p className="text-text-muted mt-1 flex items-center gap-2">
+                                    {/* <p className="text-text-muted mt-1 flex items-center gap-2">
                                         <Calendar className="w-4 h-4" />
                                         Created on {new Date(selectedCampaign.startDate).toLocaleDateString()}
-                                    </p>
+                                    </p> */}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            {/* <div className="flex items-center gap-3">
                                 <button className="btn btn-primary flex items-center gap-2">
                                     <Edit className="w-4 h-4" />
                                     Edit Campaign
                                 </button>
+                            </div> */}
+                        </div>
+
+                        {/* Enhanced Campaign Progress & Timeline Card */}
+                        <div className="card rounded-2xl p-8 border border-border-subtle bg-gradient-to-br from-white via-white to-primary/5 shadow-soft hover:shadow-glow transition-all duration-500 overflow-hidden relative group">
+                            {/* Decorative background gradients */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-primary/10 transition-colors duration-700" />
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl -ml-24 -mb-24" />
+
+                            <div className="relative z-10">
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                                    {/* Left: Date Comparison & Timeline */}
+                                    <div className="flex-1 space-y-6">
+                                        <div className="flex items-center justify-between px-1">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
+                                                    <Calendar className="w-3 h-3 text-primary" />
+                                                    Start Date
+                                                </div>
+                                                <div className="text-sm font-bold text-text-main">{new Date(selectedCampaign.startDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                                            </div>
+
+                                            <div className="text-center group-hover:scale-110 transition-transform duration-500">
+                                                <div className="inline-flex items-center justify-center p-2 rounded-xl bg-primary-soft/30 border border-primary-soft/50 text-primary">
+                                                    <Zap className="w-5 h-5 animate-pulse" />
+                                                </div>
+                                                <div className="mt-1 text-[8px] font-black text-primary uppercase tracking-tighter">Running</div>
+                                            </div>
+
+                                            <div className="text-right space-y-1">
+                                                <div className="flex items-center gap-2 justify-end text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
+                                                    End Date (Est.)
+                                                    <Flag className="w-3 h-3 text-accent" />
+                                                </div>
+                                                <div className="text-sm font-bold text-text-main">
+                                                    {selectedCampaign.endDate
+                                                        ? new Date(selectedCampaign.endDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                        : new Date(new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Visualization of timeline */}
+                                        <div className="relative pt-4 pb-2">
+                                            <div className="h-2 w-full bg-bg-alt rounded-full overflow-hidden border border-border-subtle/50">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000 ease-out"
+                                                    style={{ width: `${Math.min(100, Math.max(0, ((new Date().getTime() - new Date(selectedCampaign.startDate).getTime()) / ((selectedCampaign.endDate ? new Date(selectedCampaign.endDate).getTime() : new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.startDate).getTime())) * 100))}%` }}
+                                                />
+                                            </div>
+
+                                            {/* Today Marker */}
+                                            <div
+                                                className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000 ease-out"
+                                                style={{ left: `${Math.min(95, Math.max(5, ((new Date().getTime() - new Date(selectedCampaign.startDate).getTime()) / ((selectedCampaign.endDate ? new Date(selectedCampaign.endDate).getTime() : new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.startDate).getTime())) * 100))}%` }}
+                                            >
+                                                <div className="text-[9px] font-black text-primary bg-primary-soft/50 px-2 py-0.5 rounded-full border border-primary-soft/50 mb-1 backdrop-blur-sm">TODAY</div>
+                                                <div className="w-0.5 h-6 bg-primary" />
+                                            </div>
+
+                                            <div className="flex justify-between mt-4">
+                                                <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
+                                                    <Clock className="w-3 h-3 text-primary/60" />
+                                                    {Math.max(0, Math.floor((new Date().getTime() - new Date(selectedCampaign.startDate).getTime()) / (1000 * 60 * 60 * 24)))} days elapsed
+                                                </div>
+                                                <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
+                                                    {Math.max(0, Math.ceil(((selectedCampaign.endDate ? new Date(selectedCampaign.endDate).getTime() : new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining
+                                                    <Timer className="w-3 h-3 text-accent/60" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Middle: Vertical Divider for LG screen */}
+                                    <div className="hidden lg:block w-px h-24 bg-gradient-to-b from-transparent via-border-subtle to-transparent mx-8 opacity-50" />
+
+                                    {/* Right: Progression Metrics */}
+                                    <div className="w-full lg:w-80 space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Campaign Progress</h4>
+                                            <span className="text-sm font-black text-success tabular-nums">{selectedCampaign.progress}%</span>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div className="w-full h-4 bg-bg-alt rounded-2xl overflow-hidden border border-border-subtle/30 p-1">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-success/60 to-success rounded-xl shadow-[0_0_10px_rgba(34,197,94,0.3)] transition-all duration-1000 ease-in-out"
+                                                    style={{ width: `${selectedCampaign.progress}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between px-1">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xl font-black text-text-main tabular-nums">
+                                                        {Math.round((selectedCampaign.progress / 100) * selectedCampaign.leadsCount)}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-success uppercase tracking-wider mt-0.5">Contacted</span>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-xl font-black text-text-muted tabular-nums">
+                                                        {selectedCampaign.leadsCount - Math.round((selectedCampaign.progress / 100) * selectedCampaign.leadsCount)}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider mt-0.5">Remaining</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -679,52 +833,33 @@ export default function Campaigns() {
                                             <span className="text-xs font-bold text-text-main">+91 98765 43210</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
-                                            <span className="text-xs text-text-muted">Retries</span>
-                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.maxRetries || 3}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Calls per Day</span>
                                             <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.callsPerDay || 50}</span>
                                         </div>
                                         <div className="flex flex-col py-2 border-b border-border-subtle/50">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-xs text-text-muted">Follow Ups</span>
-                                                <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.followUps || 0} Attempts</span>
-                                            </div>
-                                            {selectedCampaign.settings?.followUpDelays && selectedCampaign.settings.followUpDelays.length > 0 && (
-                                                <div className="mt-1 flex gap-1">
-                                                    {selectedCampaign.settings.followUpDelays.map((d, i) => (
-                                                        <span key={i} className="text-[9px] bg-bg-alt px-1.5 py-0.5 rounded border border-border-subtle text-text-muted">
-                                                            Day {d}
-                                                        </span>
-                                                    ))}
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs font-bold text-text-main text-right">2 Follow Ups</span>
+                                                    <span className="text-xs text-text-muted text-right">Days: 5, 8</span>
                                                 </div>
-                                            )}
+                                            </div>
+
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Time Window</span>
                                             <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.startTime || '09:00'} - {selectedCampaign.settings?.endTime || '18:00'}</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-2">
-                                            <span className="text-xs text-text-muted">Calling Days</span>
-                                            <span className="text-xs font-bold text-text-main">
-                                                {selectedCampaign.settings?.days?.length === 7 ? 'Everyday' : (selectedCampaign.settings?.days?.join(', ') || 'Mon, Tue, Wed, Thu, Fri')}
-                                            </span>
+                                        <div>
+                                            <button
+                                                onClick={() => setIsEditCampaignSheetOpen(true)}
+                                                className="btn btn-primary w-full rounded-full"
+                                            >
+                                                <Edit className="w-4 h-4" /> Edit Campaign
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="mt-8 pt-6 border-t border-border-subtle">
-                                        <div className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-4">Overall Progress</div>
-                                        <div className="w-full h-2 bg-bg-alt rounded-full overflow-hidden mb-2">
-                                            <div
-                                                className="h-full bg-primary"
-                                                style={{ width: `${selectedCampaign.progress}%` }}
-                                            />
-                                        </div>
-                                        <div className="flex justify-between text-[10px] font-bold">
-                                            <span className="text-primary">{selectedCampaign.progress}% Completed</span>
-                                            <span className="text-text-muted">{selectedCampaign.leadsCount} Total</span>
-                                        </div>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -738,6 +873,23 @@ export default function Campaigns() {
                                     <TabsTrigger value="calls" className="px-6">Calls History</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="leads">
+                                    <div className="flex flex-col md:flex-row md:items-center gap-4 my-1 px-2">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search leads..."
+                                                className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                            // value={searchTerm}
+                                            // onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="">
+                                            <button className="btn btn-primary rounded-full"
+                                                onClick={() => setIsAddLeadSheetOpen(true)}
+                                            ><PlusIcon className="w-4 h-4" /> Add Lead</button>
+                                        </div>
+                                    </div>
                                     <div className="overflow-x-auto">
                                         <table className="w-full">
                                             <thead>
@@ -748,7 +900,9 @@ export default function Campaigns() {
                                                     {visibleColumns.company && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>}
                                                     {visibleColumns.phone && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone</th>}
                                                     {visibleColumns.expertise && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Expertise</th>}
-                                                    {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>}
+                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Call Time</th>}
+
+                                                    {/* {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>} */}
                                                     <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
 
                                                 </tr>
@@ -768,15 +922,19 @@ export default function Campaigns() {
                                                                 </span>
                                                             </td>
                                                         )}
-                                                        {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
-                                                            {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
+                                                        {<td className="py-4 px-3 text-sm text-text-muted">
+                                                            {new Date().toLocaleString()}
                                                         </td>}
+                                                        {/* {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
+                                                            {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
+                                                        </td>} */}
                                                         <td className="py-4 px-3 text-sm text-text-muted">
                                                             <button
                                                                 // onClick={() => {
                                                                 //     setSelectedLead(user);
                                                                 //     setIsDetailSheetOpen(true);
                                                                 // }}
+                                                                onClick={selectLead}
                                                                 className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
                                                             >
                                                                 <Eye className="w-4 h-4" />
@@ -789,10 +947,9 @@ export default function Campaigns() {
                                     </div>
                                 </TabsContent>
                                 <TabsContent value="calls">
-                                    <div className="lg:col-span-2 space-y-4">
-                                        <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
-                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                                                <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">Call History</h3>
+                                    <div className="overflow-x-auto">
+                                        <div className="overflow-hidden">
+                                            <div className="flex flex-col md:flex-row md:items-center justify-end gap-4 my-1 px-2">
                                                 <div className="relative w-full md:w-80">
                                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                                                     <input
@@ -808,11 +965,11 @@ export default function Campaigns() {
                                                 <table className="w-full text-left">
                                                     <thead>
                                                         <tr className="border-b border-border-subtle bg-bg/30">
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Phone Number</th>
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Duration</th>
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider">Date</th>
-                                                            <th className="py-4 px-4 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Action</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone Number</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Duration</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Date</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-border-subtle">
@@ -829,9 +986,9 @@ export default function Campaigns() {
                                                                 </td>
                                                                 <td className="py-4 px-4 text-xs text-text-muted">{call.duration}</td>
                                                                 <td className="py-4 px-4 text-xs text-text-muted">{call.date}</td>
-                                                                <td className="py-4 px-4 text-right">
+                                                                <td className="py-4 px-4">
                                                                     <button
-                                                                        className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary active:scale-90 flex items-center gap-2 justify-end ml-auto group/btn"
+                                                                        className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary active:scale-90 flex items-center gap-2  group/btn"
                                                                         onClick={() => handleViewCallDetails(call)}
                                                                         disabled={!!callDetailLoadingId}
                                                                     >
@@ -1096,7 +1253,9 @@ export default function Campaigns() {
                                                 value={endDate}
                                                 onChange={(e) => setEndDate(e.target.value)}
                                                 className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none shadow-sm"
+                                                disabled
                                             />
+                                            <span className="text-[10px] text-text-subtle">End date will be updated automatically</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1107,8 +1266,8 @@ export default function Campaigns() {
                                         Advanced Controls
                                     </h4>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {/* <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Max Retries</label>
                                             <select
                                                 value={maxRetries}
@@ -1120,7 +1279,7 @@ export default function Campaigns() {
                                                 <option value={5}>5 Retries</option>
                                                 <option value={10}>10 Retries</option>
                                             </select>
-                                        </div>
+                                        </div> */}
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Calls/Day</label>
                                             <select
@@ -1166,7 +1325,6 @@ export default function Campaigns() {
                                                 <option value={1}>1 Follow Up</option>
                                                 <option value={2}>2 Follow Ups</option>
                                                 <option value={3}>3 Follow Ups</option>
-                                                <option value={5}>5 Follow Ups</option>
                                             </select>
                                         </div>
 
@@ -1266,11 +1424,11 @@ export default function Campaigns() {
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-2 mt-2">
-                                            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10">
+                                            <div className="rounded-xl p-3 border border-white/10">
                                                 <span className="text-[10px] opacity-70 uppercase font-black">Target</span>
                                                 <div className="text-xl font-black mt-0.5">{selectedLeads.length} Leads</div>
                                             </div>
-                                            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 overflow-hidden">
+                                            <div className="rounded-xl p-3 border border-white/10 overflow-hidden">
                                                 <span className="text-[10px] opacity-70 uppercase font-black">AI Agent</span>
                                                 <div className="text-sm font-bold mt-1 truncate">
                                                     {selectedTemplate?.name || "Not Set"}
@@ -1393,6 +1551,55 @@ export default function Campaigns() {
                 size="md"
             >
                 {selectedCallForDetail && <CallDetails call={selectedCallForDetail} />}
+            </SideSheet>
+
+            {/* Lead Details SideSheet */}
+            <SideSheet
+                isOpen={isDetailSheetOpen}
+                onClose={() => setIsDetailSheetOpen(false)}
+                title="Lead Profile Details"
+                size="md"
+            >
+                {selectedLead && (
+                    <LeadDetails
+                        leadId={selectedLead.id}
+                        onClose={() => setIsDetailSheetOpen(false)}
+                        onUpdate={() => { }}
+                        onDelete={() => { }}
+                    />
+                )}
+            </SideSheet>
+
+            {/* Add Lead SideSheet */}
+            <SideSheet
+                isOpen={isAddLeadSheetOpen}
+                onClose={() => setIsAddLeadSheetOpen(false)}
+                title="Add New Lead"
+                size="md"
+            >
+                <LeadFromDb
+                    onClose={() => setIsAddLeadSheetOpen(false)}
+                    onSuccess={() => { }}
+                />
+            </SideSheet>
+
+            {/* Edit Campaign SideSheet */}
+            <SideSheet
+                isOpen={isEditCampaignSheetOpen}
+                onClose={() => setIsEditCampaignSheetOpen(false)}
+                title="Edit Campaign Settings"
+                size="md"
+            >
+                {selectedCampaign && (
+                    <EditCampaign
+                        campaign={selectedCampaign}
+                        onClose={() => setIsEditCampaignSheetOpen(false)}
+                        onUpdate={(updated) => {
+                            setCampaigns(prev => prev.map(c => c.id === updated.id ? updated : c));
+                            setSelectedCampaign(updated);
+                        }}
+                    />
+                )}
             </SideSheet>
         </>
     );
