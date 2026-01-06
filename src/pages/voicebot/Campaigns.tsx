@@ -32,7 +32,7 @@ import {
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
 import { toast } from "@/hooks/useToast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import voiceBotService from "@/api/voicebotService";
 import { CallDetails } from "@/components/voicebot/CallDetails";
 import { Loader2 } from "lucide-react";
@@ -142,8 +142,8 @@ export default function Campaigns() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [maxRetries, setMaxRetries] = useState(3);
-    const [callsPerDay, setCallsPerDay] = useState(5);
-    const [followUps, setFollowUps] = useState(1);
+    const [callsPerDay, setCallsPerDay] = useState("1");
+    const [followUps, setFollowUps] = useState("1");
     const [followUpDelays, setFollowUpDelays] = useState<number[]>([1]);
     const [timeZone, setTimeZone] = useState("UTC");
     const [startTime, setStartTime] = useState("09:00");
@@ -277,7 +277,7 @@ export default function Campaigns() {
             setCampaignsLoading(true);
             const response = await voiceBotService.getCampaigns(config);
             if (response) {
-                setCampaigns(response);
+                setCampaigns(response.campaigns);
             }
         } catch (error) {
             console.error("Failed to fetch campaigns:", error);
@@ -424,8 +424,8 @@ export default function Campaigns() {
         setStartDate("");
         setEndDate("");
         setMaxRetries(3);
-        setCallsPerDay(5);
-        setFollowUps(1);
+        setCallsPerDay("1");
+        setFollowUps("1");
         setFollowUpDelays([1]);
         setTimeZone("UTC");
         setStartTime("09:00");
@@ -1186,15 +1186,11 @@ export default function Campaigns() {
                                     <input
                                         type="text"
                                         placeholder="e.g. Q4 Sales Outreach"
-                                        className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none placeholder:text-text-muted/30 shadow-sm"
+                                        className="w-full px-4 py-3 border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none placeholder:text-text-muted/30 shadow-sm"
                                         value={campaignName}
                                         onChange={(e) => setCampaignName(e.target.value)}
                                     />
                                 </div>
-
-
-
-
                                 <div className="space-y-4">
                                     <div className="space-y-4 animate-in fade-in duration-300">
                                         {templateStep === "select-template" && (
@@ -1216,9 +1212,9 @@ export default function Campaigns() {
                                                             key={template.id}
                                                             onClick={() => {
                                                                 setSelectedTemplate(template);
-                                                                setTemplateStep("link-number");
+                                                                // setTemplateStep("link-number");
                                                             }}
-                                                            className="group flex items-center gap-4 p-4 rounded-xl border border-border-subtle hover:border-primary hover:bg-primary/5 transition-all text-left"
+                                                            className={`group flex items-center gap-4 p-4 rounded-xl border border-border-subtle ${selectedTemplate?.id === template.id ? "border-primary" : ""} hover:border-primary hover:bg-primary/5 transition-all text-left`}
                                                         >
 
                                                             <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
@@ -1238,35 +1234,7 @@ export default function Campaigns() {
                                         )}
 
 
-                                        {
-                                            templateStep === "link-number" && (
-                                                <div className="space-y-4">
-                                                    <button
-                                                        onClick={() => setTemplateStep("select-template")}
-                                                        className="flex items-center gap-2 text-[10px] font-bold text-text-muted hover:text-primary transition-colors mb-2 uppercase tracking-wider"
-                                                    >
-                                                        <ArrowLeft className="w-3 h-3" />
-                                                        Back to Select Template
-                                                    </button>
-                                                    <div className="grid grid-cols-1 gap-3">
-                                                        <Select
-                                                            value={linkedNumber}
-                                                            onValueChange={setLinkedNumber}
-                                                        >
-                                                            <SelectTrigger className="w-full">
-                                                                <SelectValue placeholder="Choose a number to link" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {linkNumbers.map((number) => (
-                                                                    <SelectItem key={number} value={number}>
-                                                                        {number}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
-                                            )}
+
                                     </div>
 
                                 </div>
@@ -1275,6 +1243,31 @@ export default function Campaigns() {
 
                         {currentStep === 3 && (
                             <div className="space-y-8 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
+
+                                <div className="space-y-4">
+
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
+                                            <Phone className="w-4 h-4 text-primary" />
+                                            Select Number
+                                        </h4>
+                                        <Select
+                                            value={linkedNumber}
+                                            onValueChange={setLinkedNumber}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Choose a number to link" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {linkNumbers.map((number) => (
+                                                    <SelectItem key={number} value={number}>
+                                                        {number}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                                 <div className="space-y-4">
                                     <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-primary" />
@@ -1326,19 +1319,28 @@ export default function Campaigns() {
                                         </div> */}
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Calls/Day</label>
-                                            <select
+                                            <Select
                                                 value={callsPerDay}
-                                                onChange={(e) => setCallsPerDay(parseInt(e.target.value))}
-                                                className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                                onValueChange={(e) => setCallsPerDay(e)}
                                             >
-                                                <option value={1} >1</option>
-                                                <option value={2} >2</option>
-                                                <option value={5} >5</option>
-                                                <option value={10} >10</option>
-                                                <option value={20} >20</option>
-                                                <option value={50} >50</option>
-                                                <option value={100} >100</option>
-                                            </select>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Choose calls per day" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="1">
+                                                        1
+                                                    </SelectItem>
+                                                    <SelectItem value="2">
+                                                        2
+                                                    </SelectItem>
+                                                    <SelectItem value="5">
+                                                        5
+                                                    </SelectItem>
+                                                    <SelectItem value="10">
+                                                        10
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
 
 
@@ -1347,11 +1349,13 @@ export default function Campaigns() {
                                     <div className="space-y-4">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow Ups</label>
-                                            <select
+                                            <Select
                                                 value={followUps}
-                                                onChange={(e) => {
-                                                    const val = parseInt(e.target.value);
-                                                    setFollowUps(val);
+                                                onValueChange={(valString) => {
+                                                    const val = parseInt(valString);
+                                                    console.log('val', val);
+
+                                                    setFollowUps(valString);
                                                     // Adjust delays array to match count
                                                     setFollowUpDelays(prev => {
                                                         const newDelays = [...prev];
@@ -1363,21 +1367,33 @@ export default function Campaigns() {
                                                         return newDelays;
                                                     });
                                                 }}
-                                                className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                                             >
-                                                <option value={0}>No Follow Up</option>
-                                                <option value={1}>1 Follow Up</option>
-                                                <option value={2}>2 Follow Ups</option>
-                                                <option value={3}>3 Follow Ups</option>
-                                            </select>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Choose follow ups" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="0">
+                                                        No Follow Ups
+                                                    </SelectItem>
+                                                    <SelectItem value="1">
+                                                        1 Follow Up
+                                                    </SelectItem>
+                                                    <SelectItem value="2">
+                                                        2 Follow Ups
+                                                    </SelectItem>
+                                                    <SelectItem value="3">
+                                                        3 Follow Ups
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
 
 
                                     </div>
 
                                     <div>
-                                        {followUps > 0 && (
-                                            <div className="w-[full] space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        {parseInt(followUps) > 0 && (
+                                            <div className="w-full space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                                                 <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow-up Schedule (Days)</label>
 
                                                 {followUpDelays.map((delay, index) => (
@@ -1410,33 +1426,38 @@ export default function Campaigns() {
 
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Time Zone</label>
-                                        <select
+                                        <Select
                                             value={timeZone}
-                                            onChange={(e) => setTimeZone(e.target.value)}
-                                            className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                            onValueChange={setTimeZone}
                                         >
-                                            <option value="UTC">UTC (GMT+00:00)</option>
-                                            {timeZones && Object.entries(timeZones).map(([region, zones]) => (
-                                                <optgroup key={region} label={region}>
-                                                    {zones.map((zone) => (
-                                                        <option key={zone.value} value={zone.value}>
-                                                            {zone.label} ({zone.offset})
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            ))}
-                                            {!timeZones && (
-                                                <>
-                                                    <option value="America/New_York">Eastern Time (GMT-05:00)</option>
-                                                    <option value="America/Chicago">Central Time (GMT-06:00)</option>
-                                                    <option value="America/Denver">Mountain Time (GMT-07:00)</option>
-                                                    <option value="America/Los_Angeles">Pacific Time (GMT-08:00)</option>
-                                                    <option value="Asia/Kolkata">India Standard Time (GMT+05:30)</option>
-                                                    <option value="Europe/London">London (GMT+00:00)</option>
-                                                    <option value="Europe/Paris">Paris (GMT+01:00)</option>
-                                                </>
-                                            )}
-                                        </select>
+                                            <SelectTrigger className="w-full border border-border-subtle px-4 py-3 h-auto text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm text-left">
+                                                <SelectValue placeholder="Select Time Zone" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="UTC">UTC (GMT+00:00)</SelectItem>
+                                                {timeZones && Object.entries(timeZones).map(([region, zones]) => (
+                                                    <SelectGroup key={region}>
+                                                        <SelectLabel className="px-2 py-1.5 text-[10px] font-bold text-text-muted uppercase tracking-wider">{region}</SelectLabel>
+                                                        {zones.map((zone) => (
+                                                            <SelectItem key={zone.value} value={zone.value}>
+                                                                {zone.label} ({zone.offset})
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectGroup>
+                                                ))}
+                                                {!timeZones && (
+                                                    <>
+                                                        <SelectItem value="America/New_York">Eastern Time (GMT-05:00)</SelectItem>
+                                                        <SelectItem value="America/Chicago">Central Time (GMT-06:00)</SelectItem>
+                                                        <SelectItem value="America/Denver">Mountain Time (GMT-07:00)</SelectItem>
+                                                        <SelectItem value="America/Los_Angeles">Pacific Time (GMT-08:00)</SelectItem>
+                                                        <SelectItem value="Asia/Kolkata">India Standard Time (GMT+05:30)</SelectItem>
+                                                        <SelectItem value="Europe/London">London (GMT+00:00)</SelectItem>
+                                                        <SelectItem value="Europe/Paris">Paris (GMT+01:00)</SelectItem>
+                                                    </>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
@@ -1580,11 +1601,24 @@ export default function Campaigns() {
                             </button>
                         )}
                         <button
-                            disabled={
-                                (currentStep === 1 && selectedLeads.length === 0) ||
-                                (currentStep === 2 && (!campaignName || !selectedTemplate))
-                            }
+
                             onClick={() => {
+                                if (currentStep === 1) {
+                                    if (selectedLeads.length === 0) {
+                                        toast.warning("Please select at least one lead.");
+                                        return;
+                                    }
+                                }
+                                if (currentStep === 2) {
+                                    if (!campaignName) {
+                                        toast.warning("Please enter campaign name.");
+                                        return;
+                                    }
+                                    if (!selectedTemplate) {
+                                        toast.warning("Please select template.");
+                                        return;
+                                    }
+                                }
                                 if (currentStep === 4) {
                                     handleLaunch();
                                 } else {
