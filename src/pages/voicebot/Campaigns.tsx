@@ -1140,7 +1140,7 @@ export default function Campaigns() {
                                         {leadsLoading ? (
                                             <div className="space-y-3">
                                                 {[1, 2, 3, 4, 5].map((i) => (
-                                                    <div key={i} className="h-16 bg-bg animate-pulse rounded-2xl border border-border-subtle" />
+                                                    <Skeleton key={i} className="h-16" />
                                                 ))}
                                             </div>
                                         ) : filteredLeads.length > 0 ? filteredLeads.map((user: any) => (
