@@ -32,7 +32,7 @@ import {
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
 import { toast } from "@/hooks/useToast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import voiceBotService from "@/api/voicebotService";
 import { CallDetails } from "@/components/voicebot/CallDetails";
 import { Loader2 } from "lucide-react";
@@ -44,84 +44,26 @@ import { LeadDetails } from "@/components/voicebot/LeadDetails";
 import AddLead from "@/components/voicebot/AddLead";
 import { EditCampaign } from "@/components/voicebot/EditCampaign";
 import LeadFromDb from "@/components/voicebot/LeadFromDB";
+import TableLoader from "@/components/common/TableLoader";
 
 interface Campaign {
-    id: string;
+    campaign_id: string;
     name: string;
-    status: "Active" | "Scheduled" | "Completed" | "Paused";
-    leadsCount: number;
-    agentName: string;
-    startDate: string;
-    endDate?: string;
-    progress: number;
-    settings?: {
-        callsPerDay: number;
-        followUps: number;
-        followUpDelays: number[];
-        timeZone?: string;
-        startTime?: string;
-        endTime?: string;
-    };
+    assistant_id: string;
+    agent_name: string;
+    status: 'active' | 'completed' | 'paused' | 'canceled';
+    total_leads: number;
+    total_scheduled_calls: number;
+    completed_calls: number;
+    failed_calls: number;
+    pending_calls: number;
+    progress_percentage: number;
+    start_date: string;
+    estimated_completion_date: string;
+    created_at: string;
 }
 
-const DUMMY_CAMPAIGNS: Campaign[] = [
-    {
-        id: "c1",
-        name: "Q4 Sales Outreach",
-        status: "Active",
-        leadsCount: 150,
-        agentName: "Reality - Rental Specialist",
-        startDate: "2025-12-25T10:00:00Z",
-        progress: 65,
-        settings: {
-            callsPerDay: 1,
-            followUps: 2,
-            followUpDelays: [5, 8]
-        }
-    },
-    {
-        id: "c2",
-        name: "Healthcare Follow-up",
-        status: "Scheduled",
-        leadsCount: 85,
-        agentName: "Reality - Consultant-Healthcare",
-        startDate: "2026-01-05T09:00:00Z",
-        progress: 0,
-        settings: {
-            callsPerDay: 1,
-            followUps: 2,
-            followUpDelays: [5, 8]
-        }
-    },
-    {
-        id: "c3",
-        name: "Property Listing Alert",
-        status: "Completed",
-        leadsCount: 200,
-        agentName: "Property Listing Agent",
-        startDate: "2025-12-20T14:30:00Z",
-        progress: 100,
-        settings: {
-            callsPerDay: 1,
-            followUps: 2,
-            followUpDelays: [5, 8]
-        }
-    },
-    {
-        id: "c4",
-        name: "Annual Review Check-in",
-        status: "Paused",
-        leadsCount: 50,
-        agentName: "Account Support",
-        startDate: "2025-12-23T11:00:00Z",
-        progress: 30,
-        settings: {
-            callsPerDay: 1,
-            followUps: 2,
-            followUpDelays: [5, 8]
-        }
-    }
-];
+
 
 interface TemplateConfig {
     id: string;
@@ -176,14 +118,16 @@ export default function Campaigns() {
     const [isCampaignSheetOpen, setIsCampaignSheetOpen] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
 
-    // API Agents & Leads State
-    const [apiAgents, setApiAgents] = useState<any[]>([]);
+
     const [apiLeads, setApiLeads] = useState<any[]>([]);
     const [agentsLoading, setAgentsLoading] = useState(false);
+    const [campaignsLoading, setCampaignsLoading] = useState(false);
+
     const [leadsLoading, setLeadsLoading] = useState(false);
 
     // Campaign List State
-    const [campaigns, setCampaigns] = useState<Campaign[]>(DUMMY_CAMPAIGNS);
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [agents, setAgents] = useState<any[]>([]);
     const [agentTemplates, setAgentTemplates] = useState<TemplateRole[]>(AGENT_TEMPLATES);
     const [linkNumbers, setLinkNumbers] = useState<string[]>(["+919876543210", "+919876543211", "+919876543212", "+919876543213", "+919876543214"]);
     const [linkNumbersLoading, setLinkNumbersLoading] = useState(false);
@@ -198,8 +142,8 @@ export default function Campaigns() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [maxRetries, setMaxRetries] = useState(3);
-    const [callsPerDay, setCallsPerDay] = useState(5);
-    const [followUps, setFollowUps] = useState(1);
+    const [callsPerDay, setCallsPerDay] = useState("1");
+    const [followUps, setFollowUps] = useState("1");
     const [followUpDelays, setFollowUpDelays] = useState<number[]>([1]);
     const [timeZone, setTimeZone] = useState("UTC");
     const [startTime, setStartTime] = useState("09:00");
@@ -211,6 +155,7 @@ export default function Campaigns() {
     const [templateStep, setTemplateStep] = useState<"select-template" | "link-number">("select-template");
     const [selectedTemplateRole, setSelectedTemplateRole] = useState<TemplateRole | null>(null);
     const [selectedTemplateConfig, setSelectedTemplateConfig] = useState<TemplateConfig | null>(null);
+    const [campaignStatusFilter, setCampaignStatusFilter] = useState("all");
 
     // Selected Campaign Detail State
     const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
@@ -228,6 +173,7 @@ export default function Campaigns() {
     const [templates, setTemplates] = useState<any | null>(null);
     const [templatesLoading, setTemplatesLoading] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
+    const [timeZones, setTimeZones] = useState<Record<string, { value: string; label: string; offset: string }[]> | null>(null);
 
     // Column Visibility State
     const [visibleColumns, setVisibleColumns] = useState({
@@ -319,20 +265,29 @@ export default function Campaigns() {
 
     ]
 
-    const fetchAgents = async () => {
-        setAgentsLoading(true);
+
+    const fetchCampaigns = async (status: string) => {
+
+        const config: AxiosRequestConfig = {};
+        if (status) {
+            config.params = { status };
+        }
+
         try {
-            const response = await voiceBotService.getAllAgents({});
-            if (response && response.agents) {
-                setApiAgents(response.agents);
+            setCampaignsLoading(true);
+            const response = await voiceBotService.getCampaigns(config);
+            if (response) {
+                setCampaigns(response.campaigns);
             }
         } catch (error) {
-            console.error("Failed to fetch agents:", error);
-            toast.danger("Failed to load agents. Please try again.");
-        } finally {
-            setAgentsLoading(false);
+            console.error("Failed to fetch campaigns:", error);
+            toast.danger("Failed to load campaigns. Please try again.");
         }
-    };
+        finally {
+            setCampaignsLoading(false);
+        }
+    }
+
 
     const fetchLeads = async () => {
         setLeadsLoading(true);
@@ -350,9 +305,44 @@ export default function Campaigns() {
         }
     };
 
+    const fetchTimeZone = async () => {
+        try {
+            const response = await voiceBotService.getTimeZone({});
+            if (response && response.regions) {
+                setTimeZones(response.regions);
+            }
+        } catch (error) {
+            console.error("Failed to fetch timezones:", error);
+            toast.danger("Failed to load timezones. Please try again.");
+        }
+    }
+
+    const getAllAgents = async () => {
+        try {
+            setAgentsLoading(true);
+            const response = await voiceBotService.getAllAgents({});
+            console.log(response);
+            setAgents(response);
+
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to get agents");
+        } finally {
+            setAgentsLoading(false);
+        }
+    }
+
     useEffect(() => {
-        fetchAgents();
-        fetchLeads();
+        if (isCampaignSheetOpen) {
+            fetchTimeZone();
+            fetchLeads();
+            // getAllAgents();
+        }
+
+    }, [isCampaignSheetOpen]);
+
+    useEffect(() => {
+        fetchCampaigns("");
     }, []);
 
     const handleViewCallDetails = async (call: any) => {
@@ -434,8 +424,8 @@ export default function Campaigns() {
         setStartDate("");
         setEndDate("");
         setMaxRetries(3);
-        setCallsPerDay(5);
-        setFollowUps(1);
+        setCallsPerDay("1");
+        setFollowUps("1");
         setFollowUpDelays([1]);
         setTimeZone("UTC");
         setStartTime("09:00");
@@ -444,15 +434,23 @@ export default function Campaigns() {
         setLeadSearchText("");
     };
 
+
+
     const handleLaunch = () => {
+
+        const campaignRequestBody = {
+            leads_ids: selectedLeads,
+
+        }
+
+        console.log('campaignRequestBody', campaignRequestBody, selectedTemplate, timeZone, followUps, followUpDelays, callsPerDay);
+
         const newCampaign: Campaign = {
             id: `c${campaigns.length + 1}`,
             name: campaignName,
             status: "Scheduled",
             leadsCount: selectedLeads.length,
-            agentName: agentSelectionTab === "existing"
-                ? (apiAgents.find((a: any) => a.vapiId === selectedAgent)?.name || "Unknown Agent")
-                : (selectedTemplateConfig?.label || "Unknown Agent"),
+            agentName: "",
             startDate: startDate || new Date().toISOString(),
             endDate: endDate,
             progress: 0,
@@ -509,6 +507,8 @@ export default function Campaigns() {
             updatedAt: "2025-12-27T14:39:47.256"
         });
     }
+
+
     return (
         <>
             <div className="space-y-6">
@@ -572,77 +572,124 @@ export default function Campaigns() {
                         <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                                 <h3 className="text-sm font-bold text-text-main uppercase tracking-widest">Campaign List</h3>
-                                <div className="relative w-full md:w-80">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search campaigns..."
-                                        className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
+                                <div className="flex items-center gap-2">
+                                    <div className="relative w-full md:w-80" >
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search campaigns..."
+                                            className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <select
+                                            value={campaignStatusFilter}
+                                            onChange={(e) => {
+                                                setCampaignStatusFilter(e.target.value);
+                                                fetchCampaigns(e.target.value);
+                                            }}
+                                            className="input min-w-[120px]"
+                                        >
+                                            <option value="">All</option>
+                                            <option value="active">Active</option>
+                                            <option value="paused">Paused</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="cancelled">Cancelled</option>
+
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="border-b border-border-subtle bg-bg/30">
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Campaign Name</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Status</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Leads</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Agent</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Start Date</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Progress</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider  text-right">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border-subtle">
-                                        {campaigns.map((camp) => (
-                                            <tr
-                                                key={camp.id}
-                                                className="group hover:bg-bg/40 transition-colors"
-                                            >
-                                                <td className="py-4 px-4">
-                                                    <div className="text-sm font-bold text-text-main">{camp.name}</div>
-                                                    <div className="text-[10px] text-text-muted mt-0.5 whitespace-nowrap">ID: {camp.id}</div>
-                                                </td>
-                                                <td className="py-4 px-4">
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${camp.status === 'Active' ? 'bg-success/10 text-success border border-success/20' :
-                                                        camp.status === 'Scheduled' ? 'bg-primary/10 text-primary border border-primary/20' :
-                                                            camp.status === 'Paused' ? 'bg-warning/10 text-warning border border-warning/20' :
-                                                                'bg-bg-alt text-text-muted border border-border-subtle'
-                                                        }`}>
-                                                        {camp.status}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-4 text-xs font-medium text-text-main">{camp.leadsCount}</td>
-                                                <td className="py-4 px-4 text-xs text-text-muted">{camp.agentName}</td>
-                                                <td className="py-4 px-4 text-xs text-text-muted">{new Date(camp.startDate).toLocaleDateString()}</td>
-                                                <td className="py-4 px-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex-1 min-w-[60px] h-1.5 bg-border-subtle rounded-full overflow-hidden">
-                                                            <div
-                                                                className={`h-full transition-all duration-500 ${camp.status === 'Active' ? 'bg-primary' : 'bg-text-muted/30'}`}
-                                                                style={{ width: `${camp.progress}%` }}
-                                                            />
+                                {
+                                    campaignsLoading ? (
+                                        <TableLoader rows={2} columns={8} />
+                                    ) :
+                                        (
+                                            <>
+                                                {
+                                                    campaigns.length > 0 ? (
+                                                        <table className="w-full text-left">
+                                                            <thead>
+                                                                <tr className="border-b border-border-subtle bg-bg/30">
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Campaign Name</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Status</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Leads</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Agent</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Start Date</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Progress</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Scheduled Calls</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Completed Calls</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Failed Calls</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Pending Calls</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider  text-right">Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-border-subtle">
+                                                                {campaigns.map((camp) => (
+                                                                    <tr
+                                                                        key={camp.campaign_id}
+                                                                        className="group hover:bg-bg/40 transition-colors"
+                                                                    >
+                                                                        <td className="py-4 px-4">
+                                                                            <div className="text-sm font-bold text-text-main">{camp.name}</div>
+                                                                            {/* <div className="text-[10px] text-text-muted mt-0.5 whitespace-nowrap">ID: {camp.id}</div> */}
+                                                                        </td>
+                                                                        <td className="py-4 px-4">
+                                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${camp.status === 'active' ? 'bg-success/10 text-success border border-success/20' :
+                                                                                camp.status === 'completed' ? 'bg-primary/10 text-primary border border-primary/20' :
+                                                                                    camp.status === 'canceled' ? 'bg-warning/10 text-warning border border-warning/20' :
+                                                                                        'bg-bg-alt text-text-muted border border-border-subtle'
+                                                                                }`}>
+                                                                                {camp.status}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="py-4 px-4 text-xs font-medium text-text-main">{camp.total_leads}</td>
+                                                                        <td className="py-4 px-4 text-xs text-text-muted">{camp.agent_name}</td>
+                                                                        <td className="py-4 px-4 text-xs text-text-muted">{new Date(camp.start_date).toLocaleDateString()}</td>
+                                                                        <td className="py-4 px-4">
+                                                                            <div className="flex items-center gap-3">
+                                                                                <div className="flex-1 min-w-[60px] h-1.5 bg-border-subtle rounded-full overflow-hidden">
+                                                                                    <div
+                                                                                        className={`h-full transition-all duration-500 ${camp.status === 'active' ? 'bg-primary' : 'bg-text-muted/30'}`}
+                                                                                        style={{ width: `${camp.progress_percentage}%` }}
+                                                                                    />
+                                                                                </div>
+                                                                                <span className="text-[10px] font-bold text-text-main">{camp.progress_percentage}%</span>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="py-4 px-4 text-xs text-text-muted">{camp.total_scheduled_calls}</td>
+                                                                        <td className="py-4 px-4 text-xs text-text-muted">{camp.completed_calls}</td>
+
+                                                                        <td className="py-4 px-4 text-xs text-text-muted">{camp.failed_calls}</td>
+                                                                        <td className="py-4 px-4 text-xs text-text-muted">{camp.pending_calls}</td>
+
+
+                                                                        <td className="py-4 px-4 text-right">
+                                                                            <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+
+                                                                                onClick={() => setSelectedCampaign(camp)}
+
+                                                                            >
+                                                                                <Eye className="w-4 h-4" />
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    ) : (
+                                                        <div className="text-center py-10 text-text-muted">
+                                                            No campaigns found.
                                                         </div>
-                                                        <span className="text-[10px] font-bold text-text-main">{camp.progress}%</span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-4 px-4 text-right">
-                                                    <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
-
-                                                        onClick={() => setSelectedCampaign(camp)}
-
-                                                    >
-                                                        <Eye className="w-4 h-4" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                    )
+                                                }
+                                            </>
+                                        )
+                                }
                             </div>
                         </div>
                     </>
@@ -660,9 +707,9 @@ export default function Campaigns() {
                                 <div>
                                     <div className="flex items-center gap-3">
                                         <h1 className="text-3xl font-bold text-text-main">{selectedCampaign.name}</h1>
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${selectedCampaign.status === 'Active' ? 'bg-success/10 text-success border border-success/20' :
-                                            selectedCampaign.status === 'Scheduled' ? 'bg-primary/10 text-primary border border-primary/20' :
-                                                selectedCampaign.status === 'Paused' ? 'bg-warning/10 text-warning border border-warning/20' :
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${selectedCampaign.status === 'active' ? 'bg-success/10 text-success border border-success/20' :
+                                            selectedCampaign.status === 'completed' ? 'bg-primary/10 text-primary border border-primary/20' :
+                                                selectedCampaign.status === 'canceled' ? 'bg-warning/10 text-warning border border-warning/20' :
                                                     'bg-bg-alt text-text-muted border border-border-subtle'
                                             }`}>
                                             {selectedCampaign.status}
@@ -698,7 +745,7 @@ export default function Campaigns() {
                                                     <Calendar className="w-3 h-3 text-primary" />
                                                     Start Date
                                                 </div>
-                                                <div className="text-sm font-bold text-text-main">{new Date(selectedCampaign.startDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                                                <div className="text-sm font-bold text-text-main">{new Date(selectedCampaign.start_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                                             </div>
 
                                             <div className="text-center group-hover:scale-110 transition-transform duration-500">
@@ -714,10 +761,7 @@ export default function Campaigns() {
                                                     <Flag className="w-3 h-3 text-accent" />
                                                 </div>
                                                 <div className="text-sm font-bold text-text-main">
-                                                    {selectedCampaign.endDate
-                                                        ? new Date(selectedCampaign.endDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-                                                        : new Date(new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-                                                    }
+                                                    {new Date(new Date(selectedCampaign.start_date).getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </div>
                                             </div>
                                         </div>
@@ -727,14 +771,14 @@ export default function Campaigns() {
                                             <div className="h-2 w-full bg-bg-alt rounded-full overflow-hidden border border-border-subtle/50">
                                                 <div
                                                     className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000 ease-out"
-                                                    style={{ width: `${Math.min(100, Math.max(0, ((new Date().getTime() - new Date(selectedCampaign.startDate).getTime()) / ((selectedCampaign.endDate ? new Date(selectedCampaign.endDate).getTime() : new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.startDate).getTime())) * 100))}%` }}
+                                                    style={{ width: `${Math.min(100, Math.max(0, ((new Date().getTime() - new Date(selectedCampaign.start_date).getTime()) / ((new Date(selectedCampaign.start_date).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.start_date).getTime())) * 100))}%` }}
                                                 />
                                             </div>
 
                                             {/* Today Marker */}
                                             <div
                                                 className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000 ease-out"
-                                                style={{ left: `${Math.min(95, Math.max(5, ((new Date().getTime() - new Date(selectedCampaign.startDate).getTime()) / ((selectedCampaign.endDate ? new Date(selectedCampaign.endDate).getTime() : new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.startDate).getTime())) * 100))}%` }}
+                                                style={{ left: `${Math.min(95, Math.max(5, ((new Date().getTime() - new Date(selectedCampaign.start_date).getTime()) / ((new Date(selectedCampaign.start_date).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.start_date).getTime())) * 100))}%` }}
                                             >
                                                 <div className="text-[9px] font-black text-primary bg-primary-soft/50 px-2 py-0.5 rounded-full border border-primary-soft/50 mb-1 backdrop-blur-sm">TODAY</div>
                                                 <div className="w-0.5 h-6 bg-primary" />
@@ -743,10 +787,10 @@ export default function Campaigns() {
                                             <div className="flex justify-between mt-4">
                                                 <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
                                                     <Clock className="w-3 h-3 text-primary/60" />
-                                                    {Math.max(0, Math.floor((new Date().getTime() - new Date(selectedCampaign.startDate).getTime()) / (1000 * 60 * 60 * 24)))} days elapsed
+                                                    {Math.max(0, Math.floor((new Date().getTime() - new Date(selectedCampaign.start_date).getTime()) / (1000 * 60 * 60 * 24)))} days elapsed
                                                 </div>
                                                 <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
-                                                    {Math.max(0, Math.ceil(((selectedCampaign.endDate ? new Date(selectedCampaign.endDate).getTime() : new Date(selectedCampaign.startDate).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining
+                                                    {Math.max(0, Math.ceil(((new Date(selectedCampaign.start_date).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining
                                                     <Timer className="w-3 h-3 text-accent/60" />
                                                 </div>
                                             </div>
@@ -760,26 +804,26 @@ export default function Campaigns() {
                                     <div className="w-full lg:w-80 space-y-6">
                                         <div className="flex items-center justify-between">
                                             <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Campaign Progress</h4>
-                                            <span className="text-sm font-black text-success tabular-nums">{selectedCampaign.progress}%</span>
+                                            <span className="text-sm font-black text-success tabular-nums">{selectedCampaign.progress_percentage}%</span>
                                         </div>
 
                                         <div className="space-y-3">
                                             <div className="w-full h-4 bg-bg-alt rounded-2xl overflow-hidden border border-border-subtle/30 p-1">
                                                 <div
                                                     className="h-full bg-gradient-to-r from-success/60 to-success rounded-xl shadow-[0_0_10px_rgba(34,197,94,0.3)] transition-all duration-1000 ease-in-out"
-                                                    style={{ width: `${selectedCampaign.progress}%` }}
+                                                    style={{ width: `${selectedCampaign.progress_percentage}%` }}
                                                 />
                                             </div>
                                             <div className="flex justify-between px-1">
                                                 <div className="flex flex-col">
                                                     <span className="text-xl font-black text-text-main tabular-nums">
-                                                        {Math.round((selectedCampaign.progress / 100) * selectedCampaign.leadsCount)}
+                                                        {Math.round((selectedCampaign.progress_percentage / 100) * selectedCampaign.total_leads)}
                                                     </span>
                                                     <span className="text-[9px] font-bold text-success uppercase tracking-wider mt-0.5">Contacted</span>
                                                 </div>
                                                 <div className="flex flex-col items-end">
                                                     <span className="text-xl font-black text-text-muted tabular-nums">
-                                                        {selectedCampaign.leadsCount - Math.round((selectedCampaign.progress / 100) * selectedCampaign.leadsCount)}
+                                                        {selectedCampaign.total_leads - Math.round((selectedCampaign.progress_percentage / 100) * selectedCampaign.total_leads)}
                                                     </span>
                                                     <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider mt-0.5">Remaining</span>
                                                 </div>
@@ -822,11 +866,11 @@ export default function Campaigns() {
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Agent</span>
-                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.agentName}</span>
+                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.agent_name}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Target Leads</span>
-                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.leadsCount}</span>
+                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.total_leads}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Linked Number</span>
@@ -834,7 +878,7 @@ export default function Campaigns() {
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Calls per Day</span>
-                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.callsPerDay || 50}</span>
+                                            <span className="text-xs font-bold text-text-main">{50}</span>
                                         </div>
                                         <div className="flex flex-col py-2 border-b border-border-subtle/50">
                                             <div className="flex justify-between items-center">
@@ -848,7 +892,7 @@ export default function Campaigns() {
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Time Window</span>
-                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.settings?.startTime || '09:00'} - {selectedCampaign.settings?.endTime || '18:00'}</span>
+                                            <span className="text-xs font-bold text-text-main">{'09:00'} - {'18:00'}</span>
                                         </div>
                                         <div>
                                             <button
@@ -1096,7 +1140,7 @@ export default function Campaigns() {
                                         {leadsLoading ? (
                                             <div className="space-y-3">
                                                 {[1, 2, 3, 4, 5].map((i) => (
-                                                    <div key={i} className="h-16 bg-bg animate-pulse rounded-2xl border border-border-subtle" />
+                                                    <Skeleton key={i} className="h-16" />
                                                 ))}
                                             </div>
                                         ) : filteredLeads.length > 0 ? filteredLeads.map((user: any) => (
@@ -1142,15 +1186,11 @@ export default function Campaigns() {
                                     <input
                                         type="text"
                                         placeholder="e.g. Q4 Sales Outreach"
-                                        className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none placeholder:text-text-muted/30 shadow-sm"
+                                        className="w-full px-4 py-3 border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none placeholder:text-text-muted/30 shadow-sm"
                                         value={campaignName}
                                         onChange={(e) => setCampaignName(e.target.value)}
                                     />
                                 </div>
-
-
-
-
                                 <div className="space-y-4">
                                     <div className="space-y-4 animate-in fade-in duration-300">
                                         {templateStep === "select-template" && (
@@ -1172,9 +1212,9 @@ export default function Campaigns() {
                                                             key={template.id}
                                                             onClick={() => {
                                                                 setSelectedTemplate(template);
-                                                                setTemplateStep("link-number");
+                                                                // setTemplateStep("link-number");
                                                             }}
-                                                            className="group flex items-center gap-4 p-4 rounded-xl border border-border-subtle hover:border-primary hover:bg-primary/5 transition-all text-left"
+                                                            className={`group flex items-center gap-4 p-4 rounded-xl border border-border-subtle ${selectedTemplate?.id === template.id ? "border-primary" : ""} hover:border-primary hover:bg-primary/5 transition-all text-left`}
                                                         >
 
                                                             <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
@@ -1194,35 +1234,7 @@ export default function Campaigns() {
                                         )}
 
 
-                                        {
-                                            templateStep === "link-number" && (
-                                                <div className="space-y-4">
-                                                    <button
-                                                        onClick={() => setTemplateStep("select-template")}
-                                                        className="flex items-center gap-2 text-[10px] font-bold text-text-muted hover:text-primary transition-colors mb-2 uppercase tracking-wider"
-                                                    >
-                                                        <ArrowLeft className="w-3 h-3" />
-                                                        Back to Select Template
-                                                    </button>
-                                                    <div className="grid grid-cols-1 gap-3">
-                                                        <Select
-                                                            value={linkedNumber}
-                                                            onValueChange={setLinkedNumber}
-                                                        >
-                                                            <SelectTrigger className="w-full">
-                                                                <SelectValue placeholder="Choose a number to link" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {linkNumbers.map((number) => (
-                                                                    <SelectItem key={number} value={number}>
-                                                                        {number}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
-                                            )}
+
                                     </div>
 
                                 </div>
@@ -1231,6 +1243,31 @@ export default function Campaigns() {
 
                         {currentStep === 3 && (
                             <div className="space-y-8 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
+
+                                <div className="space-y-4">
+
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
+                                            <Phone className="w-4 h-4 text-primary" />
+                                            Select Number
+                                        </h4>
+                                        <Select
+                                            value={linkedNumber}
+                                            onValueChange={setLinkedNumber}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Choose a number to link" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {linkNumbers.map((number) => (
+                                                    <SelectItem key={number} value={number}>
+                                                        {number}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                                 <div className="space-y-4">
                                     <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-primary" />
@@ -1282,19 +1319,28 @@ export default function Campaigns() {
                                         </div> */}
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Calls/Day</label>
-                                            <select
+                                            <Select
                                                 value={callsPerDay}
-                                                onChange={(e) => setCallsPerDay(parseInt(e.target.value))}
-                                                className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                                onValueChange={(e) => setCallsPerDay(e)}
                                             >
-                                                <option value={1} >1</option>
-                                                <option value={2} >2</option>
-                                                <option value={5} >5</option>
-                                                <option value={10} >10</option>
-                                                <option value={20} >20</option>
-                                                <option value={50} >50</option>
-                                                <option value={100} >100</option>
-                                            </select>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Choose calls per day" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="1">
+                                                        1
+                                                    </SelectItem>
+                                                    <SelectItem value="2">
+                                                        2
+                                                    </SelectItem>
+                                                    <SelectItem value="5">
+                                                        5
+                                                    </SelectItem>
+                                                    <SelectItem value="10">
+                                                        10
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
 
 
@@ -1303,11 +1349,13 @@ export default function Campaigns() {
                                     <div className="space-y-4">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow Ups</label>
-                                            <select
+                                            <Select
                                                 value={followUps}
-                                                onChange={(e) => {
-                                                    const val = parseInt(e.target.value);
-                                                    setFollowUps(val);
+                                                onValueChange={(valString) => {
+                                                    const val = parseInt(valString);
+                                                    console.log('val', val);
+
+                                                    setFollowUps(valString);
                                                     // Adjust delays array to match count
                                                     setFollowUpDelays(prev => {
                                                         const newDelays = [...prev];
@@ -1319,21 +1367,33 @@ export default function Campaigns() {
                                                         return newDelays;
                                                     });
                                                 }}
-                                                className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                                             >
-                                                <option value={0}>No Follow Up</option>
-                                                <option value={1}>1 Follow Up</option>
-                                                <option value={2}>2 Follow Ups</option>
-                                                <option value={3}>3 Follow Ups</option>
-                                            </select>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Choose follow ups" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="0">
+                                                        No Follow Ups
+                                                    </SelectItem>
+                                                    <SelectItem value="1">
+                                                        1 Follow Up
+                                                    </SelectItem>
+                                                    <SelectItem value="2">
+                                                        2 Follow Ups
+                                                    </SelectItem>
+                                                    <SelectItem value="3">
+                                                        3 Follow Ups
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
 
 
                                     </div>
 
                                     <div>
-                                        {followUps > 0 && (
-                                            <div className="w-[full] space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        {parseInt(followUps) > 0 && (
+                                            <div className="w-full space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                                                 <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow-up Schedule (Days)</label>
 
                                                 {followUpDelays.map((delay, index) => (
@@ -1366,20 +1426,38 @@ export default function Campaigns() {
 
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Time Zone</label>
-                                        <select
+                                        <Select
                                             value={timeZone}
-                                            onChange={(e) => setTimeZone(e.target.value)}
-                                            className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                            onValueChange={setTimeZone}
                                         >
-                                            <option value="UTC">UTC (GMT+00:00)</option>
-                                            <option value="America/New_York">Eastern Time (GMT-05:00)</option>
-                                            <option value="America/Chicago">Central Time (GMT-06:00)</option>
-                                            <option value="America/Denver">Mountain Time (GMT-07:00)</option>
-                                            <option value="America/Los_Angeles">Pacific Time (GMT-08:00)</option>
-                                            <option value="Asia/Kolkata">India Standard Time (GMT+05:30)</option>
-                                            <option value="Europe/London">London (GMT+00:00)</option>
-                                            <option value="Europe/Paris">Paris (GMT+01:00)</option>
-                                        </select>
+                                            <SelectTrigger className="w-full border border-border-subtle px-4 py-3 h-auto text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm text-left">
+                                                <SelectValue placeholder="Select Time Zone" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="UTC">UTC (GMT+00:00)</SelectItem>
+                                                {timeZones && Object.entries(timeZones).map(([region, zones]) => (
+                                                    <SelectGroup key={region}>
+                                                        <SelectLabel className="px-2 py-1.5 text-[10px] font-bold text-text-muted uppercase tracking-wider">{region}</SelectLabel>
+                                                        {zones.map((zone) => (
+                                                            <SelectItem key={zone.value} value={zone.value}>
+                                                                {zone.label} ({zone.offset})
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectGroup>
+                                                ))}
+                                                {!timeZones && (
+                                                    <>
+                                                        <SelectItem value="America/New_York">Eastern Time (GMT-05:00)</SelectItem>
+                                                        <SelectItem value="America/Chicago">Central Time (GMT-06:00)</SelectItem>
+                                                        <SelectItem value="America/Denver">Mountain Time (GMT-07:00)</SelectItem>
+                                                        <SelectItem value="America/Los_Angeles">Pacific Time (GMT-08:00)</SelectItem>
+                                                        <SelectItem value="Asia/Kolkata">India Standard Time (GMT+05:30)</SelectItem>
+                                                        <SelectItem value="Europe/London">London (GMT+00:00)</SelectItem>
+                                                        <SelectItem value="Europe/Paris">Paris (GMT+01:00)</SelectItem>
+                                                    </>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
@@ -1486,6 +1564,7 @@ export default function Campaigns() {
                                         </div>
                                         <div className="text-right">
                                             <div className="text-xs font-bold text-text-main">{startTime} - {endTime}</div>
+                                            <div className="text-[10px] text-text-muted mt-0.5">{timeZone}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -1522,11 +1601,24 @@ export default function Campaigns() {
                             </button>
                         )}
                         <button
-                            disabled={
-                                (currentStep === 1 && selectedLeads.length === 0) ||
-                                (currentStep === 2 && (!campaignName || !selectedTemplate))
-                            }
+
                             onClick={() => {
+                                if (currentStep === 1) {
+                                    if (selectedLeads.length === 0) {
+                                        toast.warning("Please select at least one lead.");
+                                        return;
+                                    }
+                                }
+                                if (currentStep === 2) {
+                                    if (!campaignName) {
+                                        toast.warning("Please enter campaign name.");
+                                        return;
+                                    }
+                                    if (!selectedTemplate) {
+                                        toast.warning("Please select template.");
+                                        return;
+                                    }
+                                }
                                 if (currentStep === 4) {
                                     handleLaunch();
                                 } else {
@@ -1544,6 +1636,9 @@ export default function Campaigns() {
                     </div>
                 </div>
             </SideSheet >
+
+
+            {/* Call Details SideSheet */}
             <SideSheet
                 isOpen={isCallDetailSheetOpen}
                 onClose={() => setIsCallDetailSheetOpen(false)}
@@ -1595,7 +1690,7 @@ export default function Campaigns() {
                         campaign={selectedCampaign}
                         onClose={() => setIsEditCampaignSheetOpen(false)}
                         onUpdate={(updated) => {
-                            setCampaigns(prev => prev.map(c => c.id === updated.id ? updated : c));
+                            setCampaigns(prev => prev.map(c => c.campaignId === updated.campaignId ? updated : c));
                             setSelectedCampaign(updated);
                         }}
                     />

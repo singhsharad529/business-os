@@ -9,6 +9,8 @@ import {
     CalendarDays
 } from "lucide-react";
 import { toast } from "@/hooks/useToast";
+import voiceBotService from "@/api/voicebotService";
+import { useEffect } from "react";
 
 interface EditCampaignProps {
     campaign: any;
@@ -28,14 +30,29 @@ export function EditCampaign({ campaign, onClose, onUpdate }: EditCampaignProps)
         maxRetries: campaign.settings?.maxRetries || 3,
         startTime: campaign.settings?.startTime || "09:00",
         endTime: campaign.settings?.endTime || "17:00",
+        timeZone: campaign.settings?.timeZone || "UTC",
         selectedDays: campaign.settings?.selectedDays || ["Mon", "Tue", "Wed", "Thu", "Fri"]
     });
 
-    const [callsPerDay, setCallsPerDay] = useState(5);
-    const [followUps, setFollowUps] = useState(1);
-    const [followUpDelays, setFollowUpDelays] = useState<number[]>([1]);
-    const [startTime, setStartTime] = useState("09:00");
-    const [endTime, setEndTime] = useState("17:00");
+    const [timeZones, setTimeZones] = useState<Record<string, { value: string; label: string; offset: string }[]> | null>(null);
+    const [timeZonesLoading, setTimeZonesLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchTimeZones = async () => {
+            setTimeZonesLoading(true);
+            try {
+                const response = await voiceBotService.getTimeZone({});
+                if (response && response.regions) {
+                    setTimeZones(response.regions);
+                }
+            } catch (error) {
+                console.error("Failed to fetch timezones:", error);
+            } finally {
+                setTimeZonesLoading(false);
+            }
+        };
+        fetchTimeZones();
+    }, []);
 
     const handleDayToggle = (day: string) => {
         setFormData(prev => ({
@@ -64,6 +81,7 @@ export function EditCampaign({ campaign, onClose, onUpdate }: EditCampaignProps)
                     maxRetries: formData.maxRetries,
                     startTime: formData.startTime,
                     endTime: formData.endTime,
+                    timeZone: formData.timeZone,
                     selectedDays: formData.selectedDays
                 }
             };
@@ -99,8 +117,8 @@ export function EditCampaign({ campaign, onClose, onUpdate }: EditCampaignProps)
                 <div className="space-y-2">
                     <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Calls/Day</label>
                     <select
-                        value={callsPerDay}
-                        onChange={(e) => setCallsPerDay(parseInt(e.target.value))}
+                        value={formData.callsPerDay}
+                        onChange={(e) => setFormData({ ...formData, callsPerDay: parseInt(e.target.value) })}
                         className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                     >
                         <option value={1} >1</option>
@@ -117,19 +135,17 @@ export function EditCampaign({ campaign, onClose, onUpdate }: EditCampaignProps)
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow Ups</label>
                         <select
-                            value={followUps}
+                            value={formData.followUps}
                             onChange={(e) => {
                                 const val = parseInt(e.target.value);
-                                setFollowUps(val);
-                                // Adjust delays array to match count
-                                setFollowUpDelays(prev => {
-                                    const newDelays = [...prev];
-                                    if (val > prev.length) {
-                                        for (let i = prev.length; i < val; i++) newDelays.push(1);
+                                setFormData(prev => {
+                                    const newDelays = [...prev.followUpDelays];
+                                    if (val > prev.followUpDelays.length) {
+                                        for (let i = prev.followUpDelays.length; i < val; i++) newDelays.push(1);
                                     } else {
-                                        return newDelays.slice(0, val);
+                                        newDelays.length = val;
                                     }
-                                    return newDelays;
+                                    return { ...prev, followUps: val, followUpDelays: newDelays };
                                 });
                             }}
                             className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
@@ -145,11 +161,11 @@ export function EditCampaign({ campaign, onClose, onUpdate }: EditCampaignProps)
                 </div>
 
                 <div>
-                    {followUps > 0 && (
+                    {formData.followUps > 0 && (
                         <div className="w-[full] space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow-up Schedule (Days)</label>
 
-                            {followUpDelays.map((delay, index) => (
+                            {formData.followUpDelays.map((delay: number, index: number) => (
                                 <div key={index} className="flex items-center gap-3 bg-bg-alt/30 p-2 rounded-xl border border-border-subtle/50">
                                     <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
                                         #{index + 1}
@@ -162,9 +178,9 @@ export function EditCampaign({ campaign, onClose, onUpdate }: EditCampaignProps)
                                             value={delay}
                                             onChange={(e) => {
                                                 const newVal = parseInt(e.target.value) || 1;
-                                                const newDelays = [...followUpDelays];
+                                                const newDelays = [...formData.followUpDelays];
                                                 newDelays[index] = newVal;
-                                                setFollowUpDelays(newDelays);
+                                                setFormData({ ...formData, followUpDelays: newDelays });
                                             }}
                                             className="w-16 px-2 py-1 bg-white border border-border-subtle rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary"
                                         />
@@ -182,8 +198,8 @@ export function EditCampaign({ campaign, onClose, onUpdate }: EditCampaignProps)
                         <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Timing (Start)</label>
                         <input
                             type="time"
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
+                            value={formData.startTime}
+                            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                             className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                         />
                     </div>
@@ -191,11 +207,45 @@ export function EditCampaign({ campaign, onClose, onUpdate }: EditCampaignProps)
                         <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Timing (End)</label>
                         <input
                             type="time"
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
+                            value={formData.endTime}
+                            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                             className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                         />
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Time Zone</label>
+                    <select
+                        value={formData.timeZone}
+                        onChange={(e) => setFormData({ ...formData, timeZone: e.target.value })}
+                        className="w-full bg-bg border border-border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                    >
+                        <option value="UTC">UTC (GMT+00:00)</option>
+                        {timeZones && Object.entries(timeZones).map(([region, zones]) => (
+                            <optgroup key={region} label={region}>
+                                {zones.map((zone) => (
+                                    <option key={zone.value} value={zone.value}>
+                                        {zone.label} ({zone.offset})
+                                    </option>
+                                ))}
+                            </optgroup>
+                        ))}
+                        {!timeZones && timeZonesLoading && (
+                            <option disabled>Loading timezones...</option>
+                        )}
+                        {!timeZones && !timeZonesLoading && (
+                            <>
+                                <option value="America/New_York">Eastern Time (GMT-05:00)</option>
+                                <option value="America/Chicago">Central Time (GMT-06:00)</option>
+                                <option value="America/Denver">Mountain Time (GMT-07:00)</option>
+                                <option value="America/Los_Angeles">Pacific Time (GMT-08:00)</option>
+                                <option value="Asia/Kolkata">India Standard Time (GMT+05:30)</option>
+                                <option value="Europe/London">London (GMT+00:00)</option>
+                                <option value="Europe/Paris">Paris (GMT+01:00)</option>
+                            </>
+                        )}
+                    </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

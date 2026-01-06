@@ -1,4 +1,4 @@
-import { LogOut, User, Settings, ChevronDown, Link2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LogOut, User, Settings, ChevronDown, Link2, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -200,14 +200,19 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
 
                   {/* Menu Items */}
                   <div className="py-1">
-                    <button className="w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300">
-                      <User className="w-4 h-4 text-text-muted" />
+                    <button className="group w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300 hover:text-primary">
+                      <User className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors duration-300" />
                       <span>Profile Settings</span>
                     </button>
-                    <button className="w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300">
-                      <Settings className="w-4 h-4 text-text-muted" />
+                    <button className="group w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300 hover:text-primary">
+                      <Settings className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors duration-300" />
                       <span>Preferences</span>
                     </button>
+                    <button className="group w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300 hover:text-primary">
+                      <CreditCard className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors duration-300" />
+                      <span>Billing / Credits</span>
+                    </button>
+
                     <div className="h-px bg-border-subtle/50 my-1 mx-2" />
                     <button
                       onClick={() => {
