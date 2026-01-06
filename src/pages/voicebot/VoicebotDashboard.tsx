@@ -97,7 +97,7 @@ export function VoicebotDashboard() {
               <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                 <div className="text-sm text-text-muted mb-2">Success Rate</div>
                 <div className="text-3xl font-bold text-text-main">
-                  {voiceBotDashboardData?.kpis?.successRate?.change || 0}%
+                  {voiceBotDashboardData?.kpis?.successRate?.change || 0}
                 </div>
                 <div className="text-xs text-success mt-2">
                   {voiceBotDashboardData?.kpis?.successRate?.changeType}

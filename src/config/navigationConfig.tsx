@@ -125,11 +125,11 @@ export const navigationConfig: NavigationConfig = {
           //   label: "CRM",
           //   route: "/app/voicebot/crm"
           // },
-          {
-            id: "insights",
-            label: "Insights",
-            route: "/app/voicebot/insights"
-          },
+          // {
+          //   id: "insights",
+          //   label: "Insights",
+          //   route: "/app/voicebot/insights"
+          // },
           {
             id: "leads_database",
             label: "Leads Database",

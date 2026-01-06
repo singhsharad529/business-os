@@ -113,28 +113,11 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange, isColl
 
       {/* Bottom Section: Billing, Logout, User Profile */}
       <div className={` space-y-1 ${isCollapsed ? 'px-2 py-4 items-center' : 'px-3 py-4'}`}>
-        <NavLink
-          to="/app/billing"
-          className={({ isActive }) =>
-            `group flex items-center rounded-lg text-sm font-semibold transition-all duration-200 border border-transparent
-            ${isCollapsed
-              ? 'px-2 py-2.5 justify-center'
-              : 'gap-3 px-3.5 py-2.5'
-            }
-            ${isActive
-              ? "bg-primary text-white shadow-glow border-primary"
-              : "text-text-muted hover:text-text-main hover:bg-white hover:border-border-subtle hover:shadow-soft"
-            }`
-          }
-          title={isCollapsed ? "Billing / Credits" : undefined}
-        >
-          <CreditCard className={`w-4 h-4 transition-colors flex-shrink-0 ${isCollapsed ? '' : 'group-hover:text-primary'}`} />
-          {!isCollapsed && <span className="">Billing / Credits</span>}
-        </NavLink>
 
-        <div className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3.5 py-2.5'}`}>
+
+        {/* <div className={`flex items-center ${isCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3.5 py-2.5'}`}>
           <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white/50 flex-shrink-0">
-            {/* {user?.avatar || user?.name?.charAt(0).toUpperCase()} */}
+
             {"JD"}
           </div>
           {!isCollapsed && (
@@ -145,7 +128,7 @@ export function Sidebar({ selectedMenuId, onMenuSelect, onCollapseChange, isColl
               </div>
             </div>
           )}
-        </div>
+        </div> */}
 
         <button
           onClick={logout}

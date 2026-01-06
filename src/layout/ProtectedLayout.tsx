@@ -148,8 +148,7 @@ export const ProtectedLayout = () => {
                 </div>
 
                 {/* AI Assistant */}
-                {/* {(user.role === "super_admin" || user.role === "company_admin") && <AIAssistant />} */}
-                <AIAssistant />
+                {!location.pathname.includes('voicebot') && <AIAssistant />}
                 {/* Global Toaster */}
                 <Toaster />
             </div>

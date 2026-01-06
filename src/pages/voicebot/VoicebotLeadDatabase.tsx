@@ -14,6 +14,7 @@ import sampleFile from "@/assets/files/leads_data_sample.xlsx";
 import { toast } from "@/hooks/useToast"
 import Modal from "@/components/common/Modal"
 import { LeadDetails } from "@/components/voicebot/LeadDetails"
+import AddLead from "@/components/voicebot/AddLead"
 
 function VoicebotLeadDatabase() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -37,7 +38,10 @@ function VoicebotLeadDatabase() {
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+
     const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+    const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
+
 
     const pageSize = 10;
 
@@ -131,6 +135,11 @@ function VoicebotLeadDatabase() {
                         >
                             <Upload className="w-4 h-4" />
                             Import Leads</button>
+                        <button className="btn btn-primary flex items-center gap-2"
+                            onClick={() => setIsAddLeadSheetOpen(true)}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Lead</button>
                     </div>
                 </div>
 
@@ -150,21 +159,7 @@ function VoicebotLeadDatabase() {
                         </div>
                         <div className="text-sm mb-2"><Phone className="w-6 h-6 text-primary opacity-80" /></div>
                     </div>
-                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div>
-                            <div className="text-3xl font-bold text-text-main">234</div>
-                            <div className="text-xs text-text-muted mt-2">Analysis</div>
-                        </div>
-                        <div className="text-sm mb-2"><BarChart className="w-6 h-6 text-primary opacity-80" /></div>
-                    </div>
 
-                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div>
-                            <div className="text-3xl font-bold text-text-main">400</div>
-                            <div className="text-xs text-text-muted mt-2">Actions</div>
-                        </div>
-                        <div className="text-sm mb-2">  <Activity className="w-6 h-6 text-primary opacity-80" /></div>
-                    </div>
                 </div>
 
                 <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow transition-all" >
@@ -172,8 +167,6 @@ function VoicebotLeadDatabase() {
                         <TabsList className="bg-primary-soft/50 p-1 mb-2">
                             <TabsTrigger value="users" className="px-6">Users ({pagination?.totalCount || filteredUsers.length})</TabsTrigger>
                             <TabsTrigger value="calls" className="px-6">Call Sessions ({mockCallSessions.length})</TabsTrigger>
-                            <TabsTrigger value="analyses" className="px-6">Analyses ({mockAnalyses.length})</TabsTrigger>
-                            <TabsTrigger value="actions" className="px-6">Actions ({mockVoicebotActions.length})</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="users">
@@ -193,7 +186,8 @@ function VoicebotLeadDatabase() {
                                                             {visibleColumns.company && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>}
                                                             {visibleColumns.phone && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone</th>}
                                                             {visibleColumns.expertise && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Expertise</th>}
-                                                            {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>}
+                                                            {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Call Time</th>}
+                                                            {/* {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>} */}
                                                             <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
 
                                                         </tr>
@@ -213,9 +207,12 @@ function VoicebotLeadDatabase() {
                                                                         </span>
                                                                     </td>
                                                                 )}
-                                                                {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
-                                                                    {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
+                                                                {<td className="py-4 px-3 text-sm text-text-muted">
+                                                                    {new Date().toLocaleString()}
                                                                 </td>}
+                                                                {/* {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
+                                                                    {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
+                                                                </td>} */}
                                                                 <td className="py-4 px-3 text-sm text-text-muted">
                                                                     <button
                                                                         onClick={() => {
@@ -281,93 +278,6 @@ function VoicebotLeadDatabase() {
                                 pageSize={pageSize}
                                 totalCount={mockCallSessions.length}
                                 onPageChange={setCallsPage}
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="analyses">
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-border-subtle">
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Session ID</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sentiment</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Extracted Email</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Extracted Name</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Intent</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Follow-up</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border-subtle/50">
-                                        {mockAnalyses.slice((analysesPage - 1) * pageSize, analysesPage * pageSize).map((analysis, i) => (
-                                            <tr key={i} className="hover:bg-bg-alt/30 transition-colors">
-                                                <td className="py-4 px-3 text-sm font-mono text-primary">{analysis.sessionId}</td>
-                                                <td className="py-4 px-3">
-                                                    <span className={`badge ${analysis.sentiment === 'Positive' ? 'badge-success' : 'badge-danger'}`}>
-                                                        {analysis.sentiment}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-3 text-sm text-text-main">{analysis.extractedEmail}</td>
-                                                <td className="py-4 px-3 text-sm text-text-muted">{analysis.extractedName}</td>
-                                                <td className="py-4 px-3 text-sm text-text-muted">{analysis.intent}</td>
-                                                <td className="py-4 px-3">
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${analysis.followUp === 'Yes' ? 'bg-success/20 text-success' : 'bg-bg-alt text-text-muted'}`}>
-                                                        {analysis.followUp}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <Pagination
-                                currentPage={analysesPage}
-                                totalPages={Math.ceil(mockAnalyses.length / pageSize)}
-                                pageSize={pageSize}
-                                totalCount={mockAnalyses.length}
-                                onPageChange={setAnalysesPage}
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="actions">
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-border-subtle">
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Analysis ID</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Tool Used</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
-                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Timestamp</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border-subtle/50">
-                                        {mockVoicebotActions.slice((actionsPage - 1) * pageSize, actionsPage * pageSize).map((action, i) => (
-                                            <tr key={i} className="hover:bg-bg-alt/30 transition-colors">
-                                                <td className="py-4 px-3 text-sm font-mono text-primary">{action.analysisId}</td>
-                                                <td className="py-4 px-3">
-                                                    <div className="flex items-center gap-2">
-                                                        {action.toolUsed === 'send_email' && <Mail className="w-3.5 h-3.5" />}
-                                                        {action.toolUsed === 'update_crm' && <Database className="w-3.5 h-3.5" />}
-                                                        {action.toolUsed === 'create_calendar_event' && <Calendar className="w-3.5 h-3.5" />}
-                                                        <span className="text-sm text-text-main">{action.toolUsed}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-4 px-3">
-                                                    <span className={`badge ${action.status === 'Success' ? 'badge-success' : 'badge-danger'}`}>
-                                                        {action.status}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-3 text-sm text-text-muted">{action.timestamp}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <Pagination
-                                currentPage={actionsPage}
-                                totalPages={Math.ceil(mockVoicebotActions.length / pageSize)}
-                                pageSize={pageSize}
-                                totalCount={mockVoicebotActions.length}
-                                onPageChange={setActionsPage}
                             />
                         </TabsContent>
                     </Tabs>
@@ -470,6 +380,19 @@ function VoicebotLeadDatabase() {
                         onDelete={() => getLeadDatabaseData(currentPage, pageSize)}
                     />
                 )}
+            </SideSheet>
+
+            {/* Add Lead SideSheet */}
+            <SideSheet
+                isOpen={isAddLeadSheetOpen}
+                onClose={() => setIsAddLeadSheetOpen(false)}
+                title="Add New Lead"
+                size="md"
+            >
+                <AddLead
+                    onClose={() => setIsAddLeadSheetOpen(false)}
+                    onSuccess={() => getLeadDatabaseData(currentPage, pageSize)}
+                />
             </SideSheet>
         </div >
     )

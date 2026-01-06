@@ -86,6 +86,8 @@ const voiceBotService = {
     data: { assistantId: string; customerNumber: string; customerName: string },
     config: AxiosRequestConfig
   ) => apiService.post("templates/test-outbound-call", data, config),
+  getHistoryTestCalls: (config: AxiosRequestConfig) =>
+    apiService.get("vapi/calls/reports", config),
   publishAgent: (
     data: { assistantId: string; name: string; phoneNumberId?: string },
     config: AxiosRequestConfig
@@ -106,6 +108,12 @@ const voiceBotService = {
   ) => apiService.put(`vapi/lead-database/${id}`, data, config),
   deleteLead: (id: string, config: AxiosRequestConfig) =>
     apiService.delete(`vapi/lead-database/${id}`, config),
+  createLead: (data: any, config: AxiosRequestConfig) =>
+    apiService.post("vapi/lead-database", data, config),
+  getCampaigns: (config: AxiosRequestConfig) =>
+    apiService.get("scheduler/campaigns", config),
+  getTimeZone: (config: AxiosRequestConfig) =>
+    apiService.get("scheduler/timezones", config),
 };
 
 export default voiceBotService;
