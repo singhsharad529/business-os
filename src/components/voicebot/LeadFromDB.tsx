@@ -24,18 +24,22 @@ function LeadFromDb({ onClose, onSuccess }: LeadFromDbProps) {
     const defaultPageSize = 10;
 
     const filteredLeads = useMemo(() => {
+        if (!leads || leads.length === 0)
+            return [];
+
         return leads.filter((lead: any) => {
+
             const searchLower = leadSearchText.toLowerCase();
             if (leadColumnFilter === "all") {
                 return (
-                    lead.leadName.toLowerCase().includes(searchLower) ||
-                    lead.leadEmail.toLowerCase().includes(searchLower) ||
-                    lead.leadCompany.toLowerCase().includes(searchLower)
+                    (lead.leadName?.toLowerCase() || "").includes(searchLower) ||
+                    (lead.leadEmail?.toLowerCase() || "").includes(searchLower) ||
+                    (lead.leadCompany?.toLowerCase() || "").includes(searchLower)
                 );
             }
-            if (leadColumnFilter === "name") return lead.leadName.toLowerCase().includes(searchLower);
-            if (leadColumnFilter === "email") return lead.leadEmail.toLowerCase().includes(searchLower);
-            if (leadColumnFilter === "company") return lead.leadCompany.toLowerCase().includes(searchLower);
+            if (leadColumnFilter === "name") return (lead.leadName?.toLowerCase() || "").includes(searchLower);
+            if (leadColumnFilter === "email") return (lead.leadEmail?.toLowerCase() || "").includes(searchLower);
+            if (leadColumnFilter === "company") return (lead.leadCompany?.toLowerCase() || "").includes(searchLower);
             return true;
         });
     }, [leads, leadSearchText, leadColumnFilter]);
@@ -127,7 +131,7 @@ function LeadFromDb({ onClose, onSuccess }: LeadFromDbProps) {
                             <div
                                 key={user.id}
                                 onClick={() => handleSelectLead(user.id)}
-                                className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${selectedLeads.includes(user.leadEmail)
+                                className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${selectedLeads.includes(user.id)
                                     ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm'
                                     : 'border-border-subtle hover:border-text-muted/30 bg-white'
                                     }`}
