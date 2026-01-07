@@ -66,29 +66,12 @@ interface Campaign {
     created_at: string;
 }
 
-interface TemplateConfig {
-    id: string;
-    value: string;
-    label: string;
-    description: string;
-}
-
-interface TemplateRole {
-    role: string;
-    icon: any;
-    color: string;
-    configurations: TemplateConfig[];
-}
-
-
 
 export default function Campaigns() {
     const [isCampaignSheetOpen, setIsCampaignSheetOpen] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
 
-
     const [apiLeads, setApiLeads] = useState<any[]>([]);
-    const [agentsLoading, setAgentsLoading] = useState(false);
     const [campaignsLoading, setCampaignsLoading] = useState(false);
 
     const [leadsLoading, setLeadsLoading] = useState(false);
@@ -97,11 +80,6 @@ export default function Campaigns() {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [campaignStats, setCampaignStats] = useState<any>(null);
 
-    const [agents, setAgents] = useState<any[]>([]);
-    const [linkNumbers, setLinkNumbers] = useState<string[]>(["+919876543210", "+919876543211", "+919876543212", "+919876543213", "+919876543214"]);
-    const [linkNumbersLoading, setLinkNumbersLoading] = useState(false);
-    const [linkedNumber, setLinkedNumber] = useState<string>("")
-
     const [searchTerm, setSearchTerm] = useState("");
 
     // Create Campaign Form State
@@ -109,7 +87,6 @@ export default function Campaigns() {
     const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
     const [selectedAgent, setSelectedAgent] = useState("");
     const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
     const [maxRetries, setMaxRetries] = useState(3);
     const [callsPerDay, setCallsPerDay] = useState("1");
     const [followUps, setFollowUps] = useState("1");
@@ -126,11 +103,8 @@ export default function Campaigns() {
     const [campaignCreatingLoading, setCampaignCreatingLoading] = useState(false);
 
 
-    // Agent Selection Type & Template State
-    const [agentSelectionTab, setAgentSelectionTab] = useState<"existing" | "templates">("templates");
+
     const [templateStep, setTemplateStep] = useState<"select-template" | "link-number">("select-template");
-    const [selectedTemplateRole, setSelectedTemplateRole] = useState<TemplateRole | null>(null);
-    const [selectedTemplateConfig, setSelectedTemplateConfig] = useState<TemplateConfig | null>(null);
     const [campaignStatusFilter, setCampaignStatusFilter] = useState("all");
 
     // Selected Campaign Detail State
@@ -474,7 +448,11 @@ export default function Campaigns() {
                 start_hour: startTime,
                 end_hour: endTime
             },
-            followup_config: folloupConfig,
+            followup_config: {
+                followup1_days: followUpDelays.length > 0 ? followUpDelays[0] : 0,
+                followup2_days: followUpDelays.length > 1 ? followUpDelays[1] : 0,
+                followup3_days: followUpDelays.length > 2 ? followUpDelays[2] : 0
+            },
             max_calls_per_day: callsPerDay,
             start_date: startDate,
             phone_number_id: selectedNumber
@@ -546,7 +524,6 @@ export default function Campaigns() {
             updatedAt: "2025-12-27T14:39:47.256"
         });
     }
-
 
     return (
         <>
@@ -1955,7 +1932,7 @@ export default function Campaigns() {
             </SideSheet>
 
             {/* Edit Campaign SideSheet */}
-            <SideSheet
+            {/* <SideSheet
                 isOpen={isEditCampaignSheetOpen}
                 onClose={() => setIsEditCampaignSheetOpen(false)}
                 title="Edit Campaign Settings"
@@ -1971,7 +1948,7 @@ export default function Campaigns() {
                         }}
                     />
                 )}
-            </SideSheet>
+            </SideSheet> */}
 
             <AlertDialog
                 isOpen={isDeleteAlertOpen}
