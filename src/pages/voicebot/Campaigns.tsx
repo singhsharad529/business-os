@@ -144,7 +144,7 @@ export default function Campaigns() {
     const [maxRetries, setMaxRetries] = useState(3);
     const [callsPerDay, setCallsPerDay] = useState("1");
     const [followUps, setFollowUps] = useState("1");
-    const [followUpDelays, setFollowUpDelays] = useState<number[]>([1]);
+    const [followUpDelays, setFollowUpDelays] = useState<(number | "")[]>([1]);
     const [timeZone, setTimeZone] = useState("UTC");
     const [startTime, setStartTime] = useState("09:00");
     const [endTime, setEndTime] = useState("17:00");
@@ -1373,16 +1373,16 @@ export default function Campaigns() {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="0">
-                                                        No Follow Ups
+                                                        No follow ups
                                                     </SelectItem>
                                                     <SelectItem value="1">
-                                                        1 Follow Up
+                                                        1 follow up
                                                     </SelectItem>
                                                     <SelectItem value="2">
-                                                        2 Follow Ups
+                                                        2 follow ups
                                                     </SelectItem>
                                                     <SelectItem value="3">
-                                                        3 Follow Ups
+                                                        3 follow ups
                                                     </SelectItem>
                                                 </SelectContent>
                                             </Select>
@@ -1408,9 +1408,16 @@ export default function Campaigns() {
                                                                 min={1}
                                                                 value={delay}
                                                                 onChange={(e) => {
-                                                                    const newVal = parseInt(e.target.value) || 1;
+                                                                    const value = e.target.value;
+
                                                                     const newDelays = [...followUpDelays];
-                                                                    newDelays[index] = newVal;
+
+                                                                    if (value === "") {
+                                                                        newDelays[index] = "";
+                                                                    } else {
+                                                                        newDelays[index] = Math.max(1, parseInt(value, 10));
+                                                                    }
+
                                                                     setFollowUpDelays(newDelays);
                                                                 }}
                                                                 className="w-16 px-2 py-1 bg-white border border-border-subtle rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary"
