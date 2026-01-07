@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Phone, User, BarChart, Activity, Mail, XCircle, Calendar, Database, Download, Upload, Plus, Search, ChevronRight, Check, X, Clock, Zap, Eye, FileSpreadsheet, Trash2 } from "lucide-react"
+import { Phone, User, BarChart, Activity, Mail, XCircle, Calendar, Database, Download, Upload, Plus, Search, ChevronRight, Check, X, Clock, Zap, Eye, FileSpreadsheet, Trash2, Star } from "lucide-react"
 import { mockCallSessions, mockAnalyses, mockVoicebotActions } from "@/data/mockData"
 import { mockAgents } from "@/data/agentMockData"
 import { SideSheet } from "@/components/SideSheet"
@@ -154,10 +154,26 @@ function VoicebotLeadDatabase() {
                     </div>
                     <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                         <div>
-                            <div className="text-3xl font-bold text-text-main">568</div>
-                            <div className="text-xs text-text-muted mt-2">Call Sessions</div>
+                            <div className="text-3xl font-bold text-text-main">10</div>
+                            <div className="text-xs text-text-muted mt-2">Called</div>
                         </div>
                         <div className="text-sm mb-2"><Phone className="w-6 h-6 text-primary opacity-80" /></div>
+                    </div>
+
+                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        <div>
+                            <div className="text-3xl font-bold text-text-main">0</div>
+                            <div className="text-xs text-text-muted mt-2">This Month</div>
+                        </div>
+                        <div className="text-sm mb-2"><Calendar className="w-6 h-6 text-primary opacity-80" /></div>
+                    </div>
+
+                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        <div>
+                            <div className="text-3xl font-bold text-text-main">0</div>
+                            <div className="text-xs text-text-muted mt-2">New Leads</div>
+                        </div>
+                        <div className="text-sm mb-2"><Star className="w-6 h-6 text-primary opacity-80" /></div>
                     </div>
 
                 </div>
