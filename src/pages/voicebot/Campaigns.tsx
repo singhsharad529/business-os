@@ -29,7 +29,8 @@ import {
     PlusIcon,
     Flag,
     Delete,
-    Trash2
+    Trash2,
+    SkipBack
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
@@ -38,7 +39,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import voiceBotService from "@/api/voicebotService";
 import { CallDetails } from "@/components/voicebot/CallDetails";
 import { Loader2 } from "lucide-react";
-import { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Lead } from "@/types/voicebotTypes";
@@ -72,6 +73,7 @@ export default function Campaigns() {
     const [currentStep, setCurrentStep] = useState(1);
 
     const [apiLeads, setApiLeads] = useState<any[]>([]);
+    const [campaignStatLoading, setCampaignStatLoading] = useState(false);
     const [campaignsLoading, setCampaignsLoading] = useState(false);
 
     const [leadsLoading, setLeadsLoading] = useState(false);
@@ -101,6 +103,9 @@ export default function Campaigns() {
     const [selectedNumber, setSelectedNumber] = useState<string>("")
     const [loadingNumbers, setLoadingNumbers] = useState(false);
     const [campaignCreatingLoading, setCampaignCreatingLoading] = useState(false);
+    const [campaignInfoLoading, setCampaignInfoLoading] = useState(false);
+    const [campaignInfo, setCampaignInfo] = useState<any>(null);
+    const [singleCampaignStats, setSingleCampaignStats] = useState<any>(null);
 
 
 
@@ -215,6 +220,23 @@ export default function Campaigns() {
     ]
 
 
+    const fetchCampaignStats = async () => {
+        try {
+
+            setCampaignStatLoading(true);
+            const response = await voiceBotService.getCampaignStats({});
+            if (response) {
+                setCampaignStats(response);
+            }
+        } catch (error) {
+            console.error("Failed to fetch campaign stats:", error);
+            toast.danger("Failed to load campaign stats. Please try again.");
+        }
+        finally {
+            setCampaignStatLoading(false);
+        }
+    }
+
     const fetchCampaigns = async (status: string) => {
 
         const config: AxiosRequestConfig = {};
@@ -227,7 +249,6 @@ export default function Campaigns() {
             const response = await voiceBotService.getCampaigns(config);
             if (response) {
                 setCampaigns(response.campaigns);
-                setCampaignStats(response.stats);
             }
         } catch (error) {
             console.error("Failed to fetch campaigns:", error);
@@ -267,6 +288,28 @@ export default function Campaigns() {
         }
     }
 
+    const fetchCampaignInfo = async (id: string) => {
+        try {
+            setCampaignInfoLoading(true);
+
+            const [campainInfoRes, campainStatRes] = await axios.all([
+                voiceBotService.getCampaignInfo(id, {}),
+                voiceBotService.getSingleCampaignStat(id, {})
+            ]);
+
+
+            setCampaignInfo(campainInfoRes);
+            setSingleCampaignStats(campainStatRes);
+
+        } catch (error) {
+            console.error("Failed to fetch campaign info:", error);
+            toast.danger("Failed to load campaign info. Please try again.");
+        }
+        finally {
+            setCampaignInfoLoading(false);
+        }
+    }
+
 
     useEffect(() => {
         if (isCampaignSheetOpen) {
@@ -277,6 +320,7 @@ export default function Campaigns() {
     }, [isCampaignSheetOpen]);
 
     useEffect(() => {
+        fetchCampaignStats();
         fetchCampaigns("");
     }, []);
 
@@ -528,7 +572,7 @@ export default function Campaigns() {
     return (
         <>
             <div className="space-y-6">
-                {!selectedCampaign ? (
+                {!campaignInfo && !singleCampaignStats ? (
                     <>
                         <div className="flex items-center justify-between">
                             <div>
@@ -545,7 +589,7 @@ export default function Campaigns() {
                         </div>
 
                         {
-                            campaignsLoading ? (
+                            campaignStatLoading ? (
                                 <>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full h-[120px]">
                                         <div className="rounded-xl overflow-hidden">
@@ -669,7 +713,7 @@ export default function Campaigns() {
                                                                     <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Completed Calls</th>
                                                                     <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Failed Calls</th>
                                                                     <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider ">Pending Calls</th>
-                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider  text-right">Action</th>
+                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider  text-right">Actions</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody className="divide-y divide-border-subtle">
@@ -720,10 +764,17 @@ export default function Campaigns() {
                                                                             </button>
                                                                             <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
 
-                                                                                onClick={() => setSelectedCampaign(camp)}
+                                                                                onClick={() => fetchCampaignInfo(camp.campaign_id)}
 
                                                                             >
-                                                                                <Eye className="w-4 h-4" />
+
+                                                                                {
+                                                                                    campaignInfoLoading ? (
+                                                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                                                    ) : (
+                                                                                        <Eye className="w-4 h-4" />
+                                                                                    )
+                                                                                }
                                                                             </button>
                                                                         </td>
                                                                     </tr>
@@ -749,20 +800,23 @@ export default function Campaigns() {
                         <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center gap-2">
                                 <button
-                                    onClick={() => setSelectedCampaign(null)}
+                                    onClick={() => {
+                                        setCampaignInfo(null);
+                                        setSingleCampaignStats(null);
+                                    }}
                                     className="p-2 hover:bg-bg-alt rounded-xl border border-border-subtle text-text-muted hover:text-primary transition-all active:scale-95"
                                 >
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
                                 <div>
                                     <div className="flex items-center gap-3">
-                                        <h1 className="text-3xl font-bold text-text-main">{selectedCampaign.name}</h1>
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${selectedCampaign.status === 'active' ? 'bg-success/10 text-success border border-success/20' :
-                                            selectedCampaign.status === 'completed' ? 'bg-primary/10 text-primary border border-primary/20' :
-                                                selectedCampaign.status === 'canceled' ? 'bg-warning/10 text-warning border border-warning/20' :
+                                        <h1 className="text-3xl font-bold text-text-main">{campaignInfo.name}</h1>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${campaignInfo.status === 'active' ? 'bg-success/10 text-success border border-success/20' :
+                                            campaignInfo.status === 'completed' ? 'bg-primary/10 text-primary border border-primary/20' :
+                                                campaignInfo.status === 'canceled' ? 'bg-warning/10 text-warning border border-warning/20' :
                                                     'bg-bg-alt text-text-muted border border-border-subtle'
                                             }`}>
-                                            {selectedCampaign.status}
+                                            {campaignInfo.status}
                                         </span>
                                     </div>
                                     {/* <p className="text-text-muted mt-1 flex items-center gap-2">
@@ -778,6 +832,7 @@ export default function Campaigns() {
                                 </button>
                             </div> */}
                         </div>
+
 
                         {/* Enhanced Campaign Progress & Timeline Card */}
                         <div className="card rounded-2xl p-8 border border-border-subtle bg-gradient-to-br from-white via-white to-primary/5 shadow-soft hover:shadow-glow transition-all duration-500 overflow-hidden relative group">
@@ -795,7 +850,7 @@ export default function Campaigns() {
                                                     <Calendar className="w-3 h-3 text-primary" />
                                                     Start Date
                                                 </div>
-                                                <div className="text-sm font-bold text-text-main">{new Date(selectedCampaign.start_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                                                <div className="text-sm font-bold text-text-main">{new Date(campaignInfo.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                                             </div>
 
                                             <div className="text-center group-hover:scale-110 transition-transform duration-500">
@@ -811,7 +866,7 @@ export default function Campaigns() {
                                                     <Flag className="w-3 h-3 text-accent" />
                                                 </div>
                                                 <div className="text-sm font-bold text-text-main">
-                                                    {new Date(new Date(selectedCampaign.start_date).getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    {new Date(campaignInfo.estimated_completion_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </div>
                                             </div>
                                         </div>
@@ -821,14 +876,14 @@ export default function Campaigns() {
                                             <div className="h-2 w-full bg-bg-alt rounded-full overflow-hidden border border-border-subtle/50">
                                                 <div
                                                     className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000 ease-out"
-                                                    style={{ width: `${Math.min(100, Math.max(0, ((new Date().getTime() - new Date(selectedCampaign.start_date).getTime()) / ((new Date(selectedCampaign.start_date).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.start_date).getTime())) * 100))}%` }}
+                                                    style={{ width: `${Math.min(100, Math.max(0, ((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / ((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date(campaignInfo.created_at).getTime())) * 100))}%` }}
                                                 />
                                             </div>
-
+                                            -
                                             {/* Today Marker */}
                                             <div
                                                 className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000 ease-out"
-                                                style={{ left: `${Math.min(95, Math.max(5, ((new Date().getTime() - new Date(selectedCampaign.start_date).getTime()) / ((new Date(selectedCampaign.start_date).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date(selectedCampaign.start_date).getTime())) * 100))}%` }}
+                                                style={{ left: `${Math.min(95, Math.max(5, ((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / ((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date(campaignInfo.created_at).getTime())) * 100))}%` }}
                                             >
                                                 <div className="text-[9px] font-black text-primary bg-primary-soft/50 px-2 py-0.5 rounded-full border border-primary-soft/50 mb-1 backdrop-blur-sm">TODAY</div>
                                                 <div className="w-0.5 h-6 bg-primary" />
@@ -837,10 +892,10 @@ export default function Campaigns() {
                                             <div className="flex justify-between mt-4">
                                                 <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
                                                     <Clock className="w-3 h-3 text-primary/60" />
-                                                    {Math.max(0, Math.floor((new Date().getTime() - new Date(selectedCampaign.start_date).getTime()) / (1000 * 60 * 60 * 24)))} days elapsed
+                                                    {Math.max(0, Math.floor((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / (1000 * 60 * 60 * 24)))} days elapsed
                                                 </div>
                                                 <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
-                                                    {Math.max(0, Math.ceil(((new Date(selectedCampaign.start_date).getTime() + 14 * 24 * 60 * 60 * 1000) - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining
+                                                    {Math.max(0, Math.ceil(((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining
                                                     <Timer className="w-3 h-3 text-accent/60" />
                                                 </div>
                                             </div>
@@ -854,26 +909,26 @@ export default function Campaigns() {
                                     <div className="w-full lg:w-80 space-y-6">
                                         <div className="flex items-center justify-between">
                                             <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Campaign Progress</h4>
-                                            <span className="text-sm font-black text-success tabular-nums">{selectedCampaign.progress_percentage}%</span>
+                                            <span className="text-sm font-black text-success tabular-nums">{singleCampaignStats.progress_percentage}%</span>
                                         </div>
 
                                         <div className="space-y-3">
                                             <div className="w-full h-4 bg-bg-alt rounded-2xl overflow-hidden border border-border-subtle/30 p-1">
                                                 <div
                                                     className="h-full bg-gradient-to-r from-success/60 to-success rounded-xl shadow-[0_0_10px_rgba(34,197,94,0.3)] transition-all duration-1000 ease-in-out"
-                                                    style={{ width: `${selectedCampaign.progress_percentage}%` }}
+                                                    style={{ width: `${singleCampaignStats.progress_percentage}%` }}
                                                 />
                                             </div>
                                             <div className="flex justify-between px-1">
                                                 <div className="flex flex-col">
                                                     <span className="text-xl font-black text-text-main tabular-nums">
-                                                        {Math.round((selectedCampaign.progress_percentage / 100) * selectedCampaign.total_leads)}
+                                                        {Math.round((singleCampaignStats.progress_percentage / 100) * singleCampaignStats.total_leads)}
                                                     </span>
                                                     <span className="text-[9px] font-bold text-success uppercase tracking-wider mt-0.5">Contacted</span>
                                                 </div>
                                                 <div className="flex flex-col items-end">
                                                     <span className="text-xl font-black text-text-muted tabular-nums">
-                                                        {selectedCampaign.total_leads - Math.round((selectedCampaign.progress_percentage / 100) * selectedCampaign.total_leads)}
+                                                        {singleCampaignStats.total_leads - Math.round((singleCampaignStats.progress_percentage / 100) * singleCampaignStats.total_leads)}
                                                     </span>
                                                     <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider mt-0.5">Remaining</span>
                                                 </div>
@@ -888,14 +943,13 @@ export default function Campaigns() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-4">
                                 {[
-                                    { label: "Total Calls", value: CAMPAIGN_STATS.totalCalls, icon: Phone, color: "primary" },
-                                    { label: "Success", value: CAMPAIGN_STATS.successCalls, icon: CheckCircle2, color: "success" },
-                                    { label: "Failed", value: CAMPAIGN_STATS.failedCalls, icon: XCircle, color: "danger" },
-                                    { label: "Not Connected", value: CAMPAIGN_STATS.notConnectedCalls, icon: PhoneOff, color: "warning" },
-                                    { label: "Avg Duration", value: CAMPAIGN_STATS.avgDuration, icon: Timer, color: "accent" },
-                                    { label: "Success Rate", value: CAMPAIGN_STATS.successRate, icon: TrendingUp, color: "success" },
-                                    { label: "Connected", value: CAMPAIGN_STATS.connectedLeads, icon: User, color: "primary" },
-                                    { label: "Conversion", value: CAMPAIGN_STATS.conversionRate, icon: BarChart3, color: "success" },
+                                    { label: "Total Calls", value: singleCampaignStats.total_calls, icon: Phone, color: "primary" },
+                                    { label: "Completed", value: singleCampaignStats.completed_calls, icon: CheckCircle2, color: "success" },
+                                    { label: "Failed", value: singleCampaignStats.failed_calls, icon: XCircle, color: "danger" },
+                                    { label: "Scheduled", value: singleCampaignStats.scheduled_calls, icon: Timer, color: "accent" },
+                                    { label: "Skipped", value: singleCampaignStats.skipped_calls, icon: SkipBack, color: "warning" },
+                                    { label: "Days Remaining", value: singleCampaignStats.days_remaining, icon: Calendar, color: "warning" },
+
                                 ].map((stat, i) => (
                                     <div key={i} className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
 
@@ -916,33 +970,33 @@ export default function Campaigns() {
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Agent</span>
-                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.agent_name}</span>
+                                            <span className="text-xs font-bold text-text-main">{"--"}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Target Leads</span>
-                                            <span className="text-xs font-bold text-text-main">{selectedCampaign.total_leads}</span>
+                                            <span className="text-xs font-bold text-text-main">{campaignInfo.total_leads}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Linked Number</span>
-                                            <span className="text-xs font-bold text-text-main">+91 98765 43210</span>
+                                            <span className="text-xs font-bold text-text-main">--</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Calls per Day</span>
-                                            <span className="text-xs font-bold text-text-main">{50}</span>
+                                            <span className="text-xs font-bold text-text-main">{campaignInfo.max_calls_per_day}</span>
                                         </div>
                                         <div className="flex flex-col py-2 border-b border-border-subtle/50">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-xs text-text-muted">Follow Ups</span>
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-xs font-bold text-text-main text-right">2 Follow Ups</span>
-                                                    <span className="text-xs text-text-muted text-right">Days: 5, 8</span>
+                                                    <span className="text-xs font-bold text-text-main text-right">--</span>
+                                                    <span className="text-xs text-text-muted text-right">Days: --</span>
                                                 </div>
                                             </div>
 
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Time Window</span>
-                                            <span className="text-xs font-bold text-text-main">{'09:00'} - {'18:00'}</span>
+                                            <span className="text-xs font-bold text-text-main">{campaignInfo.call_hours.start_hour} - {campaignInfo.call_hours.end_hour}</span>
                                         </div>
                                         {/* <div>
                                             <button
@@ -957,6 +1011,7 @@ export default function Campaigns() {
                                 </div>
                             </div>
                         </div>
+
 
                         <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow transition-all">
                             {/* Calls Table */}
@@ -1028,7 +1083,7 @@ export default function Campaigns() {
                                                                 //     setSelectedLead(user);
                                                                 //     setIsDetailSheetOpen(true);
                                                                 // }}
-                                                                onClick={selectLead}
+                                                                onClick={() => fetchCampaignInfo(user.id)}
                                                                 className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
                                                             >
                                                                 <Eye className="w-4 h-4" />

@@ -83,7 +83,7 @@ function NewAgent({ onCancel, getAllAgents }: NewAgentProps) {
                 voiceBotService.getNumbers({}),
             ]);
 
-            console.log(agentRoles, agentLanguages, numbers);
+            // console.log(agentRoles, agentLanguages, numbers);
             setAgentRole(agentRoles.agentRoles);
             setLanguages(agentLanguages.languages);
             setNumbers(numbers.unassignedPhoneNumbers);
