@@ -114,6 +114,8 @@ const voiceBotService = {
     apiService.get("scheduler/campaigns", config),
   getTimeZone: (config: AxiosRequestConfig) =>
     apiService.get("scheduler/timezones", config),
+  deleteCampaign: (id: string, config: AxiosRequestConfig) =>
+    apiService.delete(`scheduler/campaigns/${id}`, config),
 };
 
 export default voiceBotService;

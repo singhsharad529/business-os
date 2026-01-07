@@ -27,7 +27,9 @@ import {
     Edit,
     BotMessageSquare,
     PlusIcon,
-    Flag
+    Flag,
+    Delete,
+    Trash2
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { useData } from "@/contexts/DataContext";
@@ -45,6 +47,7 @@ import AddLead from "@/components/voicebot/AddLead";
 import { EditCampaign } from "@/components/voicebot/EditCampaign";
 import LeadFromDb from "@/components/voicebot/LeadFromDB";
 import TableLoader from "@/components/common/TableLoader";
+import { AlertDialog } from "@/components/ui/AlertDialog";
 
 interface Campaign {
     campaign_id: string;
@@ -63,8 +66,6 @@ interface Campaign {
     created_at: string;
 }
 
-
-
 interface TemplateConfig {
     id: string;
     value: string;
@@ -79,39 +80,6 @@ interface TemplateRole {
     configurations: TemplateConfig[];
 }
 
-
-const AGENT_TEMPLATES: TemplateRole[] = [
-    {
-        role: "Sales",
-        icon: Target,
-        color: "primary",
-        configurations: [
-            { id: "s1", value: "outbound_sales", label: "Outbound Sales", description: "Proactive outreach to potential customers" },
-            { id: "s2", value: "inbound_sales", label: "Inbound Support", description: "Handle incoming customer inquiries" },
-            { id: "s3", value: "sales_followup", label: "Follow-up Agent", description: "Follow up with leads and existing customers" }
-        ]
-    },
-    {
-        role: "Finance",
-        icon: Wallet,
-        color: "success",
-        configurations: [
-            { id: "f1", value: "account_support", label: "Account Support", description: "Help with account inquiries and transactions" },
-            { id: "f2", value: "loan_advisor", label: "Loan Advisor", description: "Provide loan information and guidance" },
-            { id: "f3", value: "investment_consultant", label: "Investment Consultant", description: "Investment and portfolio management guidance" }
-        ]
-    },
-    {
-        role: "Realty",
-        icon: Home,
-        color: "accent",
-        configurations: [
-            { id: "r1", value: "property_listing", label: "Property Listing Agent", description: "Help clients list properties for sale or rent" },
-            { id: "r2", value: "buyer_agent", label: "Buyer's Agent", description: "Assist buyers in finding properties" },
-            { id: "r3", value: "rental_specialist", label: "Rental Specialist", description: "Specialize in rental property services" }
-        ]
-    }
-];
 
 
 export default function Campaigns() {
@@ -130,7 +98,6 @@ export default function Campaigns() {
     const [campaignStats, setCampaignStats] = useState<any>(null);
 
     const [agents, setAgents] = useState<any[]>([]);
-    const [agentTemplates, setAgentTemplates] = useState<TemplateRole[]>(AGENT_TEMPLATES);
     const [linkNumbers, setLinkNumbers] = useState<string[]>(["+919876543210", "+919876543211", "+919876543212", "+919876543213", "+919876543214"]);
     const [linkNumbersLoading, setLinkNumbersLoading] = useState(false);
     const [linkedNumber, setLinkedNumber] = useState<string>("")
@@ -150,7 +117,10 @@ export default function Campaigns() {
     const [timeZone, setTimeZone] = useState("UTC");
     const [startTime, setStartTime] = useState("09:00");
     const [endTime, setEndTime] = useState("17:00");
-    const [selectedDays, setSelectedDays] = useState<string[]>(["Mon", "Tue", "Wed", "Thu", "Fri"]);
+    const [deleteCampaignId, setDeleteCampaignId] = useState<string>("");
+    const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+
 
     // Agent Selection Type & Template State
     const [agentSelectionTab, setAgentSelectionTab] = useState<"existing" | "templates">("templates");
@@ -186,7 +156,6 @@ export default function Campaigns() {
         expertise: true,
         lastCalled: true
     });
-
 
     const CAMPAIGN_STATS = {
         totalCalls: 1250,
@@ -320,20 +289,6 @@ export default function Campaigns() {
         }
     }
 
-    const getAllAgents = async () => {
-        try {
-            setAgentsLoading(true);
-            const response = await voiceBotService.getAllAgents({});
-            console.log(response);
-            setAgents(response);
-
-        } catch (error) {
-            // console.log(error);
-            toast.danger("Failed to get agents");
-        } finally {
-            setAgentsLoading(false);
-        }
-    }
 
     useEffect(() => {
         if (isCampaignSheetOpen) {
@@ -341,7 +296,6 @@ export default function Campaigns() {
             fetchLeads();
             // getAllAgents();
         }
-
     }, [isCampaignSheetOpen]);
 
     useEffect(() => {
@@ -442,11 +396,32 @@ export default function Campaigns() {
         setTimeZone("UTC");
         setStartTime("09:00");
         setEndTime("17:00");
-        setSelectedDays(["Mon", "Tue", "Wed", "Thu", "Fri"]);
+
         setLeadSearchText("");
     };
 
 
+    // delete a campaiang
+    const handleDeleteOpen = (campaignDeleteId: string) => {
+        setDeleteCampaignId(campaignDeleteId);
+        setIsDeleteAlertOpen(true);
+    };
+
+    // campaign delete
+    const handleCampaignDelete = () => {
+        setIsDeleteAlertOpen(false);
+        setDeleteLoading(true);
+        voiceBotService.deleteCampaign(deleteCampaignId, {}).then(() => {
+            setDeleteLoading(false);
+            setIsDeleteAlertOpen(false);
+            toast.success("Campaign deleted successfully!");
+            fetchCampaigns("");
+            // resetForm();
+        }).catch((error) => {
+            console.log(error);
+            toast.danger("Failed to delete campaign");
+        });
+    };
 
     const handleLaunch = () => {
 
@@ -480,6 +455,8 @@ export default function Campaigns() {
         resetForm();
     };
 
+
+    // get agent templates
     const getAgentTemplates = async (page: number = 1, pageSize: number = 10) => {
         try {
             setTemplatesLoading(true);
@@ -708,7 +685,12 @@ export default function Campaigns() {
                                                                         <td className="py-4 px-4 text-xs text-text-muted">{camp.pending_calls}</td>
 
 
-                                                                        <td className="py-4 px-4 text-right">
+                                                                        <td className="py-4 px-4 text-right flex gap-2">
+                                                                            <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                                                                onClick={() => handleDeleteOpen(camp.campaign_id)}
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
                                                                             <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
 
                                                                                 onClick={() => setSelectedCampaign(camp)}
@@ -935,14 +917,14 @@ export default function Campaigns() {
                                             <span className="text-xs text-text-muted">Time Window</span>
                                             <span className="text-xs font-bold text-text-main">{'09:00'} - {'18:00'}</span>
                                         </div>
-                                        <div>
+                                        {/* <div>
                                             <button
                                                 onClick={() => setIsEditCampaignSheetOpen(true)}
                                                 className="btn btn-primary w-full rounded-full"
                                             >
                                                 <Edit className="w-4 h-4" /> Edit Campaign
                                             </button>
-                                        </div>
+                                        </div> */}
                                     </div>
 
                                 </div>
@@ -1744,6 +1726,16 @@ export default function Campaigns() {
                     />
                 )}
             </SideSheet>
+
+            <AlertDialog
+                isOpen={isDeleteAlertOpen}
+                onClose={() => setIsDeleteAlertOpen(false)}
+                onConfirm={handleCampaignDelete}
+                title="Delete Campaign"
+                description="Are you sure you want to delete this campaign? This action cannot be undone and will remove the campaign from your list."
+                confirmText="Delete Campaign"
+                isLoading={deleteLoading}
+            />
         </>
     );
 }
