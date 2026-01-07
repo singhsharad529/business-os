@@ -127,6 +127,8 @@ export default function Campaigns() {
 
     // Campaign List State
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [campaignStats, setCampaignStats] = useState<any>(null);
+
     const [agents, setAgents] = useState<any[]>([]);
     const [agentTemplates, setAgentTemplates] = useState<TemplateRole[]>(AGENT_TEMPLATES);
     const [linkNumbers, setLinkNumbers] = useState<string[]>(["+919876543210", "+919876543211", "+919876543212", "+919876543213", "+919876543214"]);
@@ -144,7 +146,7 @@ export default function Campaigns() {
     const [maxRetries, setMaxRetries] = useState(3);
     const [callsPerDay, setCallsPerDay] = useState("1");
     const [followUps, setFollowUps] = useState("1");
-    const [followUpDelays, setFollowUpDelays] = useState<number[]>([1]);
+    const [followUpDelays, setFollowUpDelays] = useState<(number | "")[]>([1]);
     const [timeZone, setTimeZone] = useState("UTC");
     const [startTime, setStartTime] = useState("09:00");
     const [endTime, setEndTime] = useState("17:00");
@@ -278,6 +280,7 @@ export default function Campaigns() {
             const response = await voiceBotService.getCampaigns(config);
             if (response) {
                 setCampaigns(response.campaigns);
+                setCampaignStats(response.stats);
             }
         } catch (error) {
             console.error("Failed to fetch campaigns:", error);
@@ -401,6 +404,15 @@ export default function Campaigns() {
             return true;
         });
     }, [apiLeads, leadSearchText, leadColumnFilter]);
+
+
+    const filteredCampaigns = useMemo(() => {
+        if (!searchTerm) return campaigns;
+        return campaigns.filter((campaign: any) => {
+            const searchLower = searchTerm.toLowerCase();
+            return campaign.name.toLowerCase().includes(searchLower);
+        })
+    }, [searchTerm, campaigns]);
 
     const handleSelectLead = (id: string) => {
         setSelectedLeads(prev =>
@@ -528,46 +540,74 @@ export default function Campaigns() {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                                        <Target className="w-5 h-5" />
+                        {
+                            campaignsLoading ? (
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full h-[120px]">
+                                        <div className="rounded-xl overflow-hidden">
+                                            <Skeleton className="w-full h-full rounded-xl" />
+                                        </div>
+
+                                        <div className="rounded-xl overflow-hidden">
+                                            <Skeleton className="w-full h-full rounded-xl" />
+                                        </div>
+
+                                        <div className="rounded-xl overflow-hidden">
+                                            <Skeleton className="w-full h-full rounded-xl" />
+                                        </div>
+
+                                        <div className="rounded-xl overflow-hidden">
+                                            <Skeleton className="w-full h-full rounded-xl" />
+                                        </div>
+
                                     </div>
-                                    <span className="text-[10px] font-bold text-success uppercase tracking-wider">+12%</span>
-                                </div>
-                                <div className="text-2xl font-bold text-text-main">12</div>
-                                <div className="text-xs text-text-muted mt-1">Total Campaigns</div>
-                            </div>
-                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="p-2 bg-accent/10 rounded-lg text-accent">
-                                        <Activity className="w-5 h-5" />
-                                    </div>
-                                    <span className="text-[10px] font-bold text-success uppercase tracking-wider">+5%</span>
-                                </div>
-                                <div className="text-2xl font-bold text-text-main">4</div>
-                                <div className="text-xs text-text-muted mt-1">Active Now</div>
-                            </div>
-                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="p-2 bg-success/10 rounded-lg text-success">
-                                        <Phone className="w-5 h-5" />
-                                    </div>
-                                </div>
-                                <div className="text-2xl font-bold text-text-main">1,280</div>
-                                <div className="text-xs text-text-muted mt-1">Calls Made</div>
-                            </div>
-                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="p-2 bg-warning/10 rounded-lg text-warning">
-                                        <BarChart3 className="w-5 h-5" />
-                                    </div>
-                                </div>
-                                <div className="text-2xl font-bold text-text-main">34%</div>
-                                <div className="text-xs text-text-muted mt-1">Avg. Conversion</div>
-                            </div>
-                        </div>
+                                </>
+                            ) :
+                                (
+                                    <>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                                        <Target className="w-5 h-5" />
+                                                    </div>
+                                                    {/* <span className="text-[10px] font-bold text-success uppercase tracking-wider">+12%</span> */}
+                                                </div>
+                                                <div className="text-2xl font-bold text-text-main">{campaignStats?.total_campaigns}</div>
+                                                <div className="text-xs text-text-muted mt-1">Total Campaigns</div>
+                                            </div >
+                                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="p-2 bg-accent/10 rounded-lg text-accent">
+                                                        <Activity className="w-5 h-5" />
+                                                    </div>
+                                                    {/* <span className="text-[10px] font-bold text-success uppercase tracking-wider">+5%</span> */}
+                                                </div>
+                                                <div className="text-2xl font-bold text-text-main">{campaignStats?.active_campaigns}</div>
+                                                <div className="text-xs text-text-muted mt-1">Active Now</div>
+                                            </div>
+                                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="p-2 bg-success/10 rounded-lg text-success">
+                                                        <Phone className="w-5 h-5" />
+                                                    </div>
+                                                </div>
+                                                <div className="text-2xl font-bold text-text-main">{campaignStats?.total_calls_made}</div>
+                                                <div className="text-xs text-text-muted mt-1">Calls Made</div>
+                                            </div>
+                                            <div className="card p-6 border border-border-subtle hover:shadow-glow transition-all">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="p-2 bg-warning/10 rounded-lg text-warning">
+                                                        <BarChart3 className="w-5 h-5" />
+                                                    </div>
+                                                </div>
+                                                <div className="text-2xl font-bold text-text-main">{campaignStats?.avg_conversion_rate}</div>
+                                                <div className="text-xs text-text-muted mt-1">Avg. Conversion</div>
+                                            </div>
+                                        </div >
+                                    </>
+                                )
+                        }
 
                         <div className="card p-6 border border-border-subtle shadow-soft overflow-hidden">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -578,7 +618,7 @@ export default function Campaigns() {
                                         <input
                                             type="text"
                                             placeholder="Search campaigns..."
-                                            className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                            className="w-full pl-10 pr-4 py-2 border border-border-subtle rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
@@ -611,7 +651,7 @@ export default function Campaigns() {
                                         (
                                             <>
                                                 {
-                                                    campaigns.length > 0 ? (
+                                                    filteredCampaigns.length > 0 ? (
                                                         <table className="w-full text-left">
                                                             <thead>
                                                                 <tr className="border-b border-border-subtle bg-bg/30">
@@ -629,7 +669,7 @@ export default function Campaigns() {
                                                                 </tr>
                                                             </thead>
                                                             <tbody className="divide-y divide-border-subtle">
-                                                                {campaigns.map((camp) => (
+                                                                {filteredCampaigns.map((camp) => (
                                                                     <tr
                                                                         key={camp.campaign_id}
                                                                         className="group hover:bg-bg/40 transition-colors"
@@ -692,6 +732,7 @@ export default function Campaigns() {
                                 }
                             </div>
                         </div>
+
                     </>
                 ) : (
                     <div className="space-y-6 animate-in fade-in duration-500">
@@ -1373,16 +1414,16 @@ export default function Campaigns() {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="0">
-                                                        No Follow Ups
+                                                        No follow ups
                                                     </SelectItem>
                                                     <SelectItem value="1">
-                                                        1 Follow Up
+                                                        1 follow up
                                                     </SelectItem>
                                                     <SelectItem value="2">
-                                                        2 Follow Ups
+                                                        2 follow ups
                                                     </SelectItem>
                                                     <SelectItem value="3">
-                                                        3 Follow Ups
+                                                        3 follow ups
                                                     </SelectItem>
                                                 </SelectContent>
                                             </Select>
@@ -1408,9 +1449,16 @@ export default function Campaigns() {
                                                                 min={1}
                                                                 value={delay}
                                                                 onChange={(e) => {
-                                                                    const newVal = parseInt(e.target.value) || 1;
+                                                                    const value = e.target.value;
+
                                                                     const newDelays = [...followUpDelays];
-                                                                    newDelays[index] = newVal;
+
+                                                                    if (value === "") {
+                                                                        newDelays[index] = "";
+                                                                    } else {
+                                                                        newDelays[index] = Math.max(1, parseInt(value, 10));
+                                                                    }
+
                                                                     setFollowUpDelays(newDelays);
                                                                 }}
                                                                 className="w-16 px-2 py-1 bg-white border border-border-subtle rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary"
