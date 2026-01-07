@@ -106,6 +106,12 @@ export default function Campaigns() {
     const [campaignInfoLoading, setCampaignInfoLoading] = useState(false);
     const [campaignInfo, setCampaignInfo] = useState<any>(null);
     const [singleCampaignStats, setSingleCampaignStats] = useState<any>(null);
+    const [campaignLeadsLoading, setCampaignLeadsLoading] = useState(false);
+    const [campaignLeads, setCampaignLeads] = useState<any>(null);
+    const [currentLeadsPage, setCurrentLeadsPage] = useState<number>(1);
+
+
+
 
 
 
@@ -114,7 +120,7 @@ export default function Campaigns() {
 
     // Selected Campaign Detail State
     const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
-    const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+    const [selectedLead, setSelectedLead] = useState<any>(null);
     const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
     const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
     const [isEditCampaignSheetOpen, setIsEditCampaignSheetOpen] = useState(false);
@@ -140,17 +146,6 @@ export default function Campaigns() {
         lastCalled: true
     });
 
-    const CAMPAIGN_STATS = {
-        totalCalls: 1250,
-        successCalls: 850,
-        failedCalls: 120,
-        notConnectedCalls: 280,
-        avgDuration: "2m 15s",
-        successRate: "68%",
-        connectedLeads: "970",
-        conversionRate: "24%"
-    };
-
     const CAMPAIGN_CALLS = [
         { id: "call1", vapiId: "mock-vapi-1", phoneNumber: "+1 (555) 123-4567", status: "Completed", duration: "2m 30s", date: "2025-12-28 10:30 AM" },
         { id: "call2", vapiId: "mock-vapi-2", phoneNumber: "+1 (555) 987-6543", status: "Failed", duration: "0m 45s", date: "2025-12-28 11:15 AM" },
@@ -159,65 +154,7 @@ export default function Campaigns() {
         { id: "call5", vapiId: "mock-vapi-5", phoneNumber: "+1 (555) 876-5432", status: "Completed", duration: "3m 20s", date: "2025-12-28 02:30 PM" },
     ];
 
-    const Campaign_Leads = [
-        {
-            id: "e74b2bda-8b4f-49b9-80e0-50f10dba2993",
-            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
-            sourceFileId: "dc501c5f-699f-4cc7-9dea-a254dc0b2bae",
-            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
-            leadName: "Shellen",
-            leadPhoneNumber: "+1-555-0123",
-            leadEmail: "sarah.j@vertexsolutions.com",
-            lastCalledAt: "2025-12-26T14:30:00",
-            leadCompany: "Vertex Solutions",
-            leadExpertiseDomain: "SaaS Sales",
-            createdAt: "2025-12-27T14:39:47.256",
-            updatedAt: "2025-12-27T14:39:47.256"
-        },
-        {
-            id: "3b1434eb-0a52-4b58-8f15-3b50a88ed946",
-            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
-            sourceFileId: "495664c5-b9d6-4cc6-bd33-bbbf01063863",
-            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
-            leadName: "John Doe",
-            leadPhoneNumber: "+1-555-0123",
-            leadEmail: "sarah.j@vertexsolutions.com",
-            lastCalledAt: "2025-12-26T14:30:00",
-            leadCompany: "Vertex Solutions",
-            leadExpertiseDomain: "SaaS Sales",
-            createdAt: "2025-12-27T14:17:18.496",
-            updatedAt: "2025-12-27T14:17:18.496"
-        },
-        {
-            id: "6d47e6c5-3d9f-4197-97c3-85435b2fcd97",
-            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
-            sourceFileId: "78efe98c-2190-40f6-8231-71dd4cfc7896",
-            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
-            leadName: "Rajesh Kumar",
-            leadPhoneNumber: "+91-98765-43210",
-            leadEmail: "rajesh.k@innovatefin.in",
-            lastCalledAt: "2025-12-24T10:15:00",
-            leadCompany: "InnovateFin",
-            leadExpertiseDomain: "Fintech",
-            createdAt: "2025-12-27T12:16:33.911",
-            updatedAt: "2025-12-27T12:16:33.911"
-        },
-        {
-            id: "24425da7-b613-4a9d-8c89-a2fd789fd091",
-            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
-            sourceFileId: "78efe98c-2190-40f6-8231-71dd4cfc7896",
-            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
-            leadName: "Elena Rodriguez",
-            leadPhoneNumber: "+34-91-555-0199",
-            leadEmail: "elena.rod@greenscape.es",
-            lastCalledAt: "2025-12-27T09:45:00",
-            leadCompany: "GreenScape",
-            leadExpertiseDomain: "Renewable Energy",
-            createdAt: "2025-12-27T12:16:33.911",
-            updatedAt: "2025-12-27T12:16:33.911"
-        },
 
-    ]
 
 
     const fetchCampaignStats = async () => {
@@ -288,6 +225,28 @@ export default function Campaigns() {
         }
     }
 
+
+    const campaignLeadsPageSize = 10;
+
+    const fetchCampaignLeads = async (id: string, page: number = 1, pageSize: number = campaignLeadsPageSize) => {
+        try {
+            setCampaignLeadsLoading(true);
+            const response = await voiceBotService.getCampaignLeads(id, {
+                params: {
+                    page, page_size: pageSize
+                }
+            });
+            if (response && response.leads) {
+                setCampaignLeads(response.leads);
+            }
+        } catch (error) {
+            console.error("Failed to fetch campaign leads:", error);
+            toast.danger("Failed to load campaign leads. Please try again.");
+        } finally {
+            setCampaignLeadsLoading(false);
+        }
+    }
+
     const fetchCampaignInfo = async (id: string) => {
         try {
             setCampaignInfoLoading(true);
@@ -300,6 +259,7 @@ export default function Campaigns() {
 
             setCampaignInfo(campainInfoRes);
             setSingleCampaignStats(campainStatRes);
+            fetchCampaignLeads(id);
 
         } catch (error) {
             console.error("Failed to fetch campaign info:", error);
@@ -552,21 +512,7 @@ export default function Campaigns() {
 
 
     const selectLead = () => {
-        setIsDetailSheetOpen(true);
-        setSelectedLead({
-            id: "e74b2bda-8b4f-49b9-80e0-50f10dba2993",
-            userId: "e14d0d6e-d081-462b-ab44-382758738b92",
-            sourceFileId: "dc501c5f-699f-4cc7-9dea-a254dc0b2bae",
-            sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/leads_data.xlsx",
-            leadName: "Shellen",
-            leadPhoneNumber: "+1-555-0123",
-            leadEmail: "sarah.j@vertexsolutions.com",
-            lastCalledAt: "2025-12-26T14:30:00",
-            leadCompany: "Vertex Solutions",
-            leadExpertiseDomain: "SaaS Sales",
-            createdAt: "2025-12-27T14:39:47.256",
-            updatedAt: "2025-12-27T14:39:47.256"
-        });
+
     }
 
     return (
@@ -1040,59 +986,109 @@ export default function Campaigns() {
                                         </div>
                                     </div>
                                     <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead>
-                                                <tr className="border-b border-border-subtle">
-                                                    <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
-                                                    {visibleColumns.email && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>}
-                                                    {visibleColumns.name && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>}
-                                                    {visibleColumns.company && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>}
-                                                    {visibleColumns.phone && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone</th>}
-                                                    {visibleColumns.expertise && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Expertise</th>}
-                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Call Time</th>}
+                                        {
+                                            campaignLeadsLoading ?
+                                                (
+                                                    <TableLoader rows={5} columns={5} />
+                                                ) :
+                                                (
+                                                    <div>
+                                                        {
+                                                            campaignLeads ?
+                                                                (
+                                                                    <div>
 
-                                                    {/* {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>} */}
-                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
+                                                                        <table className="w-full">
+                                                                            <thead>
+                                                                                <tr className="border-b border-border-subtle">
+                                                                                    <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>}
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>}
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>}
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone</th>}
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Expertise</th>}
 
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-border-subtle/50">
-                                                {Campaign_Leads.map((user, i) => (
-                                                    <tr key={user.id} className={`hover:bg-bg-alt/30 transition-colors`}>
-                                                        <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
-                                                        {visibleColumns.email && <td className="py-4 px-3 text-sm text-text-main font-medium">{user.leadEmail}</td>}
-                                                        {visibleColumns.name && <td className="py-4 px-3 text-sm text-text-muted">{user.leadName}</td>}
-                                                        {visibleColumns.company && <td className="py-4 px-3 text-sm text-text-muted">{user.leadCompany}</td>}
-                                                        {visibleColumns.phone && <td className="py-4 px-3 text-sm text-text-muted">{user.leadPhoneNumber}</td>}
-                                                        {visibleColumns.expertise && (
-                                                            <td className="py-4 px-3">
-                                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-bg-alt text-text-muted`}>
-                                                                    {user.leadExpertiseDomain}
-                                                                </span>
-                                                            </td>
-                                                        )}
-                                                        {<td className="py-4 px-3 text-sm text-text-muted">
-                                                            {new Date().toLocaleString()}
-                                                        </td>}
-                                                        {/* {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Call</th>}
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Total Calls</th>}
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Completed Calls</th>}
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Pending Calls</th>}
+                                                                                    {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Failed Calls</th>}
+
+
+
+
+                                                                                    {/* {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>} */}
+                                                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
+
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody className="divide-y divide-border-subtle/50">
+                                                                                {campaignLeads.map((user: any, i: number) => (
+                                                                                    <tr key={user.id} className={`hover:bg-bg-alt/30 transition-colors`}>
+                                                                                        <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
+                                                                                        {<td className="py-4 px-3 text-sm text-text-main font-medium">{user.lead_email}</td>}
+                                                                                        {<td className="py-4 px-3 text-sm text-text-muted">{user.lead_name}</td>}
+                                                                                        {<td className="py-4 px-3 text-sm text-text-muted">{user.lead_company}</td>}
+                                                                                        {<td className="py-4 px-3 text-sm text-text-muted">{user.lead_phone_number}</td>}
+
+                                                                                        <td className="py-4 px-3">
+                                                                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-bg-alt text-text-muted`}>
+                                                                                                {user.lead_expertise_domain}
+                                                                                            </span>
+                                                                                        </td>
+
+                                                                                        {<td className="py-4 px-3 text-sm text-text-muted">
+                                                                                            {user.last_called_at}
+                                                                                        </td>}
+                                                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                            {user.total_scheduled_calls}
+                                                                                        </td>
+                                                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                            {user.completed_calls}
+                                                                                        </td>
+                                                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                            {user.pending_calls}
+                                                                                        </td>
+                                                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                            {user.failed_calls}
+                                                                                        </td>
+                                                                                        {/* {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
                                                             {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
                                                         </td>} */}
-                                                        <td className="py-4 px-3 text-sm text-text-muted">
-                                                            <button
-                                                                // onClick={() => {
-                                                                //     setSelectedLead(user);
-                                                                //     setIsDetailSheetOpen(true);
-                                                                // }}
-                                                                onClick={() => fetchCampaignInfo(user.id)}
-                                                                className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
-                                                            >
-                                                                <Eye className="w-4 h-4" />
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                            <button
+                                                                                                // onClick={() => {
+                                                                                                //     setSelectedLead(user);
+                                                                                                //     setIsDetailSheetOpen(true);
+                                                                                                // }}
+                                                                                                onClick={() => {
+                                                                                                    setIsDetailSheetOpen(true);
+                                                                                                    setSelectedLead(user);
+                                                                                                }}
+                                                                                                className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                                                                            >
+                                                                                                <Eye className="w-4 h-4" />
+                                                                                            </button>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+
+                                                                ) :
+                                                                (
+                                                                    <div>
+                                                                        Campaign leads are not available
+                                                                    </div>
+
+                                                                )
+                                                        }
+                                                    </div>
+
+                                                )
+                                        }
+
                                     </div>
                                 </TabsContent>
                                 <TabsContent value="calls">
@@ -1965,10 +1961,10 @@ export default function Campaigns() {
             >
                 {selectedLead && (
                     <LeadDetails
-                        leadId={selectedLead.id}
+                        leadId={selectedLead.lead_id}
                         onClose={() => setIsDetailSheetOpen(false)}
-                        onUpdate={() => { }}
-                        onDelete={() => { }}
+                        onUpdate={() => fetchCampaignLeads(campaignInfo.campaign_id, currentLeadsPage, campaignLeadsPageSize)}
+                        onDelete={() => fetchCampaignLeads(campaignInfo.campaign_id, currentLeadsPage, campaignLeadsPageSize)}
                     />
                 )}
             </SideSheet>

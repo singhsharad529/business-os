@@ -124,6 +124,8 @@ const voiceBotService = {
     apiService.get(`scheduler/campaigns/${id}/progress`, config),
   getCampaignInfo: (id: string, config: AxiosRequestConfig) =>
     apiService.get(`scheduler/campaigns/${id}`, config),
+  getCampaignLeads: (id: string, config: AxiosRequestConfig) =>
+    apiService.get(`scheduler/campaigns/${id}/leads`, config),
 };
 
 export default voiceBotService;
