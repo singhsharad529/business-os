@@ -48,6 +48,7 @@ import LeadFromDb from "@/components/voicebot/LeadFromDB";
 import TableLoader from "@/components/common/TableLoader";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import Pagination from "@/components/common/Pagination";
+import { Switch } from "@/components/ui/switch";
 
 interface Campaign {
     campaign_id: string;
@@ -98,6 +99,7 @@ export default function Campaigns() {
     const [deleteCampaignId, setDeleteCampaignId] = useState<string>("");
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
     const [numbers, setNumbers] = useState<any>([]);
     const [selectedNumber, setSelectedNumber] = useState<string>("")
     const [loadingNumbers, setLoadingNumbers] = useState(false);
@@ -575,6 +577,28 @@ export default function Campaigns() {
         }
     }
 
+    const handleCampaignStatusChange = async (campaignId: string, status: string) => {
+        try {
+            setStatusUpdateLoading(true);
+            console.log('campaignid', campaignId);
+            console.log('status', status);
+
+            const requestBody = {
+                new_status: status
+            }
+            const response = await voiceBotService.updateCampaignStatus(campaignId, requestBody, {});
+            console.log(response);
+            toast.success("Campaign status updated successfully");
+            fetchCampaignInfo(campaignId);
+
+        } catch (error) {
+            console.log(error);
+            toast.danger("Failed to update campaign status");
+        } finally {
+            setStatusUpdateLoading(false);
+        }
+    }
+
 
 
     return (
@@ -821,12 +845,36 @@ export default function Campaigns() {
                                         <h1 className="text-3xl font-bold text-text-main">{campaignInfo.name}</h1>
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${campaignInfo.status === 'active' ? 'bg-success/10 text-success border border-success/20' :
                                             campaignInfo.status === 'completed' ? 'bg-primary/10 text-primary border border-primary/20' :
-                                                campaignInfo.status === 'canceled' ? 'bg-warning/10 text-warning border border-warning/20' :
-                                                    'bg-bg-alt text-text-muted border border-border-subtle'
+                                                campaignInfo.status === 'cancelled' ? 'bg-warning/10 text-warning border border-warning/20' :
+                                                    'bg-bg-alt text-text-muted border border-text-muted/20'
                                             }`}>
                                             {campaignInfo.status}
                                         </span>
+                                        {(campaignInfo.status === 'active' || campaignInfo.status === 'paused') && (
+                                            <div className="flex items-center space-x-2 ml-2">
+
+                                                <>
+                                                    <Switch
+                                                        id="campaign-status"
+                                                        checked={campaignInfo.status === 'active'}
+                                                        onCheckedChange={() => {
+                                                            handleCampaignStatusChange(campaignInfo.campaign_id, campaignInfo.status === 'active' ? 'paused' : 'active');
+                                                        }}
+                                                        className="data-[state=checked]:bg-success"
+                                                    />
+                                                    <label
+                                                        htmlFor="campaign-status"
+                                                        className={`text-[10px] font-bold uppercase tracking-wider cursor-pointer ${campaignInfo.status === 'active' ? 'text-success' : 'text-text-muted'}`}
+                                                    >
+                                                        {statusUpdateLoading ? 'Updating...' : campaignInfo.status === 'active' ? 'Pause' : 'Activate'}
+                                                    </label>
+                                                </>
+
+                                            </div>
+                                        )}
                                     </div>
+
+
                                     {/* <p className="text-text-muted mt-1 flex items-center gap-2">
                                         <Calendar className="w-4 h-4" />
                                         Created on {new Date(selectedCampaign.startDate).toLocaleDateString()}
