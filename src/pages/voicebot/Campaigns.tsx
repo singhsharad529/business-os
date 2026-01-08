@@ -48,6 +48,8 @@ import LeadFromDb from "@/components/voicebot/LeadFromDB";
 import TableLoader from "@/components/common/TableLoader";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import Pagination from "@/components/common/Pagination";
+import { Switch } from "@/components/ui/switch";
+import { formatDateDDMMYYYY } from "@/utils/dateConversion";
 
 interface Campaign {
     campaign_id: string;
@@ -98,6 +100,7 @@ export default function Campaigns() {
     const [deleteCampaignId, setDeleteCampaignId] = useState<string>("");
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
     const [numbers, setNumbers] = useState<any>([]);
     const [selectedNumber, setSelectedNumber] = useState<string>("")
     const [loadingNumbers, setLoadingNumbers] = useState(false);
@@ -151,11 +154,11 @@ export default function Campaigns() {
     });
 
     const CAMPAIGN_CALLS = [
-        { id: "call1", vapiId: "mock-vapi-1", phoneNumber: "+1 (555) 123-4567", status: "Completed", duration: "2m 30s", date: "2025-12-28 10:30 AM" },
-        { id: "call2", vapiId: "mock-vapi-2", phoneNumber: "+1 (555) 987-6543", status: "Failed", duration: "0m 45s", date: "2025-12-28 11:15 AM" },
-        { id: "call3", vapiId: "mock-vapi-3", phoneNumber: "+1 (555) 456-7890", status: "Not Connected", duration: "0m 00s", date: "2025-12-28 12:00 PM" },
-        { id: "call4", vapiId: "mock-vapi-4", phoneNumber: "+1 (555) 234-5678", status: "Completed", duration: "1m 15s", date: "2025-12-28 01:45 PM" },
-        { id: "call5", vapiId: "mock-vapi-5", phoneNumber: "+1 (555) 876-5432", status: "Completed", duration: "3m 20s", date: "2025-12-28 02:30 PM" },
+        { id: "call1", vapiId: "mock-vapi-1", phoneNumber: "+1 (555) 123-4567", name: "John Doe", status: "Completed", duration: "2m 30s", date: "2025-12-28 10:30 AM" },
+        { id: "call2", vapiId: "mock-vapi-2", phoneNumber: "+1 (555) 987-6543", name: "Jane Smith", status: "Failed", duration: "0m 45s", date: "2025-12-28 11:15 AM" },
+        { id: "call3", vapiId: "mock-vapi-3", phoneNumber: "+1 (555) 456-7890", name: "Bob Johnson", status: "Not Connected", duration: "0m 00s", date: "2025-12-28 12:00 PM" },
+        { id: "call4", vapiId: "mock-vapi-4", phoneNumber: "+1 (555) 234-5678", name: "Alice Brown", status: "Completed", duration: "1m 15s", date: "2025-12-28 01:45 PM" },
+        { id: "call5", vapiId: "mock-vapi-5", phoneNumber: "+1 (555) 876-5432", name: "Charlie Davis", status: "Completed", duration: "3m 20s", date: "2025-12-28 02:30 PM" },
     ];
 
 
@@ -539,7 +542,7 @@ export default function Campaigns() {
                 start_date: startDate
             }
 
-            console.log('campaignRequestBody', campaignRequestBody);
+            // console.log('campaignRequestBody', campaignRequestBody);
 
             const response = await voiceBotService.getCalculatedEndDate(campaignRequestBody, {});
             console.log(response);
@@ -552,6 +555,10 @@ export default function Campaigns() {
             setCalculatedEndDateLoader(false);
         }
     }
+
+    useEffect(() => {
+        setCalculatedEndDate(null);
+    }, [selectedLeads, timeZone, startTime, endTime, followUpDelays, callsPerDay, startDate]);
 
     // get agent templates
     const getAgentTemplates = async (page: number = 1, pageSize: number = 10) => {
@@ -572,6 +579,28 @@ export default function Campaigns() {
         }
         finally {
             setTemplatesLoading(false);
+        }
+    }
+
+    const handleCampaignStatusChange = async (campaignId: string, status: string) => {
+        try {
+            setStatusUpdateLoading(true);
+            console.log('campaignid', campaignId);
+            console.log('status', status);
+
+            const requestBody = {
+                new_status: status
+            }
+            const response = await voiceBotService.updateCampaignStatus(campaignId, requestBody, {});
+            console.log(response);
+            toast.success("Campaign status updated successfully");
+            fetchCampaignInfo(campaignId);
+
+        } catch (error) {
+            console.log(error);
+            toast.danger("Failed to update campaign status");
+        } finally {
+            setStatusUpdateLoading(false);
         }
     }
 
@@ -821,12 +850,36 @@ export default function Campaigns() {
                                         <h1 className="text-3xl font-bold text-text-main">{campaignInfo.name}</h1>
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${campaignInfo.status === 'active' ? 'bg-success/10 text-success border border-success/20' :
                                             campaignInfo.status === 'completed' ? 'bg-primary/10 text-primary border border-primary/20' :
-                                                campaignInfo.status === 'canceled' ? 'bg-warning/10 text-warning border border-warning/20' :
-                                                    'bg-bg-alt text-text-muted border border-border-subtle'
+                                                campaignInfo.status === 'cancelled' ? 'bg-warning/10 text-warning border border-warning/20' :
+                                                    'bg-bg-alt text-text-muted border border-text-muted/20'
                                             }`}>
                                             {campaignInfo.status}
                                         </span>
+                                        {(campaignInfo.status === 'active' || campaignInfo.status === 'paused') && (
+                                            <div className="flex items-center space-x-2 ml-2">
+
+                                                <>
+                                                    <Switch
+                                                        id="campaign-status"
+                                                        checked={campaignInfo.status === 'active'}
+                                                        onCheckedChange={() => {
+                                                            handleCampaignStatusChange(campaignInfo.campaign_id, campaignInfo.status === 'active' ? 'paused' : 'active');
+                                                        }}
+                                                        className="data-[state=checked]:bg-success"
+                                                    />
+                                                    <label
+                                                        htmlFor="campaign-status"
+                                                        className={`text-[10px] font-bold uppercase tracking-wider cursor-pointer ${campaignInfo.status === 'active' ? 'text-success' : 'text-text-muted'}`}
+                                                    >
+                                                        {statusUpdateLoading ? 'Updating...' : campaignInfo.status === 'active' ? 'Pause' : 'Activate'}
+                                                    </label>
+                                                </>
+
+                                            </div>
+                                        )}
                                     </div>
+
+
                                     {/* <p className="text-text-muted mt-1 flex items-center gap-2">
                                         <Calendar className="w-4 h-4" />
                                         Created on {new Date(selectedCampaign.startDate).toLocaleDateString()}
@@ -858,7 +911,7 @@ export default function Campaigns() {
                                                     <Calendar className="w-3 h-3 text-primary" />
                                                     Start Date
                                                 </div>
-                                                <div className="text-sm font-bold text-text-main">{new Date(campaignInfo.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                                                <div className="text-sm font-bold text-text-main">{campaignInfo.start_date ? new Date(campaignInfo.start_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : "--"}</div>
                                             </div>
 
                                             <div className="text-center group-hover:scale-110 transition-transform duration-500">
@@ -880,34 +933,43 @@ export default function Campaigns() {
                                         </div>
 
                                         {/* Visualization of timeline */}
-                                        <div className="relative pt-4 pb-2">
-                                            <div className="h-2 w-full bg-bg-alt rounded-full overflow-hidden border border-border-subtle/50">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000 ease-out"
-                                                    style={{ width: `${Math.min(100, Math.max(0, ((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / ((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date(campaignInfo.created_at).getTime())) * 100))}%` }}
-                                                />
-                                            </div>
-                                            -
-                                            {/* Today Marker */}
-                                            <div
-                                                className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000 ease-out"
-                                                style={{ left: `${Math.min(95, Math.max(5, ((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / ((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date(campaignInfo.created_at).getTime())) * 100))}%` }}
-                                            >
-                                                <div className="text-[9px] font-black text-primary bg-primary-soft/50 px-2 py-0.5 rounded-full border border-primary-soft/50 mb-1 backdrop-blur-sm">TODAY</div>
-                                                <div className="w-0.5 h-6 bg-primary" />
-                                            </div>
+                                        {
+                                            campaignInfo.start_date ?
+                                                (<div className="relative pt-4 pb-2">
+                                                    <div className="h-2 w-full bg-bg-alt rounded-full overflow-hidden border border-border-subtle/50">
+                                                        <div
+                                                            className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000 ease-out"
+                                                            style={{ width: `${Math.min(100, Math.max(0, ((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / ((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date(campaignInfo.created_at).getTime())) * 100))}%` }}
+                                                        />
+                                                    </div>
+                                                    -
+                                                    {/* Today Marker */}
+                                                    <div
+                                                        className="absolute top-[-12px] flex flex-col items-center -translate-x-1/2 transition-all duration-1000 ease-out"
+                                                        style={{ left: `${Math.min(95, Math.max(5, ((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / ((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date(campaignInfo.created_at).getTime())) * 100))}%` }}
+                                                    >
+                                                        <div className="text-[9px] font-black text-primary bg-primary-soft/50 px-2 py-0.5 rounded-full border border-primary-soft/50 mb-1 backdrop-blur-sm">TODAY</div>
+                                                        <div className="w-0.5 h-6 bg-primary" />
+                                                    </div>
 
-                                            <div className="flex justify-between mt-4">
-                                                <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
-                                                    <Clock className="w-3 h-3 text-primary/60" />
-                                                    {Math.max(0, Math.floor((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / (1000 * 60 * 60 * 24)))} days elapsed
+                                                    <div className="flex justify-between mt-4">
+                                                        <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
+                                                            <Clock className="w-3 h-3 text-primary/60" />
+                                                            {Math.max(0, Math.floor((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / (1000 * 60 * 60 * 24)))} days elapsed
+                                                        </div>
+                                                        <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
+                                                            {Math.max(0, Math.ceil(((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining
+                                                            <Timer className="w-3 h-3 text-accent/60" />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="text-[10px] font-bold text-text-muted flex items-center gap-1.5 bg-bg/50 px-2 py-1 rounded-lg border border-border-subtle/30">
-                                                    {Math.max(0, Math.ceil(((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining
-                                                    <Timer className="w-3 h-3 text-accent/60" />
-                                                </div>
-                                            </div>
-                                        </div>
+
+                                                ) :
+                                                (
+                                                    <></>
+
+                                                )
+                                        }
                                     </div>
 
                                     {/* Middle: Vertical Divider for LG screen */}
@@ -978,7 +1040,7 @@ export default function Campaigns() {
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Agent</span>
-                                            <span className="text-xs font-bold text-text-main">{"--"}</span>
+                                            <span className="text-xs font-bold text-text-main">{campaignInfo.agent_name}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Target Leads</span>
@@ -986,7 +1048,7 @@ export default function Campaigns() {
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Linked Number</span>
-                                            <span className="text-xs font-bold text-text-main">--</span>
+                                            <span className="text-xs font-bold text-text-main">{campaignInfo.linked_number}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border-subtle/50">
                                             <span className="text-xs text-text-muted">Calls per Day</span>
@@ -996,8 +1058,8 @@ export default function Campaigns() {
                                             <div className="flex justify-between items-center">
                                                 <span className="text-xs text-text-muted">Follow Ups</span>
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-xs font-bold text-text-main text-right">--</span>
-                                                    <span className="text-xs text-text-muted text-right">Days: --</span>
+                                                    <span className="text-xs font-bold text-text-main text-right">{campaignInfo.num_of_followups}</span>
+                                                    <span className="text-xs text-text-muted text-right">Days: {campaignInfo.followups_days.map((day: any) => day).join(", ")}</span>
                                                 </div>
                                             </div>
 
@@ -1063,7 +1125,7 @@ export default function Campaigns() {
                                                                         <table className="w-full">
                                                                             <thead>
                                                                                 <tr className="border-b border-border-subtle">
-                                                                                    <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
+                                                                                    {/* <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th> */}
                                                                                     {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>}
                                                                                     {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>}
                                                                                     {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>}
@@ -1087,20 +1149,25 @@ export default function Campaigns() {
                                                                             <tbody className="divide-y divide-border-subtle/50">
                                                                                 {filteredCampaignLeads.map((user: any, i: number) => (
                                                                                     <tr key={user.id} className={`hover:bg-bg-alt/30 transition-colors`}>
-                                                                                        <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
+                                                                                        {/* <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td> */}
                                                                                         {<td className="py-4 px-3 text-sm text-text-main font-medium">{user.lead_email}</td>}
                                                                                         {<td className="py-4 px-3 text-sm text-text-muted">{user.lead_name}</td>}
                                                                                         {<td className="py-4 px-3 text-sm text-text-muted">{user.lead_company}</td>}
                                                                                         {<td className="py-4 px-3 text-sm text-text-muted">{user.lead_phone_number}</td>}
 
-                                                                                        <td className="py-4 px-3">
-                                                                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-bg-alt text-text-muted`}>
-                                                                                                {user.lead_expertise_domain}
-                                                                                            </span>
+                                                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                            {user.lead_expertise_domain}
                                                                                         </td>
 
                                                                                         {<td className="py-4 px-3 text-sm text-text-muted">
-                                                                                            {user.last_called_at}
+                                                                                            {new Date(user.last_called_at).toLocaleString("en-GB", {
+                                                                                                day: "2-digit",
+                                                                                                month: "2-digit",
+                                                                                                year: "numeric",
+                                                                                                hour: "2-digit",
+                                                                                                minute: "2-digit",
+                                                                                                hour12: false,
+                                                                                            })}
                                                                                         </td>}
                                                                                         <td className="py-4 px-3 text-sm text-text-muted">
                                                                                             {user.total_scheduled_calls}
@@ -1182,6 +1249,7 @@ export default function Campaigns() {
                                                 <table className="w-full text-left">
                                                     <thead>
                                                         <tr className="border-b border-border-subtle bg-bg/30">
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Name</th>
                                                             <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone Number</th>
                                                             <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
                                                             <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Duration</th>
@@ -1192,6 +1260,7 @@ export default function Campaigns() {
                                                     <tbody className="divide-y divide-border-subtle">
                                                         {CAMPAIGN_CALLS.map((call) => (
                                                             <tr key={call.id} className="group hover:bg-bg/40 transition-colors">
+                                                                <td className="py-4 px-4 text-xs font-bold text-text-main">{call.name}</td>
                                                                 <td className="py-4 px-4 text-xs font-bold text-text-main">{call.phoneNumber}</td>
                                                                 <td className="py-4 px-4">
                                                                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${call.status === 'Completed' ? 'bg-success/10 text-success border border-success/20' :
@@ -1899,10 +1968,20 @@ export default function Campaigns() {
                                             <div className="p-2 bg-primary/10 rounded-lg">
                                                 <Calendar className="w-4 h-4 text-primary" />
                                             </div>
-                                            <span className="text-xs font-bold text-text-main">Campaign Start Date</span>
+                                            <span className="text-xs font-bold text-text-main">Campaign Duration</span>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-[10px] font-bold text-primary">{startDate || 'Start Date Not Set'}</div>
+                                            <div className="text-[10px] font-bold text-primary">
+                                                {startDate
+                                                    ? formatDateDDMMYYYY(startDate)
+                                                    : "Start Date Not Set"}
+                                            </div>
+
+                                            <div className="text-[10px] font-bold text-primary">
+                                                {calculatedEndDate
+                                                    ? formatDateDDMMYYYY(calculatedEndDate.estimated_end_date)
+                                                    : "End date will be calculated."}
+                                            </div>
 
                                         </div>
                                     </div>

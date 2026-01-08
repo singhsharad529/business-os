@@ -84,12 +84,12 @@ export function Login() {
 
             {/* Role Selection */}
             <div>
-              <label className="block text-sm font-medium text-text-main mb-2">
+              {/* <label className="block text-sm font-medium text-text-main mb-2">
                 Select Role
-              </label>
+              </label> */}
 
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {/* <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setRole('super_admin')}
@@ -128,11 +128,11 @@ export function Login() {
                   <User className="w-4 h-4" />
                   <span className="text-sm font-medium">User</span>
                 </button>
-              </div>
+              </div> */}
             </div>
 
 
-            {/* Email */}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-text-main mb-2">
                 Email
@@ -149,7 +149,7 @@ export function Login() {
               />
             </div>
 
-            {/* Password */}
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-text-main mb-2">
                 Password
@@ -178,11 +178,11 @@ export function Login() {
 
           </form>
           <div className="mt-6 pt-6 border-t border-border-subtle">
-            <p className="text-xs text-text-muted text-center">
+            {/* <p className="text-xs text-text-muted text-center">
               Demo credentials:<br />
               Super Admin: admin@businessos.com / admin123<br />
               Company Admin: user@example.com / string
-            </p>
+            </p> */}
           </div>
         </div>
 
