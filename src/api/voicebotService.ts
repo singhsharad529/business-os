@@ -120,6 +120,8 @@ const voiceBotService = {
     apiService.delete(`scheduler/campaigns/${id}`, config),
   createCampaign: (data: any, config: AxiosRequestConfig) =>
     apiService.post(`scheduler/campaigns`, data, config),
+  getCalculatedEndDate: (data: any, config: AxiosRequestConfig) =>
+    apiService.post(`scheduler/calculatEndDate`, data, config),
   getSingleCampaignStat: (id: string, config: AxiosRequestConfig) =>
     apiService.get(`scheduler/campaigns/${id}/progress`, config),
   getCampaignInfo: (id: string, config: AxiosRequestConfig) =>
