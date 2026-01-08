@@ -109,6 +109,7 @@ export default function Campaigns() {
     const [campaignLeadsLoading, setCampaignLeadsLoading] = useState(false);
     const [campaignLeads, setCampaignLeads] = useState<any>(null);
     const [currentLeadsPage, setCurrentLeadsPage] = useState<number>(1);
+    const [campaignInfoLoadingId, setCampaignInfoLoadingId] = useState<string>("");
 
 
 
@@ -249,6 +250,7 @@ export default function Campaigns() {
 
     const fetchCampaignInfo = async (id: string) => {
         try {
+            setCampaignInfoLoadingId(id);
             setCampaignInfoLoading(true);
 
             const [campainInfoRes, campainStatRes] = await axios.all([
@@ -267,6 +269,7 @@ export default function Campaigns() {
         }
         finally {
             setCampaignInfoLoading(false);
+            setCampaignInfoLoadingId("");
         }
     }
 
@@ -325,18 +328,22 @@ export default function Campaigns() {
     const [leadColumnFilter, setLeadColumnFilter] = useState("all");
 
     const filteredLeads = useMemo(() => {
+
+        if (!apiLeads || apiLeads.length === 0)
+            return [];
+
         return apiLeads.filter((lead: any) => {
             const searchLower = leadSearchText.toLowerCase();
             if (leadColumnFilter === "all") {
                 return (
-                    lead.leadName.toLowerCase().includes(searchLower) ||
-                    lead.leadEmail.toLowerCase().includes(searchLower) ||
-                    lead.leadCompany.toLowerCase().includes(searchLower)
+                    lead.leadName?.toLowerCase().includes(searchLower) ||
+                    lead.leadEmail?.toLowerCase().includes(searchLower) ||
+                    lead.leadCompany?.toLowerCase().includes(searchLower)
                 );
             }
-            if (leadColumnFilter === "name") return lead.leadName.toLowerCase().includes(searchLower);
-            if (leadColumnFilter === "email") return lead.leadEmail.toLowerCase().includes(searchLower);
-            if (leadColumnFilter === "company") return lead.leadCompany.toLowerCase().includes(searchLower);
+            if (leadColumnFilter === "name") return lead.leadName?.toLowerCase().includes(searchLower);
+            if (leadColumnFilter === "email") return lead.leadEmail?.toLowerCase().includes(searchLower);
+            if (leadColumnFilter === "company") return lead.leadCompany?.toLowerCase().includes(searchLower);
             return true;
         });
     }, [apiLeads, leadSearchText, leadColumnFilter]);
@@ -715,7 +722,7 @@ export default function Campaigns() {
                                                                             >
 
                                                                                 {
-                                                                                    campaignInfoLoading ? (
+                                                                                    campaignInfoLoading && campaignInfoLoadingId === camp.campaign_id ? (
                                                                                         <Loader2 className="w-4 h-4 animate-spin" />
                                                                                     ) : (
                                                                                         <Eye className="w-4 h-4" />
