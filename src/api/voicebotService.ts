@@ -126,6 +126,8 @@ const voiceBotService = {
     apiService.get(`scheduler/campaigns/${id}`, config),
   getCampaignLeads: (id: string, config: AxiosRequestConfig) =>
     apiService.get(`scheduler/campaigns/${id}/leads`, config),
+  addLeadsToCampaign: (id: string, data: any, config: AxiosRequestConfig) =>
+    apiService.post(`scheduler/campaigns/${id}/reschedule`, data, config),
 };
 
 export default voiceBotService;
