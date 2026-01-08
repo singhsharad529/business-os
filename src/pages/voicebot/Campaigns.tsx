@@ -294,7 +294,7 @@ export default function Campaigns() {
     useEffect(() => {
         if (isCampaignSheetOpen) {
             fetchTimeZone();
-            fetchLeads();
+            fetchLeads(1, 10);
             // getAllAgents();
         }
     }, [isCampaignSheetOpen]);
@@ -452,19 +452,10 @@ export default function Campaigns() {
             return;
         }
 
-        console.log('selected leads', selectedLeads);
-        console.log('selectedTemplate', selectedTemplate);
-        console.log('timeZone', timeZone);
-        console.log('followUps', followUps);
-        console.log('followUpDelays', followUpDelays);
-        console.log('callsPerDay', callsPerDay);
-        console.log('selectednumbers', selectedNumber);
-        console.log('startdate', startDate);
-        console.log('maxRetries', maxRetries);
-        console.log('campaignName', campaignName);
-        console.log('startTime', startTime);
-        console.log('endTime', endTime);
-
+        let folloupConfig: any = {};
+        for (let i = 0; i < followUpDelays.length; i++) {
+            folloupConfig[`followup${i + 1}_days`] = followUpDelays[i];
+        }
 
         const campaignRequestBody = {
             name: campaignName,
@@ -475,11 +466,7 @@ export default function Campaigns() {
                 start_hour: startTime,
                 end_hour: endTime
             },
-            followup_config: {
-                followup1_days: followUpDelays.length > 0 ? followUpDelays[0] : 0,
-                followup2_days: followUpDelays.length > 1 ? followUpDelays[1] : 0,
-                followup3_days: followUpDelays.length > 2 ? followUpDelays[2] : 0
-            },
+            followup_config: folloupConfig,
             max_calls_per_day: callsPerDay,
             start_date: startDate,
             phone_number_id: selectedNumber
@@ -487,8 +474,6 @@ export default function Campaigns() {
         }
 
         console.log('campaignRequestBody', campaignRequestBody);
-
-        toast.success("Campaign launched successfully!");
 
         try {
             setCampaignCreatingLoading(true);
@@ -2041,7 +2026,7 @@ export default function Campaigns() {
                             }}
                             className="flex-[2] btn btn-primary py-3 rounded-xl text-xs font-bold shadow-glow-sm flex items-center justify-center gap-2 group transition-all"
                         >
-                            {currentStep === 4 ? `Launch Campaign ${campaignCreatingLoading ? '...' : ''}` : 'Next Step'}
+                            {currentStep === 4 ? ` ${campaignCreatingLoading ? 'Launching...' : 'Launch Campaign'}` : 'Next Step'}
                             {currentStep !== 4 && <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                         </button>
                     </div>
