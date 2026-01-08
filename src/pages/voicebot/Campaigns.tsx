@@ -126,6 +126,8 @@ export default function Campaigns() {
     const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
     const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
     const [isEditCampaignSheetOpen, setIsEditCampaignSheetOpen] = useState(false);
+    const [campaignLeadSearchText, setCampaignLeadSearchText] = useState("");
+
 
 
     // Call Detail View State
@@ -265,6 +267,7 @@ export default function Campaigns() {
         fetchCampaignLeads(campaignInfo?.campaign_id, page, campaignLeadsPageSize);
     };
 
+    //fetch campaign info
     const fetchCampaignInfo = async (id: string) => {
         try {
             setCampaignInfoLoadingId(id);
@@ -294,7 +297,7 @@ export default function Campaigns() {
     useEffect(() => {
         if (isCampaignSheetOpen) {
             fetchTimeZone();
-            fetchLeads();
+            fetchLeads(1, 10);
             // getAllAgents();
         }
     }, [isCampaignSheetOpen]);
@@ -364,6 +367,20 @@ export default function Campaigns() {
             return true;
         });
     }, [apiLeads, leadSearchText, leadColumnFilter]);
+
+    const filteredCampaignLeads = useMemo(() => {
+
+        if (!campaignLeadSearchText)
+            return campaignLeads;
+
+        if (!campaignLeads || campaignLeads.length === 0)
+            return [];
+
+        return campaignLeads.filter((lead: any) => {
+            const searchLower = campaignLeadSearchText.toLowerCase();
+            return lead.leadName?.toLowerCase().includes(searchLower) || lead.leadEmail?.toLowerCase().includes(searchLower);
+        });
+    }, [campaignLeads, campaignLeadSearchText]);
 
 
     const filteredCampaigns = useMemo(() => {
@@ -452,19 +469,10 @@ export default function Campaigns() {
             return;
         }
 
-        console.log('selected leads', selectedLeads);
-        console.log('selectedTemplate', selectedTemplate);
-        console.log('timeZone', timeZone);
-        console.log('followUps', followUps);
-        console.log('followUpDelays', followUpDelays);
-        console.log('callsPerDay', callsPerDay);
-        console.log('selectednumbers', selectedNumber);
-        console.log('startdate', startDate);
-        console.log('maxRetries', maxRetries);
-        console.log('campaignName', campaignName);
-        console.log('startTime', startTime);
-        console.log('endTime', endTime);
-
+        let folloupConfig: any = {};
+        for (let i = 0; i < followUpDelays.length; i++) {
+            folloupConfig[`followup${i + 1}_days`] = followUpDelays[i];
+        }
 
         const campaignRequestBody = {
             name: campaignName,
@@ -475,11 +483,7 @@ export default function Campaigns() {
                 start_hour: startTime,
                 end_hour: endTime
             },
-            followup_config: {
-                followup1_days: followUpDelays.length > 0 ? followUpDelays[0] : 0,
-                followup2_days: followUpDelays.length > 1 ? followUpDelays[1] : 0,
-                followup3_days: followUpDelays.length > 2 ? followUpDelays[2] : 0
-            },
+            followup_config: folloupConfig,
             max_calls_per_day: callsPerDay,
             start_date: startDate,
             phone_number_id: selectedNumber
@@ -487,8 +491,6 @@ export default function Campaigns() {
         }
 
         console.log('campaignRequestBody', campaignRequestBody);
-
-        toast.success("Campaign launched successfully!");
 
         try {
             setCampaignCreatingLoading(true);
@@ -1035,12 +1037,12 @@ export default function Campaigns() {
                                                 type="text"
                                                 placeholder="Search leads..."
                                                 className="w-full pl-10 pr-4 py-2 bg-bg/50 border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                            // value={searchTerm}
-                                            // onChange={(e) => setSearchTerm(e.target.value)}
+                                                value={campaignLeadSearchText}
+                                                onChange={(e) => setCampaignLeadSearchText(e.target.value)}
                                             />
                                         </div>
                                         <div className="">
-                                            <button className="btn btn-primary rounded-full"
+                                            <button className="btn btn-primary rounded-xl"
                                                 onClick={() => setIsAddLeadSheetOpen(true)}
                                             ><PlusIcon className="w-4 h-4" /> Add Lead</button>
                                         </div>
@@ -1054,7 +1056,7 @@ export default function Campaigns() {
                                                 (
                                                     <div>
                                                         {
-                                                            campaignLeads ?
+                                                            filteredCampaignLeads.length > 0 ?
                                                                 (
                                                                     <div>
 
@@ -1083,7 +1085,7 @@ export default function Campaigns() {
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody className="divide-y divide-border-subtle/50">
-                                                                                {campaignLeads.map((user: any, i: number) => (
+                                                                                {filteredCampaignLeads.map((user: any, i: number) => (
                                                                                     <tr key={user.id} className={`hover:bg-bg-alt/30 transition-colors`}>
                                                                                         <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
                                                                                         {<td className="py-4 px-3 text-sm text-text-main font-medium">{user.lead_email}</td>}
@@ -1148,8 +1150,8 @@ export default function Campaigns() {
 
                                                                 ) :
                                                                 (
-                                                                    <div>
-                                                                        Campaign leads are not available
+                                                                    <div className="text-center py-10 text-text-muted">
+                                                                        No Campaign Leads Found
                                                                     </div>
 
                                                                 )
@@ -2041,7 +2043,7 @@ export default function Campaigns() {
                             }}
                             className="flex-[2] btn btn-primary py-3 rounded-xl text-xs font-bold shadow-glow-sm flex items-center justify-center gap-2 group transition-all"
                         >
-                            {currentStep === 4 ? `Launch Campaign ${campaignCreatingLoading ? '...' : ''}` : 'Next Step'}
+                            {currentStep === 4 ? ` ${campaignCreatingLoading ? 'Launching...' : 'Launch Campaign'}` : 'Next Step'}
                             {currentStep !== 4 && <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                         </button>
                     </div>
@@ -2087,6 +2089,7 @@ export default function Campaigns() {
                     onClose={() => setIsAddLeadSheetOpen(false)}
                     onSuccess={() => {
                         fetchCampaignLeads(campaignInfo.campaign_id, currentLeadsPage, campaignLeadsPageSize);
+                        fetchCampaignInfo(campaignInfo.campaign_id);
                         setIsAddLeadSheetOpen(false);
                     }}
                     campaignId={campaignInfo?.campaign_id || ''}

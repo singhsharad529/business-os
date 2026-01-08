@@ -53,7 +53,7 @@ function LeadFromDb({ onClose, onSuccess, campaignId }: LeadFromDbProps) {
             const response = await voiceBotService.getLeadDatabaseData({ page, page_size: pageSize }, {});
             // Handle different API response structures
             const leadsData = response.leads || [];
-            console.log('leadsData', leadsData);
+            // console.log('leadsData', leadsData);
             setPagination(response.pagination);
             setLeads(leadsData);
         } catch (error) {
@@ -72,7 +72,7 @@ function LeadFromDb({ onClose, onSuccess, campaignId }: LeadFromDbProps) {
 
 
     const handleSubmit = async () => {
-        console.log('selectedleads', selectedLeads);
+        // console.log('selectedleads', selectedLeads);
         const requestBody = {
             lead_ids: selectedLeads
         }
@@ -81,7 +81,7 @@ function LeadFromDb({ onClose, onSuccess, campaignId }: LeadFromDbProps) {
 
             setAddLeadLoading(true);
             const response = await voiceBotService.addLeadsToCampaign(campaignId as string, requestBody, {});
-            console.log('response', response);
+            // console.log('response', response);
             toast.success("Leads added successfully");
             setAddLeadLoading(false);
 
