@@ -308,19 +308,19 @@ export function MyCompanyDashboard() {
                             <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
                                 Company Name {company && '(Read-only)'}
                             </label>
-                            {company ? (
+                            {/* {company ? (
                                 <div className="input bg-bg-muted flex items-center px-4 h-11 text-text-muted border-dashed font-medium">
                                     {company.name}
                                 </div>
-                            ) : (
-                                <input
-                                    type="text"
-                                    value={editData.name}
-                                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                                    className="input"
-                                    placeholder="Enter company name"
-                                />
-                            )}
+                            ) : ( */}
+                            <input
+                                type="text"
+                                value={editData.name}
+                                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                                className="input"
+                                placeholder="Enter company name"
+                            />
+                            {/* )} */}
                         </div>
 
                         {/* Description */}

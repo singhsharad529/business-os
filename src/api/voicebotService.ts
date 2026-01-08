@@ -110,10 +110,28 @@ const voiceBotService = {
     apiService.delete(`vapi/lead-database/${id}`, config),
   createLead: (data: any, config: AxiosRequestConfig) =>
     apiService.post("vapi/lead-database", data, config),
+  getCampaignStats: (config: AxiosRequestConfig) =>
+    apiService.get("scheduler/campaigns/stats", config),
   getCampaigns: (config: AxiosRequestConfig) =>
     apiService.get("scheduler/campaigns", config),
   getTimeZone: (config: AxiosRequestConfig) =>
     apiService.get("scheduler/timezones", config),
+  deleteCampaign: (id: string, config: AxiosRequestConfig) =>
+    apiService.delete(`scheduler/campaigns/${id}`, config),
+  createCampaign: (data: any, config: AxiosRequestConfig) =>
+    apiService.post(`scheduler/campaigns`, data, config),
+  getCalculatedEndDate: (data: any, config: AxiosRequestConfig) =>
+    apiService.post(`scheduler/calculatEndDate`, data, config),
+  getSingleCampaignStat: (id: string, config: AxiosRequestConfig) =>
+    apiService.get(`scheduler/campaigns/${id}/progress`, config),
+  getCampaignInfo: (id: string, config: AxiosRequestConfig) =>
+    apiService.get(`scheduler/campaigns/${id}`, config),
+  getCampaignLeads: (id: string, config: AxiosRequestConfig) =>
+    apiService.get(`scheduler/campaigns/${id}/leads`, config),
+  addLeadsToCampaign: (id: string, data: any, config: AxiosRequestConfig) =>
+    apiService.post(`scheduler/campaigns/${id}/reschedule`, data, config),
+  updateCampaignStatus: (id: string, data: any, config: AxiosRequestConfig) =>
+    apiService.patch(`scheduler/campaigns/${id}/status`, data, config),
 };
 
 export default voiceBotService;

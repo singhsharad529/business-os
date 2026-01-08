@@ -49,6 +49,8 @@ function VoicebotLeadDatabase() {
     const pagination = (leadDatabaseData as LeadDatabaseResponse)?.pagination;
 
     const filteredUsers = useMemo(() => {
+        if (!leads) return [];
+        if (!searchQuery) return leads;
         return leads.filter(user =>
             user.leadName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.leadEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
