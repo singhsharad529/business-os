@@ -21,7 +21,7 @@ export default function Pagination({
     const endRange = Math.min(currentPage * pageSize, totalCount);
 
     return (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border-subtle mt-4">
+        <div className="flex items-center justify-between px-4 py-2 border-t border-border-subtle mt-2">
             <div className="flex-1 flex justify-between sm:hidden">
                 <button
                     onClick={() => onPageChange(currentPage - 1)}
@@ -80,8 +80,8 @@ export default function Pagination({
                                     key={page}
                                     onClick={() => onPageChange(page)}
                                     className={`relative inline-flex items-center px-4 py-2 border border-border-subtle text-sm font-medium ${currentPage === page
-                                            ? "z-10 bg-primary border-primary text-white"
-                                            : "bg-bg-alt text-text-muted hover:bg-bg-alt/80"
+                                        ? "z-10 bg-primary border-primary text-white"
+                                        : "bg-bg-alt text-text-muted hover:bg-bg-alt/80"
                                         }`}
                                 >
                                     {page}

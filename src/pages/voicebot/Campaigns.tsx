@@ -1985,7 +1985,11 @@ export default function Campaigns() {
             >
                 <LeadFromDb
                     onClose={() => setIsAddLeadSheetOpen(false)}
-                    onSuccess={() => { }}
+                    onSuccess={() => {
+                        fetchCampaignLeads(campaignInfo.campaign_id, currentLeadsPage, campaignLeadsPageSize);
+                        setIsAddLeadSheetOpen(false);
+                    }}
+                    campaignId={campaignInfo?.campaign_id || ''}
                 />
             </SideSheet>
 

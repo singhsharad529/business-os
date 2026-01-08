@@ -10,9 +10,10 @@ interface LeadFromDbProps {
     onClose: () => void;
     onSuccess?: () => void;
     alreadySelectedIds?: string[];
+    campaignId?: string;
 }
 
-function LeadFromDb({ onClose, onSuccess }: LeadFromDbProps) {
+function LeadFromDb({ onClose, onSuccess, campaignId }: LeadFromDbProps) {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [pagination, setPagination] = useState<any>(null);
     const [leadSearchText, setLeadSearchText] = useState("");
@@ -20,6 +21,7 @@ function LeadFromDb({ onClose, onSuccess }: LeadFromDbProps) {
     const [leadsLoading, setLeadsLoading] = useState(true);
     const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [addLeadLoading, setAddLeadLoading] = useState(false)
 
     const defaultPageSize = 10;
 
@@ -68,6 +70,36 @@ function LeadFromDb({ onClose, onSuccess }: LeadFromDbProps) {
         );
     };
 
+
+    const handleSubmit = async () => {
+        console.log('selectedleads', selectedLeads);
+        const requestBody = {
+            lead_ids: selectedLeads
+        }
+
+        try {
+
+            setAddLeadLoading(true);
+            const response = await voiceBotService.addLeadsToCampaign(campaignId as string, requestBody, {});
+            console.log('response', response);
+            toast.success("Leads added successfully");
+            setAddLeadLoading(false);
+
+            if (onSuccess) {
+                onSuccess();
+            }
+
+        } catch (error) {
+            toast.danger("Failed to add leads to campaign");
+
+        }
+        finally {
+            setAddLeadLoading(false);
+        }
+
+
+
+    }
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
         fetchLeads(page, defaultPageSize);
@@ -78,7 +110,7 @@ function LeadFromDb({ onClose, onSuccess }: LeadFromDbProps) {
 
 
     return (
-        <div className="flex flex-col h-full space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+        <div className="flex flex-col h-full space-y-6 animate-in fade-in slide-in-from-right-4 duration-300 pb-4">
             {/* Search Bar */}
             <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-4">
@@ -170,20 +202,20 @@ function LeadFromDb({ onClose, onSuccess }: LeadFromDbProps) {
             </div>
 
 
-            <div className="flex items-center gap-3 pt-6 mt-6 border-t border-border-subtle">
+            <div className="flex items-center gap-3 pt-2 mt-4 border-t border-border-subtle mb-4 pb-4">
 
                 <button
                     onClick={onClose}
-                    className="flex-1 px-4 py-3 rounded-xl border border-border-subtle text-xs font-bold text-text-muted hover:bg-bg transition-all active:scale-95"
+                    className="flex-1 px-4 py-2 rounded-xl border border-border-subtle text-xs font-bold text-text-muted hover:bg-bg transition-all active:scale-95"
                 >
                     Cancel
                 </button>
 
                 <button
-                    onClick={onSuccess}
+                    onClick={handleSubmit}
                     className="flex-[2] btn btn-primary py-3 rounded-xl text-xs font-bold shadow-glow-sm flex items-center justify-center gap-2 group transition-all"
                 >
-                    Add Leads
+                    {addLeadLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add Leads"}
                 </button>
             </div>
 
