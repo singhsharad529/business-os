@@ -890,7 +890,7 @@ export default function Campaigns() {
                                             -
                                             {/* Today Marker */}
                                             <div
-                                                className="absolute top-0 flex flex-col items-center -translate-x-1/2 transition-all duration-1000 ease-out"
+                                                className="absolute top-[-12px] flex flex-col items-center -translate-x-1/2 transition-all duration-1000 ease-out"
                                                 style={{ left: `${Math.min(95, Math.max(5, ((new Date().getTime() - new Date(campaignInfo.created_at).getTime()) / ((new Date(campaignInfo.estimated_completion_date).getTime()) - new Date(campaignInfo.created_at).getTime())) * 100))}%` }}
                                             >
                                                 <div className="text-[9px] font-black text-primary bg-primary-soft/50 px-2 py-0.5 rounded-full border border-primary-soft/50 mb-1 backdrop-blur-sm">TODAY</div>
@@ -1063,7 +1063,7 @@ export default function Campaigns() {
                                                                         <table className="w-full">
                                                                             <thead>
                                                                                 <tr className="border-b border-border-subtle">
-                                                                                    <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
+                                                                                    {/* <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th> */}
                                                                                     {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>}
                                                                                     {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>}
                                                                                     {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>}
@@ -1087,20 +1087,25 @@ export default function Campaigns() {
                                                                             <tbody className="divide-y divide-border-subtle/50">
                                                                                 {filteredCampaignLeads.map((user: any, i: number) => (
                                                                                     <tr key={user.id} className={`hover:bg-bg-alt/30 transition-colors`}>
-                                                                                        <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
+                                                                                        {/* <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td> */}
                                                                                         {<td className="py-4 px-3 text-sm text-text-main font-medium">{user.lead_email}</td>}
                                                                                         {<td className="py-4 px-3 text-sm text-text-muted">{user.lead_name}</td>}
                                                                                         {<td className="py-4 px-3 text-sm text-text-muted">{user.lead_company}</td>}
                                                                                         {<td className="py-4 px-3 text-sm text-text-muted">{user.lead_phone_number}</td>}
 
-                                                                                        <td className="py-4 px-3">
-                                                                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-bg-alt text-text-muted`}>
-                                                                                                {user.lead_expertise_domain}
-                                                                                            </span>
+                                                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                            {user.lead_expertise_domain}
                                                                                         </td>
 
                                                                                         {<td className="py-4 px-3 text-sm text-text-muted">
-                                                                                            {user.last_called_at}
+                                                                                            {new Date(user.last_called_at).toLocaleString("en-GB", {
+                                                                                                day: "2-digit",
+                                                                                                month: "2-digit",
+                                                                                                year: "numeric",
+                                                                                                hour: "2-digit",
+                                                                                                minute: "2-digit",
+                                                                                                hour12: false,
+                                                                                            })}
                                                                                         </td>}
                                                                                         <td className="py-4 px-3 text-sm text-text-muted">
                                                                                             {user.total_scheduled_calls}
