@@ -42,13 +42,12 @@ import { Loader2 } from "lucide-react";
 import axios, { AxiosRequestConfig } from "axios";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lead } from "@/types/voicebotTypes";
 import { LeadDetails } from "@/components/voicebot/LeadDetails";
-import AddLead from "@/components/voicebot/AddLead";
 import { EditCampaign } from "@/components/voicebot/EditCampaign";
 import LeadFromDb from "@/components/voicebot/LeadFromDB";
 import TableLoader from "@/components/common/TableLoader";
 import { AlertDialog } from "@/components/ui/AlertDialog";
+import Pagination from "@/components/common/Pagination";
 
 interface Campaign {
     campaign_id: string;
@@ -108,12 +107,14 @@ export default function Campaigns() {
     const [singleCampaignStats, setSingleCampaignStats] = useState<any>(null);
     const [campaignLeadsLoading, setCampaignLeadsLoading] = useState(false);
     const [campaignLeads, setCampaignLeads] = useState<any>(null);
+
+    const [campaignLeadsPagination, setCampaignLeadsPagination] = useState<any>(null);
+    const [campaignCreateLeadsPagination, setCampaignCreateLeadsPagination] = useState<any>(null);
+    const [calculatedEndDate, setCalculatedEndDate] = useState<any>(null);
+    const [calculatedEndDateLoader, setCalculatedEndDateLoader] = useState(false);
+
     const [currentLeadsPage, setCurrentLeadsPage] = useState<number>(1);
     const [campaignInfoLoadingId, setCampaignInfoLoadingId] = useState<string>("");
-
-
-
-
 
 
     const [templateStep, setTemplateStep] = useState<"select-template" | "link-number">("select-template");
@@ -156,8 +157,6 @@ export default function Campaigns() {
     ];
 
 
-
-
     const fetchCampaignStats = async () => {
         try {
 
@@ -197,14 +196,19 @@ export default function Campaigns() {
         }
     }
 
+    const campaignCreateLeadsPageSize = 10;
 
-    const fetchLeads = async () => {
+    // fetch leads while creating campaign
+    const fetchLeads = async (page: number, pageSize: number = campaignCreateLeadsPageSize) => {
         setLeadsLoading(true);
         try {
             // Fetching a large page size for campaign selection, or we could implement proper pagination/search later
-            const response = await voiceBotService.getLeadDatabaseData({ page: 1, page_size: 100 }, {});
+            const response = await voiceBotService.getLeadDatabaseData({ page, page_size: pageSize }, {});
             if (response && response.leads) {
                 setApiLeads(response.leads);
+            }
+            if (response && response.pagination) {
+                setCampaignCreateLeadsPagination(response.pagination);
             }
         } catch (error) {
             console.error("Failed to fetch leads:", error);
@@ -212,6 +216,11 @@ export default function Campaigns() {
         } finally {
             setLeadsLoading(false);
         }
+    };
+
+    const handleCampaignCreateLeadsPageChange = (page: number) => {
+        setCurrentLeadsPage(page);
+        fetchLeads(page, campaignCreateLeadsPageSize);
     };
 
     const fetchTimeZone = async () => {
@@ -228,7 +237,7 @@ export default function Campaigns() {
 
 
     const campaignLeadsPageSize = 10;
-
+    // fetch leads in the campaign view
     const fetchCampaignLeads = async (id: string, page: number = 1, pageSize: number = campaignLeadsPageSize) => {
         try {
             setCampaignLeadsLoading(true);
@@ -240,6 +249,9 @@ export default function Campaigns() {
             if (response && response.leads) {
                 setCampaignLeads(response.leads);
             }
+            if (response && response.pagination) {
+                setCampaignLeadsPagination(response.pagination)
+            }
         } catch (error) {
             console.error("Failed to fetch campaign leads:", error);
             toast.danger("Failed to load campaign leads. Please try again.");
@@ -247,6 +259,11 @@ export default function Campaigns() {
             setCampaignLeadsLoading(false);
         }
     }
+
+    const handleCampaignLeadsPageChange = (page: number) => {
+        setCurrentLeadsPage(page);
+        fetchCampaignLeads(campaignInfo?.campaign_id, page, campaignLeadsPageSize);
+    };
 
     const fetchCampaignInfo = async (id: string) => {
         try {
@@ -382,8 +399,8 @@ export default function Campaigns() {
         setStartTime("01");
         setEndTime("15");
         setLeadSearchText("");
+        setCalculatedEndDate(null);
     };
-
 
     // fetching unassigned numbers
     const fetchNumbers = async () => {
@@ -430,6 +447,11 @@ export default function Campaigns() {
 
     const handleLaunch = async () => {
 
+        if (!selectedLeads.length || !selectedTemplate || !timeZone || !callsPerDay || !selectedNumber || !startDate || !campaignName || !startTime || !endTime) {
+            toast.danger("Please fill all the required fields");
+            return;
+        }
+
         console.log('selected leads', selectedLeads);
         console.log('selectedTemplate', selectedTemplate);
         console.log('timeZone', timeZone);
@@ -442,12 +464,6 @@ export default function Campaigns() {
         console.log('campaignName', campaignName);
         console.log('startTime', startTime);
         console.log('endTime', endTime);
-
-        const folloupConfig: any = {}
-
-        for (let i = 0; i < followUpDelays.length; i++) {
-            folloupConfig[`followup${i + 1}_days`] = followUpDelays[i];
-        }
 
 
         const campaignRequestBody = {
@@ -477,7 +493,7 @@ export default function Campaigns() {
         try {
             setCampaignCreatingLoading(true);
             const response = await voiceBotService.createCampaign(campaignRequestBody, {});
-            // console.log(response);
+            console.log(response);
             toast.success("Campaign launched successfully!");
             fetchCampaigns("");
             resetForm();
@@ -494,6 +510,46 @@ export default function Campaigns() {
 
     };
 
+    const fetchcalculatedEndDate = async () => {
+        try {
+
+            if (!startDate || !timeZone || !startTime || !endTime || !callsPerDay) {
+                toast.danger("Please fill all the required fields");
+                return;
+            }
+
+
+            let folloupConfig: any = {};
+            for (let i = 0; i < followUpDelays.length; i++) {
+                folloupConfig[`followup${i + 1}_days`] = followUpDelays[i];
+            }
+
+            setCalculatedEndDateLoader(true);
+            const campaignRequestBody = {
+                lead_ids: selectedLeads,
+                timezone: timeZone,
+                call_hours: {
+                    start_hour: startTime,
+                    end_hour: endTime
+                },
+                followup_config: folloupConfig,
+                max_calls_per_day: callsPerDay,
+                start_date: startDate
+            }
+
+            console.log('campaignRequestBody', campaignRequestBody);
+
+            const response = await voiceBotService.getCalculatedEndDate(campaignRequestBody, {});
+            console.log(response);
+            setCalculatedEndDate(response);
+        } catch (error) {
+            console.log(error);
+            toast.danger("Failed to fetch calculated end date");
+        }
+        finally {
+            setCalculatedEndDateLoader(false);
+        }
+    }
 
     // get agent templates
     const getAgentTemplates = async (page: number = 1, pageSize: number = 10) => {
@@ -518,9 +574,6 @@ export default function Campaigns() {
     }
 
 
-    const selectLead = () => {
-
-    }
 
     return (
         <>
@@ -1081,6 +1134,16 @@ export default function Campaigns() {
                                                                                 ))}
                                                                             </tbody>
                                                                         </table>
+
+                                                                        {campaignLeadsPagination && (
+                                                                            <Pagination
+                                                                                currentPage={campaignLeadsPagination?.page}
+                                                                                totalPages={campaignLeadsPagination?.totalPages}
+                                                                                pageSize={campaignLeadsPagination?.pageSize}
+                                                                                totalCount={campaignLeadsPagination?.totalCount}
+                                                                                onPageChange={handleCampaignLeadsPageChange}
+                                                                            />
+                                                                        )}
                                                                     </div>
 
                                                                 ) :
@@ -1280,6 +1343,15 @@ export default function Campaigns() {
                                             </div>
                                         )}
                                     </div>
+                                    {campaignCreateLeadsPagination && (
+                                        <Pagination
+                                            currentPage={campaignCreateLeadsPagination?.page}
+                                            totalPages={campaignCreateLeadsPagination?.totalPages}
+                                            pageSize={campaignCreateLeadsPagination?.pageSize}
+                                            totalCount={campaignCreateLeadsPagination?.totalCount}
+                                            onPageChange={handleCampaignCreateLeadsPageChange}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -1388,24 +1460,6 @@ export default function Campaigns() {
                                                 </Select>
                                             )
                                         }
-                                    </div>
-                                </div>
-                                <div className="space-y-4">
-                                    <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-primary" />
-                                        Campaign Duration
-                                    </h4>
-                                    <div className="grid grid-cols-2 gap-4 w-full">
-                                        <div className="space-y-1.5 w-full">
-                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Start Date</label>
-                                            <input
-                                                type="date"
-                                                value={startDate}
-                                                onChange={(e) => setStartDate(e.target.value)}
-                                                className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none"
-                                            />
-                                        </div>
-
                                     </div>
                                 </div>
 
@@ -1752,6 +1806,52 @@ export default function Campaigns() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 mb-1">
+                                    <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-primary" />
+                                        Campaign Duration
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-4 w-full">
+                                        <div className="space-y-1.5 w-full">
+                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Start Date</label>
+                                            <input
+                                                type="date"
+                                                value={startDate}
+                                                onChange={(e) => setStartDate(e.target.value)}
+                                                className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+                                            />
+                                        </div>
+
+                                        <div className={`space-y-1.5 w-full ${calculatedEndDate ? '' : 'mt-1'}`}>
+                                            <label className="flex flex-col gap-1 text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Estimated End Date</label>
+
+                                            {
+                                                calculatedEndDate ? (
+                                                    <input
+                                                        type="date"
+                                                        value={calculatedEndDate?.estimated_end_date?.split("T")[0]}
+                                                        // onChange={(e) => setStartDate(e.target.value)}
+                                                        disabled
+                                                        className="w-full px-4 py-3 rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+                                                    />
+                                                ) :
+                                                    (
+                                                        <>
+                                                            <button
+                                                                onClick={fetchcalculatedEndDate}
+                                                                className="btn btn-primary"
+                                                            >
+                                                                {calculatedEndDateLoader ? `Calculating...` : 'Calculate End Date'}
+                                                            </button>
+                                                        </>
+                                                    )
+                                            }
+
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
