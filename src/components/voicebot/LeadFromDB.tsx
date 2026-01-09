@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { Search, Loader2, Check, Mail, Briefcase } from "lucide-react"
+import { Search, Loader2, Check, Mail, Briefcase, RotateCcw, XCircle, ChevronRight } from "lucide-react"
 import voiceBotService from "@/api/voicebotService"
 import { toast } from "@/hooks/useToast"
 import { Lead } from "@/types/voicebotTypes"
@@ -21,7 +21,69 @@ function LeadFromDb({ onClose, onSuccess, campaignId }: LeadFromDbProps) {
     const [leadsLoading, setLeadsLoading] = useState(true);
     const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [addLeadLoading, setAddLeadLoading] = useState(false)
+    const [addLeadLoading, setAddLeadLoading] = useState(false);
+
+    // Category Search State
+    const [selectedCategory, setSelectedCategory] = useState<string>("all");
+    const [categorySelections, setCategorySelections] = useState<Record<string, string[]>>({
+        company: [],
+        domain: [],
+        industry: []
+    });
+    const [isSubCategoryOpen, setIsSubCategoryOpen] = useState(false);
+
+    // State for filtering on button click
+    const [appliedFiltersState, setAppliedFiltersState] = useState({
+        text: "",
+        column: "all",
+        category: "all",
+        selections: {} as Record<string, string[]>
+    });
+
+    const SEARCH_CATEGORIES = [
+        { label: "All Categories", value: "all" },
+        { label: "Company", value: "company" },
+        { label: "Domain", value: "domain" },
+    ];
+
+    const CATEGORY_MOCK_DATA: Record<string, string[]> = {
+        company: ["EcoHarvest", "NeuroByte AI", "CareFlow", "CareFlow"],
+        domain: ["AgriTech", "AI", "Healthcare SaaS", "Education", "Real Estate"],
+    };
+
+    const handleToggleCategoryValue = (value: string) => {
+        if (selectedCategory === "all") return;
+        setCategorySelections(prev => {
+            const current = prev[selectedCategory] || [];
+            const updated = current.includes(value)
+                ? current.filter(v => v !== value)
+                : [...current, value];
+            return { ...prev, [selectedCategory]: updated };
+        });
+    };
+
+    const handleApplyFilters = () => {
+        setAppliedFiltersState({
+            text: leadSearchText,
+            column: leadColumnFilter,
+            category: selectedCategory,
+            selections: { ...categorySelections }
+        });
+    };
+
+    const resetLeadFilters = () => {
+        setLeadSearchText("");
+        setLeadColumnFilter("all");
+        setSelectedCategory("all");
+        setCategorySelections({ company: [], domain: [], industry: [] });
+        setAppliedFiltersState({
+            text: "",
+            column: "all",
+            category: "all",
+            selections: { company: [], domain: [], industry: [] }
+        });
+        setIsSubCategoryOpen(false);
+    };
 
     const defaultPageSize = 10;
 
@@ -122,8 +184,8 @@ function LeadFromDb({ onClose, onSuccess, campaignId }: LeadFromDbProps) {
                         <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{selectedLeads.length} selected</span>
                     </div>
 
-                    <div className="flex flex-col md:flex-row gap-2">
-                        <div className="relative w-[50%]">
+                    <div className="flex flex-col gap-2">
+                        <div className="relative w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                             <input
                                 type="text"
@@ -133,22 +195,121 @@ function LeadFromDb({ onClose, onSuccess, campaignId }: LeadFromDbProps) {
                                 onChange={(e) => setLeadSearchText(e.target.value)}
                             />
                         </div>
-                        <div className="w-[50%]">
-                            <Select
-                                value={leadColumnFilter}
-                                onValueChange={(value) => setLeadColumnFilter(value)}
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <div className="w-[60%]">
+                                <Select
+                                    value={selectedCategory}
+                                    onValueChange={(val) => {
+                                        setSelectedCategory(val);
+                                        setIsSubCategoryOpen(false);
+                                    }}
+                                >
+                                    <SelectTrigger className="w-full bg-bg border-border-subtle rounded-xl text-sm relative">
+                                        <SelectValue placeholder="Search by Category" />
+                                        {Object.values(categorySelections).some(arr => arr.length > 0) && (
+                                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border border-white shadow-sm" />
+                                        )}
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {SEARCH_CATEGORIES.map(cat => (
+                                            <SelectItem key={cat.value} value={cat.value} className="relative">
+                                                <div className="flex items-center justify-between w-full pr-4">
+                                                    <span>{cat.label}</span>
+                                                    {categorySelections[cat.value]?.length > 0 && (
+                                                        <span className="text-[10px] bg-primary/10 text-primary px-1.5 rounded-md font-bold">
+                                                            {categorySelections[cat.value].length}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a column" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Fields</SelectItem>
-                                    <SelectItem value="name">Name</SelectItem>
-                                    <SelectItem value="email">Email</SelectItem>
-                                    <SelectItem value="company">Company</SelectItem>
-                                </SelectContent>
-                            </Select>
+
+                            <div className="flex items-center gap-2 w-[40%]">
+
+                                <button
+                                    onClick={handleApplyFilters}
+                                    className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-primary hover:bg-primary-dark transition-all py-1.5 px-4 rounded-xl active:scale-95"
+                                >
+                                    <Search className="w-3 h-3" />
+                                    Apply Filters
+                                </button>
+                                <button
+                                    onClick={resetLeadFilters}
+                                    className="flex items-center gap-1.5 text-[10px] font-bold text-text-muted hover:text-primary transition-colors py-1.5 px-3 rounded-xl hover:bg-primary/5 border border-transparent hover:border-primary/20"
+                                >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Reset
+                                </button>
+                            </div>
+
+
+                        </div>
+
+                        <div>
+                            {selectedCategory !== "all" && (
+                                <div className="relative animate-in fade-in slide-in-from-left-2 duration-300">
+                                    <div className="relative">
+                                        <div
+                                            onClick={() => setIsSubCategoryOpen(!isSubCategoryOpen)}
+                                            className={`w-full bg-bg border ${isSubCategoryOpen ? 'border-primary' : 'border-border-subtle'} rounded-xl text-sm p-2 min-h-[40px] flex flex-wrap gap-1 items-center cursor-pointer hover:border-primary/50 transition-all pr-8`}
+                                        >
+                                            {(categorySelections[selectedCategory]?.length ?? 0) === 0 ? (
+                                                <span className="text-text-muted px-2">Select {selectedCategory}...</span>
+                                            ) : (
+                                                categorySelections[selectedCategory].map(val => (
+                                                    <span key={val} className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 group/pill">
+                                                        {val}
+                                                        <XCircle
+                                                            className="w-3 h-3 cursor-pointer hover:text-danger transition-colors"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleToggleCategoryValue(val);
+                                                            }}
+                                                        />
+                                                    </span>
+                                                ))
+                                            )}
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted">
+                                                <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${isSubCategoryOpen ? 'rotate-90' : ''}`} />
+                                            </div>
+                                        </div>
+
+                                        {/* Custom Dropdown Content */}
+                                        {isSubCategoryOpen && (
+                                            <>
+                                                <div
+                                                    className="fixed inset-0 z-[90]"
+                                                    onClick={() => setIsSubCategoryOpen(false)}
+                                                />
+                                                <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-bg border border-border-subtle rounded-xl shadow-lg z-[100] max-h-[220px] overflow-y-auto p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <div className="px-2 py-1.5 mb-1 border-b border-border-subtle/50 font-bold text-[10px] text-text-muted uppercase tracking-wider">
+                                                        {selectedCategory} Options
+                                                    </div>
+                                                    {CATEGORY_MOCK_DATA[selectedCategory]?.map(val => (
+                                                        <div
+                                                            key={val}
+                                                            onClick={() => handleToggleCategoryValue(val)}
+                                                            className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors h-[40px] overflow-y-auto ${(categorySelections[selectedCategory] || []).includes(val)
+                                                                ? 'bg-primary/5 text-primary'
+                                                                : 'hover:bg-bg-alt text-text-main'
+                                                                }`}
+                                                        >
+                                                            <span className="text-xs">{val}</span>
+                                                            {(categorySelections[selectedCategory] || []).includes(val) && (
+                                                                <Check className="w-3.5 h-3.5 text-primary" />
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -1436,7 +1436,7 @@ export default function Campaigns() {
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col md:flex-row gap-2">
+                                        <div className="flex flex-col sm:flex-row gap-2">
                                             <div className="w-[60%]">
                                                 <Select
                                                     value={selectedCategory}
