@@ -158,10 +158,10 @@ export default function VoicebotCalls() {
     };
 
     const getCallReports = async (agent: any) => {
-        if (!agent.vapiId || !agent.phoneNumbers?.[0]?.vapiId) {
-            toast.danger("Agent or Phone Number ID missing");
-            return;
-        }
+        // if (!agent.vapiId || !agent.phoneNumbers?.[0]?.vapiId) {
+        //     toast.danger("Agent or Phone Number ID missing");
+        //     return;
+        // }
 
         try {
             setLoading(true);
@@ -172,13 +172,13 @@ export default function VoicebotCalls() {
             setSentimentFilter([]);
             const response = await voiceBotService.getAgentCallReports({
                 assistantId: agent.vapiId,
-                phoneNumberId: agent.phoneNumbers[0].vapiId,
+                phoneNumberId: agent.phoneNumbers?.[0]?.vapiId,
                 page: 1,
                 page_size: 20
             }, {});
             setCallLogs(response.reports || []);
         } catch (error) {
-            // console.error(error);
+            console.error(error);
             toast.danger("Failed to get call reports");
         } finally {
             setLoading(false);
