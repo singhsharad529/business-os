@@ -31,6 +31,8 @@ const voiceBotService = {
     apiService.delete(`vapi/assistants/${id}`, config),
   updateAgent: (vapiId: string, data: any, config: AxiosRequestConfig) =>
     apiService.patch(`vapi/assistants/${vapiId}`, data, config),
+  updateAgentStatus: (vapiId: string, data: any, config: AxiosRequestConfig) =>
+    apiService.patch(`vapi/assistants/${vapiId}/toggle-status`, data, config),
   getCallLogs: (config: AxiosRequestConfig) =>
     apiService.get("vapi/call-logs", config),
   linkPhoneNumber: (
