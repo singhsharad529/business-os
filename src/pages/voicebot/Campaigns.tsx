@@ -74,6 +74,7 @@ export default function Campaigns() {
     const [currentStep, setCurrentStep] = useState(1);
 
     const [apiLeads, setApiLeads] = useState<any[]>([]);
+    const [leadsCategories, setLeadsCategories] = useState<any[]>([]);
     const [campaignStatLoading, setCampaignStatLoading] = useState(false);
     const [campaignsLoading, setCampaignsLoading] = useState(false);
 
@@ -143,15 +144,7 @@ export default function Campaigns() {
     const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
     const [timeZones, setTimeZones] = useState<Record<string, { value: string; label: string; offset: string }[]> | null>(null);
 
-    // Column Visibility State
-    const [visibleColumns, setVisibleColumns] = useState({
-        email: true,
-        name: true,
-        company: true,
-        phone: true,
-        expertise: true,
-        lastCalled: true
-    });
+
 
     const CAMPAIGN_CALLS = [
         { id: "call1", vapiId: "mock-vapi-1", phoneNumber: "+1 (555) 123-4567", name: "John Doe", status: "Completed", duration: "2m 30s", date: "2025-12-28 10:30 AM" },
@@ -160,6 +153,76 @@ export default function Campaigns() {
         { id: "call4", vapiId: "mock-vapi-4", phoneNumber: "+1 (555) 234-5678", name: "Alice Brown", status: "Completed", duration: "1m 15s", date: "2025-12-28 01:45 PM" },
         { id: "call5", vapiId: "mock-vapi-5", phoneNumber: "+1 (555) 876-5432", name: "Charlie Davis", status: "Completed", duration: "3m 20s", date: "2025-12-28 02:30 PM" },
     ];
+
+
+    // Filtering for Leads in Sidesheet
+    const [leadSearchText, setLeadSearchText] = useState("");
+
+
+    // Category Search State
+    const [selectedCategory, setSelectedCategory] = useState<string>("all");
+    const [categorySelections, setCategorySelections] = useState<Record<string, string[]>>({
+        company: [],
+        domain: [],
+        industry: []
+    });
+    const [isSubCategoryOpen, setIsSubCategoryOpen] = useState(false);
+
+    // State for filtering on button click
+    const [appliedFiltersState, setAppliedFiltersState] = useState({
+        category: "all",
+        selections: {} as Record<string, string[]>
+    });
+
+    const SEARCH_CATEGORIES = [
+        { label: "All Categories", value: "all" },
+        { label: "Company", value: "company" },
+        { label: "Domain", value: "domain" },
+    ];
+
+    const [searchCategories, setSearchCategories] = useState<any>(null);
+    const [categoryData, setCategoryData] = useState<any>(null);
+
+    const CATEGORY_MOCK_DATA: Record<string, string[]> = {
+        company: ["EcoHarvest", "NeuroByte AI", "CareFlow", "CareFlow"],
+        domain: ["AgriTech", "AI", "Healthcare SaaS", "Education", "Real Estate"],
+    };
+
+    const handleToggleCategoryValue = (value: string) => {
+        if (selectedCategory === "all") return;
+        setCategorySelections(prev => {
+            const current = prev[selectedCategory] || [];
+            const updated = current.includes(value)
+                ? current.filter(v => v !== value)
+                : [...current, value];
+            return { ...prev, [selectedCategory]: updated };
+        });
+    };
+
+    const handleApplyFilters = () => {
+        setAppliedFiltersState({
+            category: selectedCategory,
+            selections: { ...categorySelections }
+        });
+    };
+
+    const resetLeadFilters = () => {
+        setSelectedCategory("all");
+        setCategorySelections(
+            Object.keys(categorySelections).reduce<Record<string, string[]>>(
+                (acc, key) => {
+                    acc[key] = [];
+                    return acc;
+                },
+                {}
+            )
+        );
+        setAppliedFiltersState({
+            category: "all",
+            selections: { company: [], domain: [], industry: [] }
+        });
+        setIsSubCategoryOpen(false);
+    };
 
 
     const fetchCampaignStats = async () => {
@@ -199,6 +262,44 @@ export default function Campaigns() {
         finally {
             setCampaignsLoading(false);
         }
+    }
+
+
+    // fetch lead filter categories
+    const fetchLeadsCategories = async () => {
+        try {
+
+            const response = await voiceBotService.getLeadsCategories({});
+
+            if (response) {
+                let searchCategoryTemp = response.map((item: any) => ({
+                    label: item.category.charAt(0).toUpperCase() + item.category.slice(1),
+                    value: item.category,
+                }));
+
+                searchCategoryTemp.unshift({ label: "All Categories", value: "all" });
+
+                setSearchCategories(searchCategoryTemp);
+                const transformCategoryData = response.reduce((acc: any, item: any) => {
+                    acc[item.category] = item.subcategories;
+                    return acc;
+                }, {});
+
+                setCategoryData(transformCategoryData);
+
+                setCategorySelections(response.reduce(
+                    (acc: any, item: any) => {
+                        acc[item.category] = [];
+                        return acc;
+                    },
+                    {}
+                ));
+            }
+        } catch (error) {
+            console.error("Failed to fetch leads categories:", error);
+            toast.danger("Failed to load leads categories. Please try again.");
+        }
+
     }
 
     const campaignCreateLeadsPageSize = 10;
@@ -301,6 +402,7 @@ export default function Campaigns() {
         if (isCampaignSheetOpen) {
             fetchTimeZone();
             fetchLeads(1, 10);
+            fetchLeadsCategories()
             // getAllAgents();
         }
     }, [isCampaignSheetOpen]);
@@ -346,93 +448,23 @@ export default function Campaigns() {
         }
     };
 
-    // Filtering for Leads in Sidesheet
-    const [leadSearchText, setLeadSearchText] = useState("");
-    const [leadColumnFilter, setLeadColumnFilter] = useState("all");
 
-    // Category Search State
-    const [selectedCategory, setSelectedCategory] = useState<string>("all");
-    const [categorySelections, setCategorySelections] = useState<Record<string, string[]>>({
-        company: [],
-        domain: [],
-        industry: []
-    });
-    const [isSubCategoryOpen, setIsSubCategoryOpen] = useState(false);
-
-    // State for filtering on button click
-    const [appliedFiltersState, setAppliedFiltersState] = useState({
-        text: "",
-        column: "all",
-        category: "all",
-        selections: {} as Record<string, string[]>
-    });
-
-    const SEARCH_CATEGORIES = [
-        { label: "All Categories", value: "all" },
-        { label: "Company", value: "company" },
-        { label: "Domain", value: "domain" },
-    ];
-
-    const CATEGORY_MOCK_DATA: Record<string, string[]> = {
-        company: ["EcoHarvest", "NeuroByte AI", "CareFlow", "CareFlow"],
-        domain: ["AgriTech", "AI", "Healthcare SaaS", "Education", "Real Estate"],
-    };
-
-    const handleToggleCategoryValue = (value: string) => {
-        if (selectedCategory === "all") return;
-        setCategorySelections(prev => {
-            const current = prev[selectedCategory] || [];
-            const updated = current.includes(value)
-                ? current.filter(v => v !== value)
-                : [...current, value];
-            return { ...prev, [selectedCategory]: updated };
-        });
-    };
-
-    const handleApplyFilters = () => {
-        setAppliedFiltersState({
-            text: leadSearchText,
-            column: leadColumnFilter,
-            category: selectedCategory,
-            selections: { ...categorySelections }
-        });
-    };
-
-    const resetLeadFilters = () => {
-        setLeadSearchText("");
-        setLeadColumnFilter("all");
-        setSelectedCategory("all");
-        setCategorySelections({ company: [], domain: [], industry: [] });
-        setAppliedFiltersState({
-            text: "",
-            column: "all",
-            category: "all",
-            selections: { company: [], domain: [], industry: [] }
-        });
-        setIsSubCategoryOpen(false);
-    };
 
 
     const filteredLeads = useMemo(() => {
+
+        if (!leadSearchText)
+            return apiLeads;
 
         if (!apiLeads || apiLeads.length === 0)
             return [];
 
         return apiLeads.filter((lead: any) => {
             const searchLower = leadSearchText.toLowerCase();
-            if (leadColumnFilter === "all") {
-                return (
-                    lead.leadName?.toLowerCase().includes(searchLower) ||
-                    lead.leadEmail?.toLowerCase().includes(searchLower) ||
-                    lead.leadCompany?.toLowerCase().includes(searchLower)
-                );
-            }
-            if (leadColumnFilter === "name") return lead.leadName?.toLowerCase().includes(searchLower);
-            if (leadColumnFilter === "email") return lead.leadEmail?.toLowerCase().includes(searchLower);
-            if (leadColumnFilter === "company") return lead.leadCompany?.toLowerCase().includes(searchLower);
-            return true;
+            return lead.leadName?.toLowerCase().includes(searchLower) || lead.leadEmail?.toLowerCase().includes(searchLower) || lead.leadCompany?.toLowerCase().includes(searchLower);
         });
-    }, [apiLeads, leadSearchText, leadColumnFilter]);
+    }, [apiLeads, leadSearchText]);
+
 
     const filteredCampaignLeads = useMemo(() => {
 
@@ -481,13 +513,9 @@ export default function Campaigns() {
         setTimeZone("");
         setStartTime("01");
         setEndTime("15");
-        setLeadSearchText("");
-        setLeadColumnFilter("all");
         setSelectedCategory("all");
         setCategorySelections({ company: [], domain: [], industry: [] });
         setAppliedFiltersState({
-            text: "",
-            column: "all",
             category: "all",
             selections: { company: [], domain: [], industry: [] }
         });
@@ -1452,7 +1480,7 @@ export default function Campaigns() {
                                                         )}
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {SEARCH_CATEGORIES.map(cat => (
+                                                        {searchCategories && searchCategories.length > 0 && searchCategories.map((cat: any) => (
                                                             <SelectItem key={cat.value} value={cat.value} className="relative">
                                                                 <div className="flex items-center justify-between w-full pr-4">
                                                                     <span>{cat.label}</span>
@@ -1530,7 +1558,7 @@ export default function Campaigns() {
                                                                     <div className="px-2 py-1.5 mb-1 border-b border-border-subtle/50 font-bold text-[10px] text-text-muted uppercase tracking-wider">
                                                                         {selectedCategory} Options
                                                                     </div>
-                                                                    {CATEGORY_MOCK_DATA[selectedCategory]?.map(val => (
+                                                                    {categoryData[selectedCategory] && categoryData[selectedCategory]?.map((val: any) => (
                                                                         <div
                                                                             key={val}
                                                                             onClick={() => handleToggleCategoryValue(val)}
