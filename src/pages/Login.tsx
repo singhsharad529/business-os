@@ -84,16 +84,16 @@ export function Login() {
 
             {/* Role Selection */}
             <div>
-              {/* <label className="block text-sm font-medium text-text-main mb-2">
+              <label className="block text-sm font-medium text-text-main mb-2">
                 Select Role
-              </label> */}
+              </label>
 
 
-              {/* <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setRole('super_admin')}
-                  className={`flex items-center flex-col justify-center gap-2 border rounded-lg py-3 transition-all
+                  className={`flex items-center justify-center gap-2 border rounded-lg py-3 transition-all
         ${role === 'super_admin'
                       ? 'bg-primary-soft text-black border-primary shadow-sm'
                       : 'border-border-muted text-text-muted hover:bg-surface'
@@ -106,17 +106,17 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setRole('company_admin')}
-                  className={`flex items-center flex-col justify-center gap-2 border rounded-lg py-3 px-1 transition-all
+                  className={`flex items-center justify-center gap-2 border rounded-lg py-3 px-1 transition-all
         ${role === 'company_admin'
                       ? 'bg-primary-soft text-black border-primary shadow-sm'
                       : 'border-border-muted text-text-muted hover:bg-surface'
                     }`}
                 >
                   <Building2 className="w-4 h-4" />
-                  <span className="text-sm font-medium">Company Admin</span>
+                  <span className="text-sm font-medium">Company User</span>
                 </button>
 
-                <button
+                {/* <button
                   type="button"
                   onClick={() => setRole('standard_user')}
                   className={`flex items-center flex-col justify-center gap-2 border rounded-lg py-3 transition-all
@@ -127,8 +127,8 @@ export function Login() {
                 >
                   <User className="w-4 h-4" />
                   <span className="text-sm font-medium">User</span>
-                </button>
-              </div> */}
+                </button> */}
+              </div>
             </div>
 
 

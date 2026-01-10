@@ -90,157 +90,160 @@ export const navigationConfig: NavigationConfig = {
   navigation: {
     main: [
       {
-        id: "home",
-        label: "Home",
-        icon: "home",
-        route: "/app/company/dashboard",
-        roles: ["company_admin", "standard_user"],
+        id: "voicebot-dashboard",
+        label: "Dashboard",
+        icon: "dashboard",
+        route: "/app/voicebot/dashboard",
+        roles: ["company_admin"],
         children: [
           {
             id: "dashboard",
             label: "Dashboard",
-            route: "/app/company/dashboard"
+            route: "/app/voicebot/dashboard"
           }
         ]
       },
       {
-        id: "voice_bot",
-        label: "Voice Bot",
-        icon: "mic",
-        route: "/app/voicebot/dashboard",
-        roles: ["company_admin", "standard_user"],
+        id: "inbound-calls",
+        label: "Inbound Calls",
+        icon: "phone",
+        route: "voicebot/calls",
+        roles: ["company_admin",],
         children: [
-          {
-            id: "voice_overview",
-            label: "Overview",
-            route: "/app/voicebot/dashboard"
-          },
           {
             id: "voice_calls",
             label: "Calls",
             route: "/app/voicebot/calls"
           },
-          // {
-          //   id: "voice_crm",
-          //   label: "CRM",
-          //   route: "/app/voicebot/crm"
-          // },
-          // {
-          //   id: "insights",
-          //   label: "Insights",
-          //   route: "/app/voicebot/insights"
-          // },
+        ]
+      },
+      {
+        id: "leads_database",
+        label: "Leads Database",
+        route: "/app/voicebot/leads-database",
+        roles: ["company_admin"],
+        icon: "user_cog",
+        children: [
           {
             id: "leads_database",
             label: "Leads Database",
             route: "/app/voicebot/leads-database"
           },
-          {
-            id: "campaigns",
-            label: "Campaigns",
-            route: "/app/voicebot/campaigns"
-          },
         ]
       },
-      {
-        id: "apps",
-        label: "Apps",
-        icon: "grid",
-        route: "/app/apps/entities/contacts",
-        roles: ["company_admin", "standard_user"],
-        children: [
+      // {
+      //   id: "campaigns",
+      //   label: "Campaigns",
+      //   icon: "mic",
+      //   route: "/app/voicebot/campaigns",
+      //   roles: ["company_admin",],
+      //   children: [
+      //     {
+      //       id: "campaigns",
+      //       label: "Campaigns",
+      //       route: "/app/voicebot/campaigns"
+      //     },
+      //   ]
+      // },
+      // {
+      //   id: "apps",
+      //   label: "Apps",
+      //   icon: "grid",
+      //   route: "/app/apps/entities/contacts",
+      //   roles: ["company_admin", "standard_user"],
+      //   children: [
 
-          {
-            id: "contacts",
-            label: "Contacts",
-            route: "/app/apps/entities/contacts"
-          },
-          {
-            id: "quotes",
-            label: "Quotes",
-            route: "/app/apps/entities/quotes"
-          },
-          {
-            id: "loans",
-            label: "Loans",
-            route: "/app/apps/entities/loans"
-          },
-          {
-            id: "invoices",
-            label: "Invoices",
-            route: "/app/apps/entities/invoices"
-          },
-          {
-            id: "jobs",
-            label: "Jobs / Work Orders",
-            route: "/app/apps/entities/jobs"
-          },
-          {
-            id: "ai_tools",
-            label: "AI Tools",
-            children: [
-              {
-                id: "ai_extraction",
-                label: "Document Extraction",
-                route: "/app/apps/ai/extraction"
-              },
-              {
-                id: "ai_record_creation",
-                label: "AI Record Creation",
-                route: "/app/apps/ai/create"
-              },
-              {
-                id: "ai_search",
-                label: "AI Search",
-                route: "/app/apps/ai/search"
-              },
-              {
-                id: "ai_insights",
-                label: "AI Insights",
-                route: "/app/apps/ai/insights"
-              }
-            ]
-          },
-          {
-            id: "reports",
-            label: "Reports",
-            children: [
-              {
-                id: "standard_reports",
-                label: "Standard Reports",
-                route: "/app/apps/reports"
-              },
-              {
-                id: "exports",
-                label: "Exports",
-                route: "/app/apps/reports/exports"
-              }
-            ]
-          },
-          {
-            id: "workflow",
-            label: "Workflow Management",
-            roles: ["company_admin"],
-            children: [
-              {
-                id: "module_toggle",
-                label: "Modules & Templates",
-                route: "/app/apps/workflows/modules"
-              },
-              {
-                id: "template_config",
-                label: "Entity Templates",
-                route: "/app/apps/workflows/templates"
-              },
-              {
-                id: "rules",
-                label: "Automation Rules",
-                route: "/app/apps/workflows/rules"
-              }
-            ]
-          }
-        ]
-      },
+      //     {
+      //       id: "contacts",
+      //       label: "Contacts",
+      //       route: "/app/apps/entities/contacts"
+      //     },
+      //     {
+      //       id: "quotes",
+      //       label: "Quotes",
+      //       route: "/app/apps/entities/quotes"
+      //     },
+      //     {
+      //       id: "loans",
+      //       label: "Loans",
+      //       route: "/app/apps/entities/loans"
+      //     },
+      //     {
+      //       id: "invoices",
+      //       label: "Invoices",
+      //       route: "/app/apps/entities/invoices"
+      //     },
+      //     {
+      //       id: "jobs",
+      //       label: "Jobs / Work Orders",
+      //       route: "/app/apps/entities/jobs"
+      //     },
+      //     {
+      //       id: "ai_tools",
+      //       label: "AI Tools",
+      //       children: [
+      //         {
+      //           id: "ai_extraction",
+      //           label: "Document Extraction",
+      //           route: "/app/apps/ai/extraction"
+      //         },
+      //         {
+      //           id: "ai_record_creation",
+      //           label: "AI Record Creation",
+      //           route: "/app/apps/ai/create"
+      //         },
+      //         {
+      //           id: "ai_search",
+      //           label: "AI Search",
+      //           route: "/app/apps/ai/search"
+      //         },
+      //         {
+      //           id: "ai_insights",
+      //           label: "AI Insights",
+      //           route: "/app/apps/ai/insights"
+      //         }
+      //       ]
+      //     },
+      //     {
+      //       id: "reports",
+      //       label: "Reports",
+      //       children: [
+      //         {
+      //           id: "standard_reports",
+      //           label: "Standard Reports",
+      //           route: "/app/apps/reports"
+      //         },
+      //         {
+      //           id: "exports",
+      //           label: "Exports",
+      //           route: "/app/apps/reports/exports"
+      //         }
+      //       ]
+      //     },
+      //     {
+      //       id: "workflow",
+      //       label: "Workflow Management",
+      //       roles: ["company_admin"],
+      //       children: [
+      //         {
+      //           id: "module_toggle",
+      //           label: "Modules & Templates",
+      //           route: "/app/apps/workflows/modules"
+      //         },
+      //         {
+      //           id: "template_config",
+      //           label: "Entity Templates",
+      //           route: "/app/apps/workflows/templates"
+      //         },
+      //         {
+      //           id: "rules",
+      //           label: "Automation Rules",
+      //           route: "/app/apps/workflows/rules"
+      //         }
+      //       ]
+      //     }
+      //   ]
+      // },
       {
         id: "company",
         label: "Company",

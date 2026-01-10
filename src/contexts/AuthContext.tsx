@@ -51,26 +51,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (u) => u.email === email && u.password === password
       );
 
+
+
       if (foundUser) {
 
         const response = await userService.login({ email, password }, {});
 
         if (response) {
+
+
+
           localStorage.setItem('businessos_access_token', response.access_token);
 
-          const companyResponse = await voiceBotService.getCompanyList({});
 
-          // console.log('compay list', companyResponse);
 
-          const companyId = companyResponse.companies.filter((company: any) => company.userId === response.user.id);
 
           // console.log('company id', companyId);
 
-          const userWithoutPassword = { ...response.user, companyId: companyId.length > 0 ? companyId[0].id : null, role: "company_admin" };
-          setUser(userWithoutPassword);
-          localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
+          if (foundUser?.role === "super_admin") {
+            const userWithoutPassword = { ...response.user, role: "super_admin" };
+            setUser(userWithoutPassword);
+            localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
+            return userWithoutPassword;
+          }
+          else {
+            const companyResponse = await voiceBotService.getCompanyList({});
 
-          return userWithoutPassword;
+            // console.log('compay list', companyResponse);
+
+            const companyId = companyResponse.companies.filter((company: any) => company.userId === response.user.id);
+
+            const userWithoutPassword = { ...response.user, companyId: companyId.length > 0 ? companyId[0].id : null, role: "company_admin" };
+            setUser(userWithoutPassword);
+            localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
+            return userWithoutPassword;
+          }
+
+
+
+          // return userWithoutPassword;
         }
         else {
           return null;
