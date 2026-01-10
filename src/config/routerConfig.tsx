@@ -95,7 +95,7 @@ export const router = createBrowserRouter([
                 element: <SuperAdminRoute />,
                 children: [
                     { path: "super-admin/dashboard", element: <SuperAdminDashboard /> },
-                    { path: "super-admin/companies", element: <Companies /> },
+                    { path: "super-admin/my-agent", element: <VoicebotCalls /> },
                 ],
             },
 

@@ -26,7 +26,8 @@ import {
   UserCog,
   Shield,
   CreditCard,
-  LucideIcon
+  LucideIcon,
+  BotMessageSquare
 } from "lucide-react";
 
 
@@ -83,6 +84,7 @@ export const iconMap: Record<string, LucideIcon> = {
   user_cog: UserCog,
   shield: Shield,
   credit_card: CreditCard,
+  bot_message_square: BotMessageSquare
 };
 
 // Navigation configuration
@@ -122,7 +124,7 @@ export const navigationConfig: NavigationConfig = {
         label: "Leads Database",
         route: "/app/voicebot/leads-database",
         roles: ["company_admin"],
-        icon: "user_cog",
+        icon: "users",
         children: [
           {
             id: "leads_database",
@@ -309,33 +311,39 @@ export const navigationConfig: NavigationConfig = {
     super_admin: [
       {
         id: "admin_dashboard",
-        label: "Admin Dashboard",
+        label: "Dashboard",
         icon: "dashboard",
         route: "/app/super-admin/dashboard"
       },
+      // {
+      //   id: "companies",
+      //   label: "Companies",
+      //   icon: "building",
+      //   route: "/app/super-admin/companies"
+      // },
+      // {
+      //   id: "admin_modules",
+      //   label: "Module Management",
+      //   icon: "layers",
+      //   route: "/app/super-admin/modules"
+      // },
       {
-        id: "companies",
-        label: "Companies",
+        id: "my_agent",
+        label: "My Agent",
+        icon: "bot_message_square",
+        route: "/app/super-admin/my-agent"
+      },
+      {
+        id: "all_leads",
+        label: "All Leads",
+        icon: "users",
+        route: "/app/super-admin/all-leads"
+      },
+      {
+        id: "all_customers",
+        label: "All Customers",
         icon: "building",
-        route: "/app/super-admin/companies"
-      },
-      {
-        id: "admin_modules",
-        label: "Module Management",
-        icon: "layers",
-        route: "/app/super-admin/modules"
-      },
-      {
-        id: "admin_ai",
-        label: "AI Usage",
-        icon: "sparkles",
-        route: "/app/super-admin/ai-usage"
-      },
-      {
-        id: "support",
-        label: "Support Tools",
-        icon: "zap",
-        route: "/app/super-admin/support"
+        route: "/app/super-admin/all-customers"
       }
     ]
   }
