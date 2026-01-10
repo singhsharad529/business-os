@@ -178,11 +178,11 @@ export function Login() {
 
           </form>
           <div className="mt-6 pt-6 border-t border-border-subtle">
-            {/* <p className="text-xs text-text-muted text-center">
+            <p className="text-xs text-text-muted text-center">
               Demo credentials:<br />
               Super Admin: admin@businessos.com / admin123<br />
-              Company Admin: user@example.com / string
-            </p> */}
+              Company User: user@example.com / string
+            </p>
           </div>
         </div>
 
