@@ -74,6 +74,7 @@ export default function Campaigns() {
     const [currentStep, setCurrentStep] = useState(1);
 
     const [apiLeads, setApiLeads] = useState<any[]>([]);
+    const [leadsCategories, setLeadsCategories] = useState<any[]>([]);
     const [campaignStatLoading, setCampaignStatLoading] = useState(false);
     const [campaignsLoading, setCampaignsLoading] = useState(false);
 
@@ -143,15 +144,7 @@ export default function Campaigns() {
     const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
     const [timeZones, setTimeZones] = useState<Record<string, { value: string; label: string; offset: string }[]> | null>(null);
 
-    // Column Visibility State
-    const [visibleColumns, setVisibleColumns] = useState({
-        email: true,
-        name: true,
-        company: true,
-        phone: true,
-        expertise: true,
-        lastCalled: true
-    });
+
 
     const CAMPAIGN_CALLS = [
         { id: "call1", vapiId: "mock-vapi-1", phoneNumber: "+1 (555) 123-4567", name: "John Doe", status: "Completed", duration: "2m 30s", date: "2025-12-28 10:30 AM" },
@@ -160,6 +153,76 @@ export default function Campaigns() {
         { id: "call4", vapiId: "mock-vapi-4", phoneNumber: "+1 (555) 234-5678", name: "Alice Brown", status: "Completed", duration: "1m 15s", date: "2025-12-28 01:45 PM" },
         { id: "call5", vapiId: "mock-vapi-5", phoneNumber: "+1 (555) 876-5432", name: "Charlie Davis", status: "Completed", duration: "3m 20s", date: "2025-12-28 02:30 PM" },
     ];
+
+
+    // Filtering for Leads in Sidesheet
+    const [leadSearchText, setLeadSearchText] = useState("");
+
+
+    // Category Search State
+    const [selectedCategory, setSelectedCategory] = useState<string>("all");
+    const [categorySelections, setCategorySelections] = useState<Record<string, string[]>>({
+        company: [],
+        domain: [],
+        industry: []
+    });
+    const [isSubCategoryOpen, setIsSubCategoryOpen] = useState(false);
+
+    // State for filtering on button click
+    const [appliedFiltersState, setAppliedFiltersState] = useState({
+        category: "all",
+        selections: {} as Record<string, string[]>
+    });
+
+    const SEARCH_CATEGORIES = [
+        { label: "All Categories", value: "all" },
+        { label: "Company", value: "company" },
+        { label: "Domain", value: "domain" },
+    ];
+
+    const [searchCategories, setSearchCategories] = useState<any>(null);
+    const [categoryData, setCategoryData] = useState<any>(null);
+
+    const CATEGORY_MOCK_DATA: Record<string, string[]> = {
+        company: ["EcoHarvest", "NeuroByte AI", "CareFlow", "CareFlow"],
+        domain: ["AgriTech", "AI", "Healthcare SaaS", "Education", "Real Estate"],
+    };
+
+    const handleToggleCategoryValue = (value: string) => {
+        if (selectedCategory === "all") return;
+        setCategorySelections(prev => {
+            const current = prev[selectedCategory] || [];
+            const updated = current.includes(value)
+                ? current.filter(v => v !== value)
+                : [...current, value];
+            return { ...prev, [selectedCategory]: updated };
+        });
+    };
+
+    const handleApplyFilters = () => {
+        setAppliedFiltersState({
+            category: selectedCategory,
+            selections: { ...categorySelections }
+        });
+    };
+
+    const resetLeadFilters = () => {
+        setSelectedCategory("all");
+        setCategorySelections(
+            Object.keys(categorySelections).reduce<Record<string, string[]>>(
+                (acc, key) => {
+                    acc[key] = [];
+                    return acc;
+                },
+                {}
+            )
+        );
+        setAppliedFiltersState({
+            category: "all",
+            selections: { company: [], domain: [], industry: [] }
+        });
+        setIsSubCategoryOpen(false);
+    };
 
 
     const fetchCampaignStats = async () => {
@@ -199,6 +262,44 @@ export default function Campaigns() {
         finally {
             setCampaignsLoading(false);
         }
+    }
+
+
+    // fetch lead filter categories
+    const fetchLeadsCategories = async () => {
+        try {
+
+            const response = await voiceBotService.getLeadsCategories({});
+
+            if (response) {
+                let searchCategoryTemp = response.map((item: any) => ({
+                    label: item.category.charAt(0).toUpperCase() + item.category.slice(1),
+                    value: item.category,
+                }));
+
+                searchCategoryTemp.unshift({ label: "All Categories", value: "all" });
+
+                setSearchCategories(searchCategoryTemp);
+                const transformCategoryData = response.reduce((acc: any, item: any) => {
+                    acc[item.category] = item.subcategories;
+                    return acc;
+                }, {});
+
+                setCategoryData(transformCategoryData);
+
+                setCategorySelections(response.reduce(
+                    (acc: any, item: any) => {
+                        acc[item.category] = [];
+                        return acc;
+                    },
+                    {}
+                ));
+            }
+        } catch (error) {
+            console.error("Failed to fetch leads categories:", error);
+            toast.danger("Failed to load leads categories. Please try again.");
+        }
+
     }
 
     const campaignCreateLeadsPageSize = 10;
@@ -301,6 +402,7 @@ export default function Campaigns() {
         if (isCampaignSheetOpen) {
             fetchTimeZone();
             fetchLeads(1, 10);
+            fetchLeadsCategories()
             // getAllAgents();
         }
     }, [isCampaignSheetOpen]);
@@ -346,30 +448,23 @@ export default function Campaigns() {
         }
     };
 
-    // Filtering for Leads in Sidesheet
-    const [leadSearchText, setLeadSearchText] = useState("");
-    const [leadColumnFilter, setLeadColumnFilter] = useState("all");
+
+
 
     const filteredLeads = useMemo(() => {
+
+        if (!leadSearchText)
+            return apiLeads;
 
         if (!apiLeads || apiLeads.length === 0)
             return [];
 
         return apiLeads.filter((lead: any) => {
             const searchLower = leadSearchText.toLowerCase();
-            if (leadColumnFilter === "all") {
-                return (
-                    lead.leadName?.toLowerCase().includes(searchLower) ||
-                    lead.leadEmail?.toLowerCase().includes(searchLower) ||
-                    lead.leadCompany?.toLowerCase().includes(searchLower)
-                );
-            }
-            if (leadColumnFilter === "name") return lead.leadName?.toLowerCase().includes(searchLower);
-            if (leadColumnFilter === "email") return lead.leadEmail?.toLowerCase().includes(searchLower);
-            if (leadColumnFilter === "company") return lead.leadCompany?.toLowerCase().includes(searchLower);
-            return true;
+            return lead.leadName?.toLowerCase().includes(searchLower) || lead.leadEmail?.toLowerCase().includes(searchLower) || lead.leadCompany?.toLowerCase().includes(searchLower);
         });
-    }, [apiLeads, leadSearchText, leadColumnFilter]);
+    }, [apiLeads, leadSearchText]);
+
 
     const filteredCampaignLeads = useMemo(() => {
 
@@ -418,7 +513,12 @@ export default function Campaigns() {
         setTimeZone("");
         setStartTime("01");
         setEndTime("15");
-        setLeadSearchText("");
+        setSelectedCategory("all");
+        setCategorySelections({ company: [], domain: [], industry: [] });
+        setAppliedFiltersState({
+            category: "all",
+            selections: { company: [], domain: [], industry: [] }
+        });
         setCalculatedEndDate(null);
     };
 
@@ -1348,33 +1448,137 @@ export default function Campaigns() {
                                         <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{selectedLeads.length} selected</span>
                                     </div>
 
-                                    <div className="flex flex-col md:flex-row gap-2">
-                                        <div className="relative w-[50%]">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                            <input
-                                                type="text"
-                                                placeholder="Search leads..."
-                                                className="w-full pl-10 pr-4 py-2 bg-bg border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                                                value={leadSearchText}
-                                                onChange={(e) => setLeadSearchText(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="w-[50%]">
-                                            <Select
-                                                value={leadColumnFilter}
-                                                onValueChange={(value) => setLeadColumnFilter(value)}
+                                    <div className="p-4 bg-bg-alt/20 rounded-2xl border border-border-subtle space-y-4">
 
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a column" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">All Fields</SelectItem>
-                                                    <SelectItem value="name">Name</SelectItem>
-                                                    <SelectItem value="email">Email</SelectItem>
-                                                    <SelectItem value="company">Company</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+
+                                        <div className=" gap-2">
+                                            <div className="relative w-full">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search leads..."
+                                                    className="w-full pl-10 pr-4 py-2 bg-bg border border-border-subtle rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                                    value={leadSearchText}
+                                                    onChange={(e) => setLeadSearchText(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                            <div className="w-[60%]">
+                                                <Select
+                                                    value={selectedCategory}
+                                                    onValueChange={(val) => {
+                                                        setSelectedCategory(val);
+                                                        setIsSubCategoryOpen(false);
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="w-full bg-bg border-border-subtle rounded-xl text-sm relative">
+                                                        <SelectValue placeholder="Search by Category" />
+                                                        {Object.values(categorySelections).some(arr => arr.length > 0) && (
+                                                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border border-white shadow-sm" />
+                                                        )}
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {searchCategories && searchCategories.length > 0 && searchCategories.map((cat: any) => (
+                                                            <SelectItem key={cat.value} value={cat.value} className="relative">
+                                                                <div className="flex items-center justify-between w-full pr-4">
+                                                                    <span>{cat.label}</span>
+                                                                    {categorySelections[cat.value]?.length > 0 && (
+                                                                        <span className="text-[10px] bg-primary/10 text-primary px-1.5 rounded-md font-bold">
+                                                                            {categorySelections[cat.value].length}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+
+                                            <div className="flex items-center gap-2 w-[40%]">
+
+                                                <button
+                                                    onClick={handleApplyFilters}
+                                                    className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-primary hover:bg-primary-dark transition-all py-1.5 px-4 rounded-xl active:scale-95"
+                                                >
+                                                    <Search className="w-3 h-3" />
+                                                    Apply Filters
+                                                </button>
+                                                <button
+                                                    onClick={resetLeadFilters}
+                                                    className="flex items-center gap-1.5 text-[10px] font-bold text-text-muted hover:text-primary transition-colors py-1.5 px-3 rounded-xl hover:bg-primary/5 border border-transparent hover:border-primary/20"
+                                                >
+                                                    <RotateCcw className="w-3 h-3" />
+                                                    Reset
+                                                </button>
+                                            </div>
+
+
+                                        </div>
+
+                                        <div>
+                                            {selectedCategory !== "all" && (
+                                                <div className="relative animate-in fade-in slide-in-from-left-2 duration-300">
+                                                    <div className="relative">
+                                                        <div
+                                                            onClick={() => setIsSubCategoryOpen(!isSubCategoryOpen)}
+                                                            className={`w-full bg-bg border ${isSubCategoryOpen ? 'border-primary' : 'border-border-subtle'} rounded-xl text-sm p-2 min-h-[40px] flex flex-wrap gap-1 items-center cursor-pointer hover:border-primary/50 transition-all pr-8`}
+                                                        >
+                                                            {(categorySelections[selectedCategory]?.length ?? 0) === 0 ? (
+                                                                <span className="text-text-muted px-2">Select {selectedCategory}...</span>
+                                                            ) : (
+                                                                categorySelections[selectedCategory].map(val => (
+                                                                    <span key={val} className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 group/pill">
+                                                                        {val}
+                                                                        <XCircle
+                                                                            className="w-3 h-3 cursor-pointer hover:text-danger transition-colors"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleToggleCategoryValue(val);
+                                                                            }}
+                                                                        />
+                                                                    </span>
+                                                                ))
+                                                            )}
+                                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted">
+                                                                <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${isSubCategoryOpen ? 'rotate-90' : ''}`} />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Custom Dropdown Content */}
+                                                        {isSubCategoryOpen && (
+                                                            <>
+                                                                <div
+                                                                    className="fixed inset-0 z-[90]"
+                                                                    onClick={() => setIsSubCategoryOpen(false)}
+                                                                />
+                                                                <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-bg border border-border-subtle rounded-xl shadow-lg z-[100] max-h-[220px] overflow-y-auto p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                                                    <div className="px-2 py-1.5 mb-1 border-b border-border-subtle/50 font-bold text-[10px] text-text-muted uppercase tracking-wider">
+                                                                        {selectedCategory} Options
+                                                                    </div>
+                                                                    {categoryData[selectedCategory] && categoryData[selectedCategory]?.map((val: any) => (
+                                                                        <div
+                                                                            key={val}
+                                                                            onClick={() => handleToggleCategoryValue(val)}
+                                                                            className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors h-[40px] overflow-y-auto ${(categorySelections[selectedCategory] || []).includes(val)
+                                                                                ? 'bg-primary/5 text-primary'
+                                                                                : 'hover:bg-bg-alt text-text-main'
+                                                                                }`}
+                                                                        >
+                                                                            <span className="text-xs">{val}</span>
+                                                                            {(categorySelections[selectedCategory] || []).includes(val) && (
+                                                                                <Check className="w-3.5 h-3.5 text-primary" />
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -1414,134 +1618,140 @@ export default function Campaigns() {
                                             </div>
                                         )}
                                     </div>
-                                    {campaignCreateLeadsPagination && (
-                                        <Pagination
-                                            currentPage={campaignCreateLeadsPagination?.page}
-                                            totalPages={campaignCreateLeadsPagination?.totalPages}
-                                            pageSize={campaignCreateLeadsPagination?.pageSize}
-                                            totalCount={campaignCreateLeadsPagination?.totalCount}
-                                            onPageChange={handleCampaignCreateLeadsPageChange}
+                                    {
+                                        campaignCreateLeadsPagination && (
+                                            <Pagination
+                                                currentPage={campaignCreateLeadsPagination?.page}
+                                                totalPages={campaignCreateLeadsPagination?.totalPages}
+                                                pageSize={campaignCreateLeadsPagination?.pageSize}
+                                                totalCount={campaignCreateLeadsPagination?.totalCount}
+                                                onPageChange={handleCampaignCreateLeadsPageChange}
+                                            />
+                                        )
+                                    }
+                                </div >
+                            </div >
+                        )
+                        }
+
+                        {
+                            currentStep === 2 && (
+                                <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-text-main flex items-center gap-2">
+                                            Campaign Name
+                                            <span className="text-[10px] font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded">Required</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Q4 Sales Outreach"
+                                            className="w-full px-4 py-2 border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none placeholder:text-text-muted/30 "
+                                            value={campaignName}
+                                            onChange={(e) => setCampaignName(e.target.value)}
                                         />
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="space-y-4 animate-in fade-in duration-300">
+                                            {templateStep === "select-template" && (
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    <div>
+                                                        <h3 className="text-lg font-bold text-text-main">Select Template</h3>
+                                                        <p className="text-sm text-text-muted">Choose a template for your test agent.</p>
+                                                    </div>
+                                                    {
+                                                        templatesLoading ? (
+                                                            <div className="flex flex-col gap-4 w-full">
+                                                                <Skeleton className="w-full h-20 rounded-xl" />
+                                                                <Skeleton className="w-full h-20 rounded-xl" />
+                                                                <Skeleton className="w-full h-20 rounded-xl" />
+                                                                <Skeleton className="w-full h-20 rounded-xl" />
+                                                            </div>
+                                                        ) : templates?.templates?.map((template: any) => (
+                                                            <button
+                                                                key={template.id}
+                                                                onClick={() => {
+                                                                    setSelectedTemplate(template);
+                                                                    // setTemplateStep("link-number");
+                                                                }}
+                                                                className={`group flex items-center gap-4 p-4 rounded-xl border border-border-subtle ${selectedTemplate?.id === template.id ? "border-primary" : ""} hover:border-primary hover:bg-primary/5 transition-all text-left`}
+                                                            >
 
-                        {currentStep === 2 && (
-                            <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-text-main flex items-center gap-2">
-                                        Campaign Name
-                                        <span className="text-[10px] font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded">Required</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Q4 Sales Outreach"
-                                        className="w-full px-4 py-2 border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none placeholder:text-text-muted/30 "
-                                        value={campaignName}
-                                        onChange={(e) => setCampaignName(e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="space-y-4 animate-in fade-in duration-300">
-                                        {templateStep === "select-template" && (
-                                            <div className="grid grid-cols-1 gap-4">
-                                                <div>
-                                                    <h3 className="text-lg font-bold text-text-main">Select Template</h3>
-                                                    <p className="text-sm text-text-muted">Choose a template for your test agent.</p>
+                                                                <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                                                    <BotMessageSquare className="w-5 h-5" />
+                                                                </div>
+
+                                                                <div>
+                                                                    <h4 className="text-sm font-bold text-text-main group-hover:text-primary">{template.name}</h4>
+                                                                    <p className="text-xs text-text-muted mt-1">{template.metadata.department[0].toUpperCase()}{template.metadata.department.slice(1)}</p>
+                                                                    <p className="text-xs text-text-muted mt-1">{template.language}</p>
+                                                                </div>
+
+                                                            </button>
+                                                        ))
+                                                    }
                                                 </div>
-                                                {
-                                                    templatesLoading ? (
-                                                        <div className="flex flex-col gap-4 w-full">
-                                                            <Skeleton className="w-full h-20 rounded-xl" />
-                                                            <Skeleton className="w-full h-20 rounded-xl" />
-                                                            <Skeleton className="w-full h-20 rounded-xl" />
-                                                            <Skeleton className="w-full h-20 rounded-xl" />
-                                                        </div>
-                                                    ) : templates?.templates?.map((template: any) => (
-                                                        <button
-                                                            key={template.id}
-                                                            onClick={() => {
-                                                                setSelectedTemplate(template);
-                                                                // setTemplateStep("link-number");
-                                                            }}
-                                                            className={`group flex items-center gap-4 p-4 rounded-xl border border-border-subtle ${selectedTemplate?.id === template.id ? "border-primary" : ""} hover:border-primary hover:bg-primary/5 transition-all text-left`}
-                                                        >
-
-                                                            <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                                                                <BotMessageSquare className="w-5 h-5" />
-                                                            </div>
-
-                                                            <div>
-                                                                <h4 className="text-sm font-bold text-text-main group-hover:text-primary">{template.name}</h4>
-                                                                <p className="text-xs text-text-muted mt-1">{template.metadata.department[0].toUpperCase()}{template.metadata.department.slice(1)}</p>
-                                                                <p className="text-xs text-text-muted mt-1">{template.language}</p>
-                                                            </div>
-
-                                                        </button>
-                                                    ))
-                                                }
-                                            </div>
-                                        )}
+                                            )}
 
 
+
+                                        </div>
 
                                     </div>
-
                                 </div>
-                            </div>
-                        )}
+                            )
+                        }
 
-                        {currentStep === 3 && (
-                            <div className="space-y-8 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                        {
+                            currentStep === 3 && (
+                                <div className="space-y-8 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
 
-                                <div className="space-y-4">
+                                    <div className="space-y-4">
 
-                                    <div className="grid grid-cols-1 gap-3">
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
+                                                <Phone className="w-4 h-4 text-primary" />
+                                                Select Number
+                                            </h4>
+                                            {
+                                                loadingNumbers ? (
+                                                    <div className="flex items-center w-full">
+                                                        <Skeleton className="w-4 h-8 animate-spin w-full" />
+                                                    </div>
+                                                ) : (
+                                                    <Select
+                                                        onValueChange={(value) => setSelectedNumber(value)}
+                                                        value={selectedNumber}
+                                                    >
+                                                        <SelectTrigger className="w-full bg-background border-border-subtle">
+                                                            <SelectValue placeholder="Select a number to link..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {numbers.length > 0 ? (
+                                                                numbers.map((number: any) => (
+                                                                    <SelectItem key={number.id} value={number.vapiId}>
+                                                                        {number.number}
+                                                                    </SelectItem>
+                                                                ))
+                                                            ) : (
+                                                                <div className="p-2 text-xs text-center text-text-muted">
+                                                                    No unassigned numbers available
+                                                                </div>
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
                                         <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
-                                            <Phone className="w-4 h-4 text-primary" />
-                                            Select Number
+                                            <Activity className="w-4 h-4 text-primary" />
+                                            Advanced Controls
                                         </h4>
-                                        {
-                                            loadingNumbers ? (
-                                                <div className="flex items-center w-full">
-                                                    <Skeleton className="w-4 h-8 animate-spin w-full" />
-                                                </div>
-                                            ) : (
-                                                <Select
-                                                    onValueChange={(value) => setSelectedNumber(value)}
-                                                    value={selectedNumber}
-                                                >
-                                                    <SelectTrigger className="w-full bg-background border-border-subtle">
-                                                        <SelectValue placeholder="Select a number to link..." />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {numbers.length > 0 ? (
-                                                            numbers.map((number: any) => (
-                                                                <SelectItem key={number.id} value={number.vapiId}>
-                                                                    {number.number}
-                                                                </SelectItem>
-                                                            ))
-                                                        ) : (
-                                                            <div className="p-2 text-xs text-center text-text-muted">
-                                                                No unassigned numbers available
-                                                            </div>
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                            )
-                                        }
-                                    </div>
-                                </div>
 
-                                <div className="space-y-6">
-                                    <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
-                                        <Activity className="w-4 h-4 text-primary" />
-                                        Advanced Controls
-                                    </h4>
-
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {/* <div className="space-y-2">
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {/* <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Max Retries</label>
                                             <select
                                                 value={maxRetries}
@@ -1554,489 +1764,492 @@ export default function Campaigns() {
                                                 <option value={10}>10 Retries</option>
                                             </select>
                                         </div> */}
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Calls/Day</label>
-                                            <Select
-                                                value={callsPerDay}
-                                                onValueChange={(e) => setCallsPerDay(e)}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Choose calls per day" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="1">
-                                                        1
-                                                    </SelectItem>
-                                                    <SelectItem value="2">
-                                                        2
-                                                    </SelectItem>
-                                                    <SelectItem value="5">
-                                                        5
-                                                    </SelectItem>
-                                                    <SelectItem value="10">
-                                                        10
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow Ups</label>
-                                            <Select
-                                                value={followUps}
-                                                onValueChange={(valString) => {
-                                                    const val = parseInt(valString);
-                                                    // console.log('val', val);
-
-                                                    setFollowUps(valString);
-                                                    // Adjust delays array to match count
-                                                    setFollowUpDelays(prev => {
-                                                        const newDelays = [...prev];
-                                                        if (val > prev.length) {
-                                                            for (let i = prev.length; i < val; i++) newDelays.push(1);
-                                                        } else {
-                                                            return newDelays.slice(0, val);
-                                                        }
-                                                        return newDelays;
-                                                    });
-                                                }}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Choose follow ups" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="0">
-                                                        No follow ups
-                                                    </SelectItem>
-                                                    <SelectItem value="1">
-                                                        1 follow up
-                                                    </SelectItem>
-                                                    <SelectItem value="2">
-                                                        2 follow ups
-                                                    </SelectItem>
-                                                    <SelectItem value="3">
-                                                        3 follow ups
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-
-                                    </div>
-
-                                    <div>
-                                        {parseInt(followUps) > 0 && (
-                                            <div className="w-full space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow-up Schedule (Days)</label>
-
-                                                {followUpDelays.map((delay, index) => (
-                                                    <div key={index} className="flex items-center gap-3 bg-bg-alt/30 p-2 rounded-xl border border-border-subtle/50">
-                                                        <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
-                                                            #{index + 1}
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[12px] text-text-muted">Wait</span>
-                                                            <input
-                                                                type="number"
-                                                                min={1}
-                                                                value={delay}
-                                                                onChange={(e) => {
-                                                                    const value = e.target.value;
-
-                                                                    const newDelays = [...followUpDelays];
-
-                                                                    if (value === "") {
-                                                                        newDelays[index] = "";
-                                                                    } else {
-                                                                        newDelays[index] = Math.max(1, parseInt(value, 10));
-                                                                    }
-
-                                                                    setFollowUpDelays(newDelays);
-                                                                }}
-                                                                className="w-16 px-2 py-1 bg-white border border-border-subtle rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary"
-                                                            />
-                                                            <span className="text-[12px] text-text-muted">days after {index === 0 ? 'the initial call' : `follow-up #${index}`}</span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Calls/Day</label>
+                                                <Select
+                                                    value={callsPerDay}
+                                                    onValueChange={(e) => setCallsPerDay(e)}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Choose calls per day" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="1">
+                                                            1
+                                                        </SelectItem>
+                                                        <SelectItem value="2">
+                                                            2
+                                                        </SelectItem>
+                                                        <SelectItem value="5">
+                                                            5
+                                                        </SelectItem>
+                                                        <SelectItem value="10">
+                                                            10
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
-                                        )}
-                                    </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Time Zone</label>
-                                        <Select
-                                            value={timeZone}
-                                            onValueChange={setTimeZone}
-                                        >
-                                            <SelectTrigger className="w-full border border-border-subtle px-4 py-3 h-auto text-sm focus:outline-none focus:ring-1 focus:ring-primary  text-left">
-                                                <SelectValue placeholder="Select Time Zone" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {timeZones && Object.entries(timeZones).map(([region, zones]) => (
-                                                    <SelectGroup key={region}>
-                                                        <SelectLabel className="px-2 py-1.5 text-[10px] font-bold text-text-muted uppercase tracking-wider">{region}</SelectLabel>
-                                                        {zones.map((zone) => (
-                                                            <SelectItem key={zone.value} value={zone.value}>
-                                                                {zone.label} ({zone.offset})
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectGroup>
-                                                ))}
-                                                {!timeZones && (
-                                                    <>
-                                                        <SelectItem value="America/New_York">Eastern Time (GMT-05:00)</SelectItem>
-                                                        <SelectItem value="America/Chicago">Central Time (GMT-06:00)</SelectItem>
-                                                        <SelectItem value="America/Denver">Mountain Time (GMT-07:00)</SelectItem>
-                                                        <SelectItem value="America/Los_Angeles">Pacific Time (GMT-08:00)</SelectItem>
-                                                        <SelectItem value="Asia/Kolkata">India Standard Time (GMT+05:30)</SelectItem>
-                                                        <SelectItem value="Europe/London">London (GMT+00:00)</SelectItem>
-                                                        <SelectItem value="Europe/Paris">Paris (GMT+01:00)</SelectItem>
-                                                    </>
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow Ups</label>
+                                                <Select
+                                                    value={followUps}
+                                                    onValueChange={(valString) => {
+                                                        const val = parseInt(valString);
+                                                        // console.log('val', val);
+
+                                                        setFollowUps(valString);
+                                                        // Adjust delays array to match count
+                                                        setFollowUpDelays(prev => {
+                                                            const newDelays = [...prev];
+                                                            if (val > prev.length) {
+                                                                for (let i = prev.length; i < val; i++) newDelays.push(1);
+                                                            } else {
+                                                                return newDelays.slice(0, val);
+                                                            }
+                                                            return newDelays;
+                                                        });
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Choose follow ups" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="0">
+                                                            No follow ups
+                                                        </SelectItem>
+                                                        <SelectItem value="1">
+                                                            1 follow up
+                                                        </SelectItem>
+                                                        <SelectItem value="2">
+                                                            2 follow ups
+                                                        </SelectItem>
+                                                        <SelectItem value="3">
+                                                            3 follow ups
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+
+                                        </div>
+
+                                        <div>
+                                            {parseInt(followUps) > 0 && (
+                                                <div className="w-full space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Follow-up Schedule (Days)</label>
+
+                                                    {followUpDelays.map((delay, index) => (
+                                                        <div key={index} className="flex items-center gap-3 bg-bg-alt/30 p-2 rounded-xl border border-border-subtle/50">
+                                                            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
+                                                                #{index + 1}
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[12px] text-text-muted">Wait</span>
+                                                                <input
+                                                                    type="number"
+                                                                    min={1}
+                                                                    value={delay}
+                                                                    onChange={(e) => {
+                                                                        const value = e.target.value;
+
+                                                                        const newDelays = [...followUpDelays];
+
+                                                                        if (value === "") {
+                                                                            newDelays[index] = "";
+                                                                        } else {
+                                                                            newDelays[index] = Math.max(1, parseInt(value, 10));
+                                                                        }
+
+                                                                        setFollowUpDelays(newDelays);
+                                                                    }}
+                                                                    className="w-16 px-2 py-1 bg-white border border-border-subtle rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary"
+                                                                />
+                                                                <span className="text-[12px] text-text-muted">days after {index === 0 ? 'the initial call' : `follow-up #${index}`}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+
+                                                </div>
+                                            )}
+                                        </div>
+
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Start Hour</label>
+                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Time Zone</label>
                                             <Select
-                                                value={startTime}
-                                                onValueChange={setStartTime}
+                                                value={timeZone}
+                                                onValueChange={setTimeZone}
                                             >
                                                 <SelectTrigger className="w-full border border-border-subtle px-4 py-3 h-auto text-sm focus:outline-none focus:ring-1 focus:ring-primary  text-left">
                                                     <SelectValue placeholder="Select Time Zone" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value={"01"}>
-                                                        01
-                                                    </SelectItem>
-                                                    <SelectItem value={"02"}>
-                                                        02
-                                                    </SelectItem>
-                                                    <SelectItem value={"03"}>
-                                                        03
-                                                    </SelectItem>
-                                                    <SelectItem value={"04"}>
-                                                        04
-                                                    </SelectItem>
-                                                    <SelectItem value={"05"}>
-                                                        05
-                                                    </SelectItem>
-                                                    <SelectItem value={"06"}>
-                                                        06
-                                                    </SelectItem>
-                                                    <SelectItem value={"07"}>
-                                                        07
-                                                    </SelectItem>
-                                                    <SelectItem value={"08"}>
-                                                        08
-                                                    </SelectItem>
-                                                    <SelectItem value={"09"}>
-                                                        09
-                                                    </SelectItem>
-                                                    <SelectItem value={"10"}>
-                                                        10
-                                                    </SelectItem>
-                                                    <SelectItem value={"11"}>
-                                                        11
-                                                    </SelectItem>
-                                                    <SelectItem value={"12"}>
-                                                        12
-                                                    </SelectItem>
-                                                    <SelectItem value={"13"}>
-                                                        13
-                                                    </SelectItem>
-                                                    <SelectItem value={"14"}>
-                                                        14
-                                                    </SelectItem>
-                                                    <SelectItem value={"15"}>
-                                                        15
-                                                    </SelectItem>
-                                                    <SelectItem value={"16"}>
-                                                        16
-                                                    </SelectItem>
-                                                    <SelectItem value={"17"}>
-                                                        17
-                                                    </SelectItem>
-                                                    <SelectItem value={"18"}>
-                                                        18
-                                                    </SelectItem>
-                                                    <SelectItem value={"19"}>
-                                                        19
-                                                    </SelectItem>
-                                                    <SelectItem value={"20"}>
-                                                        20
-                                                    </SelectItem>
-                                                    <SelectItem value={"21"}>
-                                                        21
-                                                    </SelectItem>
-                                                    <SelectItem value={"22"}>
-                                                        22
-                                                    </SelectItem>
-                                                    <SelectItem value={"23"}>
-                                                        23
-                                                    </SelectItem>
-                                                    <SelectItem value={"24"}>
-                                                        24
-                                                    </SelectItem>
-
-                                                </SelectContent>
-                                            </Select>
-
-                                        </div>
-                                        <div className="space-y-2 mb-4">
-                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">End Hour</label>
-                                            <Select
-                                                value={endTime}
-                                                onValueChange={setEndTime}
-                                            >
-                                                <SelectTrigger className="w-full border border-border-subtle px-4 py-3 h-auto text-sm focus:outline-none focus:ring-1 focus:ring-primary text-left">
-                                                    <SelectValue placeholder="Select Time Zone" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value={"01"}>
-                                                        01
-                                                    </SelectItem>
-                                                    <SelectItem value={"02"}>
-                                                        02
-                                                    </SelectItem>
-                                                    <SelectItem value={"03"}>
-                                                        03
-                                                    </SelectItem>
-                                                    <SelectItem value={"04"}>
-                                                        04
-                                                    </SelectItem>
-                                                    <SelectItem value={"05"}>
-                                                        05
-                                                    </SelectItem>
-                                                    <SelectItem value={"06"}>
-                                                        06
-                                                    </SelectItem>
-                                                    <SelectItem value={"07"}>
-                                                        07
-                                                    </SelectItem>
-                                                    <SelectItem value={"08"}>
-                                                        08
-                                                    </SelectItem>
-                                                    <SelectItem value={"09"}>
-                                                        09
-                                                    </SelectItem>
-                                                    <SelectItem value={"10"}>
-                                                        10
-                                                    </SelectItem>
-                                                    <SelectItem value={"11"}>
-                                                        11
-                                                    </SelectItem>
-                                                    <SelectItem value={"12"}>
-                                                        12
-                                                    </SelectItem>
-                                                    <SelectItem value={"13"}>
-                                                        13
-                                                    </SelectItem>
-                                                    <SelectItem value={"14"}>
-                                                        14
-                                                    </SelectItem>
-                                                    <SelectItem value={"15"}>
-                                                        15
-                                                    </SelectItem>
-                                                    <SelectItem value={"16"}>
-                                                        16
-                                                    </SelectItem>
-                                                    <SelectItem value={"17"}>
-                                                        17
-                                                    </SelectItem>
-                                                    <SelectItem value={"18"}>
-                                                        18
-                                                    </SelectItem>
-                                                    <SelectItem value={"19"}>
-                                                        19
-                                                    </SelectItem>
-                                                    <SelectItem value={"20"}>
-                                                        20
-                                                    </SelectItem>
-                                                    <SelectItem value={"21"}>
-                                                        21
-                                                    </SelectItem>
-                                                    <SelectItem value={"22"}>
-                                                        22
-                                                    </SelectItem>
-                                                    <SelectItem value={"23"}>
-                                                        23
-                                                    </SelectItem>
-                                                    <SelectItem value={"24"}>
-                                                        24
-                                                    </SelectItem>
-
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4 mb-1">
-                                    <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-primary" />
-                                        Campaign Duration
-                                    </h4>
-                                    <div className="grid grid-cols-2 gap-4 w-full">
-                                        <div className="space-y-1.5 w-full">
-                                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Start Date</label>
-                                            <input
-                                                type="date"
-                                                value={startDate}
-                                                onChange={(e) => setStartDate(e.target.value)}
-                                                className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none"
-                                            />
-                                        </div>
-
-                                        <div className={`space-y-1.5 w-full ${calculatedEndDate ? '' : 'mt-1'}`}>
-                                            <label className="flex flex-col gap-1 text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Estimated End Date</label>
-
-                                            {
-                                                calculatedEndDate ? (
-                                                    <input
-                                                        type="date"
-                                                        value={calculatedEndDate?.estimated_end_date?.split("T")[0]}
-                                                        // onChange={(e) => setStartDate(e.target.value)}
-                                                        disabled
-                                                        className="w-full px-4 py-3 rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none"
-                                                    />
-                                                ) :
-                                                    (
+                                                    {timeZones && Object.entries(timeZones).map(([region, zones]) => (
+                                                        <SelectGroup key={region}>
+                                                            <SelectLabel className="px-2 py-1.5 text-[10px] font-bold text-text-muted uppercase tracking-wider">{region}</SelectLabel>
+                                                            {zones.map((zone) => (
+                                                                <SelectItem key={zone.value} value={zone.value}>
+                                                                    {zone.label} ({zone.offset})
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectGroup>
+                                                    ))}
+                                                    {!timeZones && (
                                                         <>
-                                                            <button
-                                                                onClick={fetchcalculatedEndDate}
-                                                                className="btn btn-primary"
-                                                            >
-                                                                {calculatedEndDateLoader ? `Calculating...` : 'Calculate End Date'}
-                                                            </button>
+                                                            <SelectItem value="America/New_York">Eastern Time (GMT-05:00)</SelectItem>
+                                                            <SelectItem value="America/Chicago">Central Time (GMT-06:00)</SelectItem>
+                                                            <SelectItem value="America/Denver">Mountain Time (GMT-07:00)</SelectItem>
+                                                            <SelectItem value="America/Los_Angeles">Pacific Time (GMT-08:00)</SelectItem>
+                                                            <SelectItem value="Asia/Kolkata">India Standard Time (GMT+05:30)</SelectItem>
+                                                            <SelectItem value="Europe/London">London (GMT+00:00)</SelectItem>
+                                                            <SelectItem value="Europe/Paris">Paris (GMT+01:00)</SelectItem>
                                                         </>
-                                                    )
-                                            }
-
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
 
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Start Hour</label>
+                                                <Select
+                                                    value={startTime}
+                                                    onValueChange={setStartTime}
+                                                >
+                                                    <SelectTrigger className="w-full border border-border-subtle px-4 py-3 h-auto text-sm focus:outline-none focus:ring-1 focus:ring-primary  text-left">
+                                                        <SelectValue placeholder="Select Time Zone" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value={"01"}>
+                                                            01
+                                                        </SelectItem>
+                                                        <SelectItem value={"02"}>
+                                                            02
+                                                        </SelectItem>
+                                                        <SelectItem value={"03"}>
+                                                            03
+                                                        </SelectItem>
+                                                        <SelectItem value={"04"}>
+                                                            04
+                                                        </SelectItem>
+                                                        <SelectItem value={"05"}>
+                                                            05
+                                                        </SelectItem>
+                                                        <SelectItem value={"06"}>
+                                                            06
+                                                        </SelectItem>
+                                                        <SelectItem value={"07"}>
+                                                            07
+                                                        </SelectItem>
+                                                        <SelectItem value={"08"}>
+                                                            08
+                                                        </SelectItem>
+                                                        <SelectItem value={"09"}>
+                                                            09
+                                                        </SelectItem>
+                                                        <SelectItem value={"10"}>
+                                                            10
+                                                        </SelectItem>
+                                                        <SelectItem value={"11"}>
+                                                            11
+                                                        </SelectItem>
+                                                        <SelectItem value={"12"}>
+                                                            12
+                                                        </SelectItem>
+                                                        <SelectItem value={"13"}>
+                                                            13
+                                                        </SelectItem>
+                                                        <SelectItem value={"14"}>
+                                                            14
+                                                        </SelectItem>
+                                                        <SelectItem value={"15"}>
+                                                            15
+                                                        </SelectItem>
+                                                        <SelectItem value={"16"}>
+                                                            16
+                                                        </SelectItem>
+                                                        <SelectItem value={"17"}>
+                                                            17
+                                                        </SelectItem>
+                                                        <SelectItem value={"18"}>
+                                                            18
+                                                        </SelectItem>
+                                                        <SelectItem value={"19"}>
+                                                            19
+                                                        </SelectItem>
+                                                        <SelectItem value={"20"}>
+                                                            20
+                                                        </SelectItem>
+                                                        <SelectItem value={"21"}>
+                                                            21
+                                                        </SelectItem>
+                                                        <SelectItem value={"22"}>
+                                                            22
+                                                        </SelectItem>
+                                                        <SelectItem value={"23"}>
+                                                            23
+                                                        </SelectItem>
+                                                        <SelectItem value={"24"}>
+                                                            24
+                                                        </SelectItem>
+
+                                                    </SelectContent>
+                                                </Select>
+
+                                            </div>
+                                            <div className="space-y-2 mb-4">
+                                                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">End Hour</label>
+                                                <Select
+                                                    value={endTime}
+                                                    onValueChange={setEndTime}
+                                                >
+                                                    <SelectTrigger className="w-full border border-border-subtle px-4 py-3 h-auto text-sm focus:outline-none focus:ring-1 focus:ring-primary text-left">
+                                                        <SelectValue placeholder="Select Time Zone" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value={"01"}>
+                                                            01
+                                                        </SelectItem>
+                                                        <SelectItem value={"02"}>
+                                                            02
+                                                        </SelectItem>
+                                                        <SelectItem value={"03"}>
+                                                            03
+                                                        </SelectItem>
+                                                        <SelectItem value={"04"}>
+                                                            04
+                                                        </SelectItem>
+                                                        <SelectItem value={"05"}>
+                                                            05
+                                                        </SelectItem>
+                                                        <SelectItem value={"06"}>
+                                                            06
+                                                        </SelectItem>
+                                                        <SelectItem value={"07"}>
+                                                            07
+                                                        </SelectItem>
+                                                        <SelectItem value={"08"}>
+                                                            08
+                                                        </SelectItem>
+                                                        <SelectItem value={"09"}>
+                                                            09
+                                                        </SelectItem>
+                                                        <SelectItem value={"10"}>
+                                                            10
+                                                        </SelectItem>
+                                                        <SelectItem value={"11"}>
+                                                            11
+                                                        </SelectItem>
+                                                        <SelectItem value={"12"}>
+                                                            12
+                                                        </SelectItem>
+                                                        <SelectItem value={"13"}>
+                                                            13
+                                                        </SelectItem>
+                                                        <SelectItem value={"14"}>
+                                                            14
+                                                        </SelectItem>
+                                                        <SelectItem value={"15"}>
+                                                            15
+                                                        </SelectItem>
+                                                        <SelectItem value={"16"}>
+                                                            16
+                                                        </SelectItem>
+                                                        <SelectItem value={"17"}>
+                                                            17
+                                                        </SelectItem>
+                                                        <SelectItem value={"18"}>
+                                                            18
+                                                        </SelectItem>
+                                                        <SelectItem value={"19"}>
+                                                            19
+                                                        </SelectItem>
+                                                        <SelectItem value={"20"}>
+                                                            20
+                                                        </SelectItem>
+                                                        <SelectItem value={"21"}>
+                                                            21
+                                                        </SelectItem>
+                                                        <SelectItem value={"22"}>
+                                                            22
+                                                        </SelectItem>
+                                                        <SelectItem value={"23"}>
+                                                            23
+                                                        </SelectItem>
+                                                        <SelectItem value={"24"}>
+                                                            24
+                                                        </SelectItem>
+
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 mb-1">
+                                        <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
+                                            <Calendar className="w-4 h-4 text-primary" />
+                                            Campaign Duration
+                                        </h4>
+                                        <div className="grid grid-cols-2 gap-4 w-full">
+                                            <div className="space-y-1.5 w-full">
+                                                <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Start Date</label>
+                                                <input
+                                                    type="date"
+                                                    value={startDate}
+                                                    onChange={(e) => setStartDate(e.target.value)}
+                                                    className="w-full px-4 py-3 bg-bg border border-border-subtle rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+                                                />
+                                            </div>
+
+                                            <div className={`space-y-1.5 w-full ${calculatedEndDate ? '' : 'mt-1'}`}>
+                                                <label className="flex flex-col gap-1 text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Estimated End Date</label>
+
+                                                {
+                                                    calculatedEndDate ? (
+                                                        <input
+                                                            type="date"
+                                                            value={calculatedEndDate?.estimated_end_date?.split("T")[0]}
+                                                            // onChange={(e) => setStartDate(e.target.value)}
+                                                            disabled
+                                                            className="w-full px-4 py-3 rounded-xl text-sm focus:ring-1 focus:ring-primary focus:outline-none"
+                                                        />
+                                                    ) :
+                                                        (
+                                                            <>
+                                                                <button
+                                                                    onClick={fetchcalculatedEndDate}
+                                                                    className="btn btn-primary"
+                                                                >
+                                                                    {calculatedEndDateLoader ? `Calculating...` : 'Calculate End Date'}
+                                                                </button>
+                                                            </>
+                                                        )
+                                                }
+
+                                            </div>
+
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )
+                        }
 
-                        {currentStep === 4 && (
-                            <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="card-gradient rounded-2xl p-4 overflow-hidden relative">
-                                    <div className="relative z-10">
-                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                        {
+                            currentStep === 4 && (
+                                <div className="space-y-6 px-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="card-gradient rounded-2xl p-4 overflow-hidden relative">
+                                        <div className="relative z-10">
+                                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                                <div>
+                                                    <div className="text-[10px] font-bold uppercase opacity-80 mb-1 tracking-widest">Campaign Name</div>
+                                                    <div className="text-2xl font-black">{campaignName || "Untitled Campaign"}</div>
+                                                </div>
+                                                <div className="bg-white/10 rounded-xl">
+                                                    <span className="text-[10px] opacity-70 uppercase font-black">Linked Number</span>
+                                                    <div className="text-sm font-bold mt-1 truncate">
+                                                        {numbers.filter((num: any) => num.vapiId === selectedNumber).map((num: any) => num.number).join(", ") || "Not Set"}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                                <div className="rounded-xl border border-white/10">
+                                                    <span className="text-[10px] opacity-70 uppercase font-black">Target</span>
+                                                    <div className="text-xl font-black mt-0.5">{selectedLeads.length} Leads</div>
+                                                </div>
+                                                <div className="rounded-xl border border-white/10 overflow-hidden">
+                                                    <span className="text-[10px] opacity-70 uppercase font-black">AI Agent</span>
+                                                    <div className="text-sm font-bold mt-1 truncate">
+                                                        {selectedTemplate?.name || "Not Set"}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse" />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-primary/10 rounded-lg">
+                                                    <Calendar className="w-4 h-4 text-primary" />
+                                                </div>
+                                                <span className="text-xs font-bold text-text-main">Campaign Duration</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[10px] font-bold text-primary">
+                                                    {startDate
+                                                        ? formatDateDDMMYYYY(startDate)
+                                                        : "Start Date Not Set"}
+                                                </div>
+
+                                                <div className="text-[10px] font-bold text-primary">
+                                                    {calculatedEndDate
+                                                        ? formatDateDDMMYYYY(calculatedEndDate.estimated_end_date)
+                                                        : "End date will be calculated."}
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-accent/10 rounded-lg">
+                                                    <Zap className="w-4 h-4 text-accent" />
+                                                </div>
+                                                <span className="text-xs font-bold text-text-main">Daily Volume</span>
+                                            </div>
+                                            <span className="text-xs font-bold text-text-main">{callsPerDay} Calls/Day</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-success/10 rounded-lg">
+                                                    <RotateCcw className="w-4 h-4 text-success" />
+                                                </div>
+                                                <span className="text-xs font-bold text-text-main">Follow Ups & Retries</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xs font-bold text-text-main">{followUps} Follow Ups</span>
+                                                <div className="text-[9px] text-text-muted">
+                                                    {followUpDelays.length > 0 ? `Days: ${followUpDelays.join(', ')}` : 'No delays'}
+                                                </div>
+                                                <div className="text-[9px] text-text-muted">{maxRetries} Max Retries</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-warning/10 rounded-lg">
+                                                    <Clock className="w-4 h-4 text-warning" />
+                                                </div>
+                                                <span className="text-xs font-bold text-text-main">Timing</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-xs font-bold text-text-main">{startTime} - {endTime}</div>
+                                                <div className="text-[10px] text-text-muted mt-0.5">{timeZone}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {selectedLeads.length === 0 && (
+                                        <div className="p-4 rounded-2xl bg-danger/10 border border-danger/20 flex items-start gap-4">
+                                            <div className="w-8 h-8 rounded-full bg-danger/20 flex items-center justify-center shrink-0">
+                                                <XCircle className="w-5 h-5 text-danger" />
+                                            </div>
                                             <div>
-                                                <div className="text-[10px] font-bold uppercase opacity-80 mb-1 tracking-widest">Campaign Name</div>
-                                                <div className="text-2xl font-black">{campaignName || "Untitled Campaign"}</div>
-                                            </div>
-                                            <div className="bg-white/10 rounded-xl">
-                                                <span className="text-[10px] opacity-70 uppercase font-black">Linked Number</span>
-                                                <div className="text-sm font-bold mt-1 truncate">
-                                                    {numbers.filter((num: any) => num.vapiId === selectedNumber).map((num: any) => num.number).join(", ") || "Not Set"}
-                                                </div>
+                                                <div className="text-xs font-bold text-danger">Missing Selection</div>
+                                                <div className="text-[10px] text-text-muted mt-1">Please select target leads to proceed with the launch.</div>
                                             </div>
                                         </div>
-
-                                        <div className="grid grid-cols-2 gap-2 mt-2">
-                                            <div className="rounded-xl border border-white/10">
-                                                <span className="text-[10px] opacity-70 uppercase font-black">Target</span>
-                                                <div className="text-xl font-black mt-0.5">{selectedLeads.length} Leads</div>
-                                            </div>
-                                            <div className="rounded-xl border border-white/10 overflow-hidden">
-                                                <span className="text-[10px] opacity-70 uppercase font-black">AI Agent</span>
-                                                <div className="text-sm font-bold mt-1 truncate">
-                                                    {selectedTemplate?.name || "Not Set"}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                    <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse" />
+                                    )}
                                 </div>
-
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-primary/10 rounded-lg">
-                                                <Calendar className="w-4 h-4 text-primary" />
-                                            </div>
-                                            <span className="text-xs font-bold text-text-main">Campaign Duration</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-[10px] font-bold text-primary">
-                                                {startDate
-                                                    ? formatDateDDMMYYYY(startDate)
-                                                    : "Start Date Not Set"}
-                                            </div>
-
-                                            <div className="text-[10px] font-bold text-primary">
-                                                {calculatedEndDate
-                                                    ? formatDateDDMMYYYY(calculatedEndDate.estimated_end_date)
-                                                    : "End date will be calculated."}
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-accent/10 rounded-lg">
-                                                <Zap className="w-4 h-4 text-accent" />
-                                            </div>
-                                            <span className="text-xs font-bold text-text-main">Daily Volume</span>
-                                        </div>
-                                        <span className="text-xs font-bold text-text-main">{callsPerDay} Calls/Day</span>
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-success/10 rounded-lg">
-                                                <RotateCcw className="w-4 h-4 text-success" />
-                                            </div>
-                                            <span className="text-xs font-bold text-text-main">Follow Ups & Retries</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="text-xs font-bold text-text-main">{followUps} Follow Ups</span>
-                                            <div className="text-[9px] text-text-muted">
-                                                {followUpDelays.length > 0 ? `Days: ${followUpDelays.join(', ')}` : 'No delays'}
-                                            </div>
-                                            <div className="text-[9px] text-text-muted">{maxRetries} Max Retries</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 bg-bg border border-border-subtle rounded-2xl">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-warning/10 rounded-lg">
-                                                <Clock className="w-4 h-4 text-warning" />
-                                            </div>
-                                            <span className="text-xs font-bold text-text-main">Timing</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-xs font-bold text-text-main">{startTime} - {endTime}</div>
-                                            <div className="text-[10px] text-text-muted mt-0.5">{timeZone}</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {selectedLeads.length === 0 && (
-                                    <div className="p-4 rounded-2xl bg-danger/10 border border-danger/20 flex items-start gap-4">
-                                        <div className="w-8 h-8 rounded-full bg-danger/20 flex items-center justify-center shrink-0">
-                                            <XCircle className="w-5 h-5 text-danger" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-bold text-danger">Missing Selection</div>
-                                            <div className="text-[10px] text-text-muted mt-1">Please select target leads to proceed with the launch.</div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                            )
+                        }
+                    </div >
 
                     <div className="flex items-center gap-3 pt-6 mt-6 border-t border-border-subtle">
                         {currentStep > 1 ? (
@@ -2126,22 +2339,22 @@ export default function Campaigns() {
                             {currentStep !== 4 && <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                         </button>
                     </div>
-                </div>
+                </div >
             </SideSheet >
 
 
             {/* Call Details SideSheet */}
-            <SideSheet
+            < SideSheet
                 isOpen={isCallDetailSheetOpen}
                 onClose={() => setIsCallDetailSheetOpen(false)}
                 title="Call Details"
                 size="md"
             >
                 {selectedCallForDetail && <CallDetails call={selectedCallForDetail} />}
-            </SideSheet>
+            </SideSheet >
 
             {/* Lead Details SideSheet */}
-            <SideSheet
+            < SideSheet
                 isOpen={isDetailSheetOpen}
                 onClose={() => setIsDetailSheetOpen(false)}
                 title="Lead Profile Details"
@@ -2155,10 +2368,10 @@ export default function Campaigns() {
                         onDelete={() => fetchCampaignLeads(campaignInfo.campaign_id, currentLeadsPage, campaignLeadsPageSize)}
                     />
                 )}
-            </SideSheet>
+            </SideSheet >
 
             {/* Add Lead SideSheet */}
-            <SideSheet
+            < SideSheet
                 isOpen={isAddLeadSheetOpen}
                 onClose={() => setIsAddLeadSheetOpen(false)}
                 title="Add New Lead"
@@ -2173,7 +2386,7 @@ export default function Campaigns() {
                     }}
                     campaignId={campaignInfo?.campaign_id || ''}
                 />
-            </SideSheet>
+            </SideSheet >
 
             {/* Edit Campaign SideSheet */}
             {/* <SideSheet

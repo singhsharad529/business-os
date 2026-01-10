@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Languages, Briefcase, MoveLeft, Trash, Loader2, Eye, Edit } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { AlertDialog } from "@/components/ui/AlertDialog";
+import { Switch } from "@/components/ui/switch";
 import { CallDetails } from "@/components/voicebot/CallDetails";
 import NewAgent from "@/components/voicebot/NewAgent";
 import voiceBotService from "@/api/voicebotService";
@@ -13,6 +14,7 @@ import TestCall from "@/components/voicebot/TestCall";
 import { toast } from "@/hooks/useToast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AxiosRequestConfig } from "axios";
 
 export default function VoicebotCalls() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -47,10 +49,16 @@ export default function VoicebotCalls() {
     };
 
 
-    const getAllAgents = async () => {
+
+    const getAllAgents = async (returnAll: boolean = true) => {
         try {
             setLoading(true);
-            const response = await voiceBotService.getAllAgents({});
+            const requestConfig: AxiosRequestConfig = {
+                params: {
+                    returnAll
+                }
+            }
+            const response = await voiceBotService.getAllAgents(requestConfig);
             // console.log(response);
             setAgents(response);
 
@@ -61,6 +69,54 @@ export default function VoicebotCalls() {
             setLoading(false);
         }
     }
+
+    const handleStatusChange = async (agentId: string) => {
+        // Logic will be added later by the user
+        // status will be 'active' or 'inactive'
+        console.log(`Status change for agent ${agentId}`);
+
+        let isTogglled = false;
+
+        try {
+
+            const tempAgents = [...agents.agents];
+            const agentIndex = tempAgents.findIndex((agent: any) => agent.vapiId === agentId);
+            if (agentIndex === -1) {
+                toast.danger("Agent not found");
+                return;
+            }
+            tempAgents[agentIndex].status = tempAgents[agentIndex].status === 'active' ? 'inactive' : 'active';
+            setAgents({
+                agents: tempAgents
+            });
+
+            isTogglled = true;
+
+            const response = await voiceBotService.updateAgentStatus(agentId, {}, {});
+            console.log(response);
+            toast.success("Agent status updated successfully");
+
+
+            // setAgents(response);
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to update agent status");
+            if (isTogglled) {
+
+                const tempAgents = [...agents.agents];
+                const agentIndex = tempAgents.findIndex((agent: any) => agent.vapiId === agentId);
+
+                tempAgents[agentIndex].status = tempAgents[agentIndex].status === 'active' ? 'inactive' : 'active';
+                setAgents({
+                    agents: tempAgents
+                });
+
+            }
+        } finally {
+
+        }
+    };
+
 
     const handleDeleteAgent = (agentId: string) => {
         setAgentToDelete(agentId);
@@ -102,10 +158,10 @@ export default function VoicebotCalls() {
     };
 
     const getCallReports = async (agent: any) => {
-        if (!agent.vapiId || !agent.phoneNumbers?.[0]?.vapiId) {
-            toast.danger("Agent or Phone Number ID missing");
-            return;
-        }
+        // if (!agent.vapiId || !agent.phoneNumbers?.[0]?.vapiId) {
+        //     toast.danger("Agent or Phone Number ID missing");
+        //     return;
+        // }
 
         try {
             setLoading(true);
@@ -116,13 +172,13 @@ export default function VoicebotCalls() {
             setSentimentFilter([]);
             const response = await voiceBotService.getAgentCallReports({
                 assistantId: agent.vapiId,
-                phoneNumberId: agent.phoneNumbers[0].vapiId,
+                phoneNumberId: agent.phoneNumbers?.[0]?.vapiId,
                 page: 1,
                 page_size: 20
             }, {});
             setCallLogs(response.reports || []);
         } catch (error) {
-            // console.error(error);
+            console.error(error);
             toast.danger("Failed to get call reports");
         } finally {
             setLoading(false);
@@ -221,7 +277,15 @@ export default function VoicebotCalls() {
                                                         <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                                                             <BotMessageSquare className="w-5 h-5" />
                                                         </div>
-                                                        <span className="badge badge-primary">Active</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`text-xs font-medium ${agent.status === 'active' ? 'text-primary' : 'text-text-muted'}`}>
+                                                                {agent.status ? agent.status.charAt(0).toUpperCase() + agent.status.slice(1) : "Inactive"}
+                                                            </span>
+                                                            <Switch
+                                                                checked={agent.status === 'active'}
+                                                                onCheckedChange={(checked) => handleStatusChange(agent.vapiId)}
+                                                            />
+                                                        </div>
                                                     </div>
 
                                                     <h3 className="text-lg font-bold text-text-main mb-1 truncate">{agent.name}</h3>

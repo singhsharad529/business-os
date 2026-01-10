@@ -31,6 +31,8 @@ const voiceBotService = {
     apiService.delete(`vapi/assistants/${id}`, config),
   updateAgent: (vapiId: string, data: any, config: AxiosRequestConfig) =>
     apiService.patch(`vapi/assistants/${vapiId}`, data, config),
+  updateAgentStatus: (vapiId: string, data: any, config: AxiosRequestConfig) =>
+    apiService.patch(`vapi/assistants/${vapiId}/toggle-status`, data, config),
   getCallLogs: (config: AxiosRequestConfig) =>
     apiService.get("vapi/call-logs", config),
   linkPhoneNumber: (
@@ -132,6 +134,8 @@ const voiceBotService = {
     apiService.post(`scheduler/campaigns/${id}/reschedule`, data, config),
   updateCampaignStatus: (id: string, data: any, config: AxiosRequestConfig) =>
     apiService.patch(`scheduler/campaigns/${id}/status`, data, config),
+  getLeadsCategories: (config: AxiosRequestConfig) =>
+    apiService.get(`vapi/lead-database/category`, config),
 };
 
 export default voiceBotService;
