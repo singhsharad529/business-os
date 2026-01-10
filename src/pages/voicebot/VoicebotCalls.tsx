@@ -238,11 +238,11 @@ export default function VoicebotCalls() {
                             <div className="flex gap-4">
                                 <button
                                     onClick={() => {
-                                        if (user && !user.companyId) {
-                                            toast.danger("Please create a company from Company section to start using the voicebot");
+                                        // if (user && !user.companyId) {
+                                        //     toast.danger("Please create a company from Company section to start using the voicebot");
 
-                                            return;
-                                        }
+                                        //     return;
+                                        // }
                                         setIsNewAgentOpen(true)
                                     }}
                                     className="btn btn-primary flex items-center gap-1.5"
