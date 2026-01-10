@@ -329,7 +329,7 @@ export const navigationConfig: NavigationConfig = {
       // },
       {
         id: "my_agent",
-        label: "My Agent",
+        label: "Agent",
         icon: "bot_message_square",
         route: "/app/super-admin/my-agent"
       },
