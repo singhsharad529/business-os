@@ -25,6 +25,7 @@ import { MyCompanyDashboard } from "@/pages/single-company/MyCompanyDashboard";
 import Campaigns from "@/pages/voicebot/Campaigns";
 import AllLeads from "@/pages/super-admin/AllLeads";
 import Customers from "@/pages/super-admin/Customers";
+import MyAgents from "@/pages/super-admin/MyAgents";
 
 export const router = createBrowserRouter([
     {
@@ -97,7 +98,7 @@ export const router = createBrowserRouter([
                 element: <SuperAdminRoute />,
                 children: [
                     { path: "super-admin/dashboard", element: <SuperAdminDashboard /> },
-                    { path: "super-admin/my-agent", element: <VoicebotCalls /> },
+                    { path: "super-admin/my-agent", element: <MyAgents /> },
                     { path: "super-admin/all-leads", element: <AllLeads /> },
                     { path: "super-admin/all-customers", element: <Customers /> },
                 ],
