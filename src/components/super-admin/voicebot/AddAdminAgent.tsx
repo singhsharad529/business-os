@@ -1,23 +1,19 @@
 import { useState } from "react";
 import {
     Cpu,
-    Mic,
     Languages,
     Settings,
     Plus,
     X,
     Save,
-    Trash,
     BotMessageSquare,
     Volume2,
-    Type,
     Zap,
-    History as HistoryIcon,
-    Briefcase,
     Tags,
     MessageSquare,
-    Clock,
-    VolumeX
+    VolumeX,
+    ChevronRight,
+    Search
 } from "lucide-react";
 import {
     Select,
@@ -27,56 +23,444 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-interface EditAdminAgentProps {
+interface AddAdminAgentProps {
     onClose: () => void;
 }
 
-const DUMMY_AGENT_DATA = {
-    "id": "9fceab74-ae18-41ed-9e06-ed7ff25f2b22",
-    "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
-    "name": "Technical Support Bot (Copy)  - Campaign",
-    "model": {
-        "model": "gpt-4-turbo",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are a technical support specialist for a SaaS platform."
-            },
-            {
-                "role": "system",
-                "content": "Always ask for the customer's account ID before troubleshooting."
-            }
-        ],
-        "provider": "openai",
-        "maxTokens": 1000,
-        "temperature": 0.3,
-        "knowledgeBase": {
-            "fileIds": [
-                "e52ebeec-38b2-4c0b-bc40-d0e61aea3da0"
+const TEMPLATES_DATA = [
+    {
+        "id": "974337cf-4abf-4ddc-88c4-7ef217f2af89",
+        "userId": "e14d0d6e-d081-462b-ab44-382758738b92",
+        "vapiAssistantId": "50b9534e-6a04-4270-ad82-22787aadb6db",
+        "agentRole": "realty",
+        "configuration": "rental_specialist",
+        "configurationLabel": "Rental Specialist",
+        "language": "en",
+        "status": "success",
+        "createdAt": "2026-01-02T11:44:26.561",
+        "updatedAt": "2026-01-02T11:44:26.561",
+        "backgroundSound": "office",
+        "firstMessage": "Hello! I specialize in rental properties. Are you looking to rent or list a rental property?",
+        "metadata": {
+            "version": "1.0",
+            "subdomain": "rental_specialist",
+            "department": "realty"
+        },
+        "model": {
+            "model": "gpt-4-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a rental property specialist. You help clients find rental properties or manage rental listings. You must communicate exclusively in English. All responses should be in English."
+                },
+                {
+                    "role": "system",
+                    "content": "Understand rental requirements, budget, lease terms, and help match clients with suitable rental properties."
+                }
             ],
-            "provider": "google"
+            "provider": "openai",
+            "maxTokens": 1500,
+            "temperature": 0.6
+        },
+        "name": "Realty - Rental Specialist",
+        "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
+        "serverUrl": "https://buisnessosapi.spongeboblabs.ai/vapi/vapi-webhook",
+        "transcriber": {
+            "model": "nova-2",
+            "language": "en",
+            "provider": "deepgram"
+        },
+        "voice": {
+            "speed": 1,
+            "voiceId": "iP95p4xoKVk53GoZ742B",
+            "provider": "11labs"
         }
     },
-    "voice": {
-        "speed": 1.1,
-        "voiceId": "21m00Tcm4TlvDq8ikWAM",
-        "provider": "11labs"
-    },
-    "transcriber": {
-        "model": "nova-2",
+    {
+        "id": "1a2e526f-4417-4ece-960c-3b1e464495f3",
+        "userId": "e14d0d6e-d081-462b-ab44-382758738b92",
+        "vapiAssistantId": "7386ad1a-298e-4c46-a1e2-b337a725704a",
+        "agentRole": "realty",
+        "configuration": "buyer_agent",
+        "configurationLabel": "Buyer's Agent",
         "language": "en",
-        "provider": "deepgram"
+        "status": "success",
+        "createdAt": "2026-01-02T11:44:26.197",
+        "updatedAt": "2026-01-02T11:44:26.197",
+        "backgroundSound": "office",
+        "firstMessage": "Hi! I'm your buyer's agent. Let's find your dream property. What are you looking for?",
+        "metadata": {
+            "version": "1.0",
+            "subdomain": "buyer_agent",
+            "department": "realty"
+        },
+        "model": {
+            "model": "gpt-4-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a buyer's agent specialist. You help clients find and purchase their ideal property. You must communicate exclusively in English. All responses should be in English."
+                },
+                {
+                    "role": "system",
+                    "content": "Ask about location preferences, budget, property type, and must-have features to provide the best property recommendations."
+                }
+            ],
+            "provider": "openai",
+            "maxTokens": 1500,
+            "temperature": 0.6
+        },
+        "name": "Realty - Buyer's Agent",
+        "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
+        "serverUrl": "https://buisnessosapi.spongeboblabs.ai/vapi/vapi-webhook",
+        "transcriber": {
+            "model": "nova-2",
+            "language": "en",
+            "provider": "deepgram"
+        },
+        "voice": {
+            "speed": 1,
+            "voiceId": "iP95p4xoKVk53GoZ742B",
+            "provider": "11labs"
+        }
     },
-    "createdAt": "2026-01-08T11:59:30.955000Z",
-    "updatedAt": "2026-01-08T11:59:30.955000Z",
-    "firstMessage": "Hello! I'm your technical support assistant. May I have your account ID?",
-    "maxDurationSeconds": 600,
-    "metadata": {
-        "version": "1.0",
-        "department": "support"
+    {
+        "id": "f2148da1-db34-43f6-8f77-42bd93681203",
+        "userId": "e14d0d6e-d081-462b-ab44-382758738b92",
+        "vapiAssistantId": "e79342b3-31ac-46b4-9fc8-f8110c29308c",
+        "agentRole": "realty",
+        "configuration": "property_listing",
+        "configurationLabel": "Property Listing Agent",
+        "language": "en",
+        "status": "success",
+        "createdAt": "2026-01-02T11:44:25.794",
+        "updatedAt": "2026-01-02T11:44:25.794",
+        "backgroundSound": "office",
+        "firstMessage": "Hello! I'm here to help you list your property. Can you tell me about the property you'd like to list?",
+        "metadata": {
+            "version": "1.0",
+            "subdomain": "property_listing",
+            "department": "realty"
+        },
+        "model": {
+            "model": "gpt-4-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a property listing specialist. You help clients list their properties for sale or rent and provide market insights. You must communicate exclusively in English. All responses should be in English."
+                },
+                {
+                    "role": "system",
+                    "content": "Gather property details, provide valuation guidance, and explain the listing process clearly and professionally."
+                }
+            ],
+            "provider": "openai",
+            "maxTokens": 1500,
+            "temperature": 0.6
+        },
+        "name": "Realty - Property Listing Agent",
+        "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
+        "serverUrl": "https://buisnessosapi.spongeboblabs.ai/vapi/vapi-webhook",
+        "transcriber": {
+            "model": "nova-2",
+            "language": "en",
+            "provider": "deepgram"
+        },
+        "voice": {
+            "speed": 1,
+            "voiceId": "iP95p4xoKVk53GoZ742B",
+            "provider": "11labs"
+        }
     },
-    "department": null
-};
+    {
+        "id": "9ee32c17-7e03-4d47-a528-4a12ee50b24a",
+        "userId": "e14d0d6e-d081-462b-ab44-382758738b92",
+        "vapiAssistantId": "110a8f43-5d5c-4358-8091-bf2755ce677a",
+        "agentRole": "finance",
+        "configuration": "investment_consultant",
+        "configurationLabel": "Investment Consultant",
+        "language": "en",
+        "status": "success",
+        "createdAt": "2026-01-02T11:44:25.48",
+        "updatedAt": "2026-01-02T11:44:25.48",
+        "backgroundSound": "office",
+        "firstMessage": "Welcome! I'm your investment consultant. Let's discuss your financial goals and investment options.",
+        "metadata": {
+            "version": "1.0",
+            "subdomain": "investment_consultant",
+            "department": "finance"
+        },
+        "model": {
+            "model": "gpt-4-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an investment consultant. You provide guidance on investment options, portfolio management, and financial planning. You must communicate exclusively in English. All responses should be in English."
+                },
+                {
+                    "role": "system",
+                    "content": "Assess risk tolerance, understand financial goals, and provide informed recommendations while being clear about risks."
+                }
+            ],
+            "provider": "openai",
+            "maxTokens": 1500,
+            "temperature": 0.4
+        },
+        "name": "Finance - Investment Consultant",
+        "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
+        "serverUrl": "https://buisnessosapi.spongeboblabs.ai/vapi/vapi-webhook",
+        "transcriber": {
+            "model": "nova-2",
+            "language": "en",
+            "provider": "deepgram"
+        },
+        "voice": {
+            "speed": 1,
+            "voiceId": "pNInz6obpgDQGcFmaJgB",
+            "provider": "11labs"
+        }
+    },
+    {
+        "id": "a205a9d1-6547-49f3-96ab-26cad45562e8",
+        "userId": "e14d0d6e-d081-462b-ab44-382758738b92",
+        "vapiAssistantId": "e887b8a0-3f15-4176-ad07-2643f8f22bc5",
+        "agentRole": "finance",
+        "configuration": "loan_advisor",
+        "configurationLabel": "Loan Advisor",
+        "language": "en",
+        "status": "success",
+        "createdAt": "2026-01-02T11:44:25.104",
+        "updatedAt": "2026-01-02T11:44:25.104",
+        "backgroundSound": "office",
+        "firstMessage": "Hello! I'm here to help you with loan options. What type of loan are you interested in?",
+        "metadata": {
+            "version": "1.0",
+            "subdomain": "loan_advisor",
+            "department": "finance"
+        },
+        "model": {
+            "model": "gpt-4-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a loan advisor specialist. You provide information about loan products, eligibility, and application processes. You must communicate exclusively in English. All responses should be in English."
+                },
+                {
+                    "role": "system",
+                    "content": "Explain loan terms clearly, assess customer needs, and guide them through the application process professionally."
+                }
+            ],
+            "provider": "openai",
+            "maxTokens": 1500,
+            "temperature": 0.4
+        },
+        "name": "Finance - Loan Advisor",
+        "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
+        "serverUrl": "https://buisnessosapi.spongeboblabs.ai/vapi/vapi-webhook",
+        "transcriber": {
+            "model": "nova-2",
+            "language": "en",
+            "provider": "deepgram"
+        },
+        "voice": {
+            "speed": 1,
+            "voiceId": "pNInz6obpgDQGcFmaJgB",
+            "provider": "11labs"
+        }
+    },
+    {
+        "id": "0092c646-62c1-4e8c-b517-4fd4d042f5e2",
+        "userId": "e14d0d6e-d081-462b-ab44-382758738b92",
+        "vapiAssistantId": "4413b821-fb18-4271-b92f-09c9816129fc",
+        "agentRole": "finance",
+        "configuration": "account_support",
+        "configurationLabel": "Account Support",
+        "language": "en",
+        "status": "success",
+        "createdAt": "2026-01-02T11:44:24.78",
+        "updatedAt": "2026-01-02T11:44:24.78",
+        "backgroundSound": "office",
+        "firstMessage": "Good day! I'm your account support specialist. May I have your account ID to assist you?",
+        "metadata": {
+            "version": "1.0",
+            "subdomain": "account_support",
+            "department": "finance"
+        },
+        "model": {
+            "model": "gpt-4-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a financial account support specialist. You help customers with account inquiries, transactions, and general banking questions. You must communicate exclusively in English. All responses should be in English."
+                },
+                {
+                    "role": "system",
+                    "content": "Always verify customer identity before discussing sensitive information. Be clear, accurate, and professional."
+                }
+            ],
+            "provider": "openai",
+            "maxTokens": 1200,
+            "temperature": 0.3
+        },
+        "name": "Finance - Account Support",
+        "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
+        "serverUrl": "https://buisnessosapi.spongeboblabs.ai/vapi/vapi-webhook",
+        "transcriber": {
+            "model": "nova-2",
+            "language": "en",
+            "provider": "deepgram"
+        },
+        "voice": {
+            "speed": 1,
+            "voiceId": "pNInz6obpgDQGcFmaJgB",
+            "provider": "11labs"
+        }
+    },
+    {
+        "id": "84fa0e0b-0ac8-44d0-b2df-bc3f8f9ba12e",
+        "userId": "e14d0d6e-d081-462b-ab44-382758738b92",
+        "vapiAssistantId": "15256fa7-9461-4d7a-b6fa-a8135a09d70d",
+        "agentRole": "sales",
+        "configuration": "sales_followup",
+        "configurationLabel": "Follow-up Agent",
+        "language": "en",
+        "status": "success",
+        "createdAt": "2026-01-02T11:44:24.463",
+        "updatedAt": "2026-01-02T11:44:24.463",
+        "backgroundSound": "office",
+        "firstMessage": "Hi! I'm following up on our previous conversation. Do you have any questions I can help with?",
+        "metadata": {
+            "version": "1.0",
+            "subdomain": "sales_followup",
+            "department": "sales"
+        },
+        "model": {
+            "model": "gpt-4-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a sales follow-up agent. You follow up with leads and existing customers to nurture relationships and close deals. You must communicate exclusively in English. All responses should be in English."
+                },
+                {
+                    "role": "system",
+                    "content": "Be persistent but respectful. Reference previous conversations and show that you value their business."
+                }
+            ],
+            "provider": "openai",
+            "maxTokens": 1500,
+            "temperature": 0.7
+        },
+        "name": "Sales - Follow-up Agent",
+        "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
+        "serverUrl": "https://buisnessosapi.spongeboblabs.ai/vapi/vapi-webhook",
+        "transcriber": {
+            "model": "nova-2",
+            "language": "en",
+            "provider": "deepgram"
+        },
+        "voice": {
+            "speed": 1,
+            "voiceId": "21m00Tcm4TlvDq8ikWAM",
+            "provider": "11labs"
+        }
+    },
+    {
+        "id": "a64cefa3-a4c9-457d-af11-9f7c7dca6167",
+        "userId": "e14d0d6e-d081-462b-ab44-382758738b92",
+        "vapiAssistantId": "b60f9eb9-a327-49d8-b8ec-f5619abc4fd6",
+        "agentRole": "sales",
+        "configuration": "inbound_sales",
+        "configurationLabel": "Inbound Support",
+        "language": "en",
+        "status": "success",
+        "createdAt": "2026-01-02T11:44:24.151",
+        "updatedAt": "2026-01-02T11:44:24.151",
+        "backgroundSound": "office",
+        "firstMessage": "Hello! Thank you for reaching out. How can I help you today?",
+        "metadata": {
+            "version": "1.0",
+            "subdomain": "inbound_sales",
+            "department": "sales"
+        },
+        "model": {
+            "model": "gpt-4-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an inbound sales support agent. You handle incoming inquiries and help customers find the right products/services. You must communicate exclusively in English. All responses should be in English."
+                },
+                {
+                    "role": "system",
+                    "content": "Listen actively to customer needs, ask clarifying questions, and provide personalized recommendations."
+                }
+            ],
+            "provider": "openai",
+            "maxTokens": 1500,
+            "temperature": 0.7
+        },
+        "name": "Sales - Inbound Support",
+        "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
+        "serverUrl": "https://buisnessosapi.spongeboblabs.ai/vapi/vapi-webhook",
+        "transcriber": {
+            "model": "nova-2",
+            "language": "en",
+            "provider": "deepgram"
+        },
+        "voice": {
+            "speed": 1,
+            "voiceId": "21m00Tcm4TlvDq8ikWAM",
+            "provider": "11labs"
+        }
+    },
+    {
+        "id": "46ba7a40-7535-4829-b124-08b892734ff2",
+        "userId": "e14d0d6e-d081-462b-ab44-382758738b92",
+        "vapiAssistantId": "94bcf17a-6fc5-49b8-8209-3829ff7b14f7",
+        "agentRole": "sales",
+        "configuration": "outbound_sales",
+        "configurationLabel": "Outbound Sales",
+        "language": "en",
+        "status": "success",
+        "createdAt": "2026-01-02T11:44:23.739",
+        "updatedAt": "2026-01-02T11:44:23.739",
+        "backgroundSound": "office",
+        "firstMessage": "Hello! I'm calling to share some exciting opportunities with you. Do you have a moment?",
+        "metadata": {
+            "version": "1.0",
+            "subdomain": "outbound_sales",
+            "department": "sales"
+        },
+        "model": {
+            "model": "gpt-4-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a professional outbound sales agent. Your goal is to reach out to potential customers and generate interest in products/services. You must communicate exclusively in English. All responses should be in English."
+                },
+                {
+                    "role": "system",
+                    "content": "Always be friendly, enthusiastic, and respect if someone is not interested. Focus on building relationships."
+                }
+            ],
+            "provider": "openai",
+            "maxTokens": 1500,
+            "temperature": 0.7
+        },
+        "name": "Sales - Outbound Agent",
+        "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
+        "serverUrl": "https://buisnessosapi.spongeboblabs.ai/vapi/vapi-webhook",
+        "transcriber": {
+            "model": "nova-2",
+            "language": "en",
+            "provider": "deepgram"
+        },
+        "voice": {
+            "speed": 1,
+            "voiceId": "21m00Tcm4TlvDq8ikWAM",
+            "provider": "11labs"
+        }
+    }
+];
 
 const MODELS_DATA = {
     "openai": {
@@ -206,46 +590,58 @@ const BACKGROUND_SOUNDS = [
     "street"
 ];
 
-function EditAdminAgent({ onClose }: EditAdminAgentProps) {
+function AddAdminAgent({ onClose }: AddAdminAgentProps) {
+    const [step, setStep] = useState<"templates" | "form">("templates");
+    const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState<"model" | "voice" | "transcriber" | "advanced">("model");
-    const [formData, setFormData] = useState({
-        name: DUMMY_AGENT_DATA.name,
-        department: DUMMY_AGENT_DATA.metadata.department,
-        version: DUMMY_AGENT_DATA.metadata.version || "1.0",
-        model: {
-            provider: DUMMY_AGENT_DATA.model.provider,
-            model: DUMMY_AGENT_DATA.model.model,
-            temperature: DUMMY_AGENT_DATA.model.temperature,
-            maxTokens: DUMMY_AGENT_DATA.model.maxTokens,
-            systemPrompt: DUMMY_AGENT_DATA.model.messages.filter((m: any) => m.role === "system").map((m: any) => m.content).join("\n"),
-            toolIds: [] as string[]
-        },
-        voice: {
-            provider: DUMMY_AGENT_DATA.voice.provider,
-            voiceId: DUMMY_AGENT_DATA.voice.voiceId,
-            speed: DUMMY_AGENT_DATA.voice.speed
-        },
-        transcriber: {
-            provider: DUMMY_AGENT_DATA.transcriber.provider,
-            model: DUMMY_AGENT_DATA.transcriber.model,
-            language: DUMMY_AGENT_DATA.transcriber.language
-        },
-        advanced: {
-            firstMessage: DUMMY_AGENT_DATA.firstMessage,
-            firstMessageMode: "assistant",
-            maxDurationSeconds: DUMMY_AGENT_DATA.maxDurationSeconds,
-            backgroundSound: "office",
-            endCallMessage: "Thank you for calling. Goodbye!",
-            endCallPhrases: ["Bye bye", "Talk soon"] as string[]
-        }
-    });
+    const [formData, setFormData] = useState<any>(null);
+
+    const handleSelectTemplate = (template: any) => {
+        const systemPrompt = template.model.messages
+            .filter((m: any) => m.role === "system")
+            .map((m: any) => m.content)
+            .join("\n");
+
+        setFormData({
+            name: template.name,
+            department: template.metadata.department || "",
+            version: template.metadata.version || "1.0",
+            model: {
+                provider: template.model.provider || "openai",
+                model: template.model.model || "gpt-4-turbo",
+                temperature: template.model.temperature || 0.6,
+                maxTokens: template.model.maxTokens || 1500,
+                systemPrompt: systemPrompt,
+                toolIds: [] as string[]
+            },
+            voice: {
+                provider: template.voice.provider || "11labs",
+                voiceId: template.voice.voiceId || "",
+                speed: template.voice.speed || 1
+            },
+            transcriber: {
+                provider: template.transcriber.provider || "deepgram",
+                model: template.transcriber.model || "nova-2",
+                language: template.transcriber.language || "en"
+            },
+            advanced: {
+                firstMessage: template.firstMessage || "",
+                firstMessageMode: "assistant",
+                maxDurationSeconds: 600,
+                backgroundSound: template.backgroundSound || "office",
+                endCallMessage: "Thank you for calling. Goodbye!",
+                endCallPhrases: ["Bye bye", "Talk soon"] as string[]
+            }
+        });
+        setStep("form");
+    };
 
     const [newToolId, setNewToolId] = useState("");
     const [newEndCallPhrase, setNewEndCallPhrase] = useState("");
 
     const handleAddToolId = () => {
         if (newToolId.trim()) {
-            setFormData(prev => ({
+            setFormData((prev: any) => ({
                 ...prev,
                 model: {
                     ...prev.model,
@@ -257,18 +653,18 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
     };
 
     const handleRemoveToolId = (index: number) => {
-        setFormData(prev => ({
+        setFormData((prev: any) => ({
             ...prev,
             model: {
                 ...prev.model,
-                toolIds: prev.model.toolIds.filter((_, i) => i !== index)
+                toolIds: prev.model.toolIds.filter((_: any, i: number) => i !== index)
             }
         }));
     };
 
     const handleAddEndCallPhrase = () => {
         if (newEndCallPhrase.trim()) {
-            setFormData(prev => ({
+            setFormData((prev: any) => ({
                 ...prev,
                 advanced: {
                     ...prev.advanced,
@@ -280,22 +676,88 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
     };
 
     const handleRemoveEndCallPhrase = (index: number) => {
-        setFormData(prev => ({
+        setFormData((prev: any) => ({
             ...prev,
             advanced: {
                 ...prev.advanced,
-                endCallPhrases: prev.advanced.endCallPhrases.filter((_, i) => i !== index)
+                endCallPhrases: prev.advanced.endCallPhrases.filter((_: any, i: number) => i !== index)
             }
         }));
     };
 
     const handleSave = () => {
-        console.log("Saving agent data:", formData);
+        console.log("Creating new agent from template:", formData);
         onClose();
     };
 
+    const filteredTemplates = TEMPLATES_DATA.filter(t =>
+        t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.configurationLabel.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (step === "templates") {
+        return (
+            <div className="flex flex-col h-full overflow-hidden">
+                <div className="mb-6 space-y-4 px-2">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                        <input
+                            type="text"
+                            placeholder="Search templates..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="input pl-10 w-full"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar px-2">
+                    <div className="grid grid-cols-1 gap-4">
+                        {filteredTemplates.map((template) => (
+                            <button
+                                key={template.id}
+                                onClick={() => handleSelectTemplate(template)}
+                                className="card p-4 hover:border-primary/50 group transition-all text-left flex items-center justify-between"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2.5 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                        <BotMessageSquare className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">
+                                            {template.name}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted bg-bg px-1.5 py-0.5 rounded border border-border-subtle">
+                                                {template.agentRole}
+                                            </span>
+                                            <span className="text-[10px] font-medium text-text-muted flex items-center gap-1">
+                                                <Languages className="w-3 h-3" />
+                                                {template.language.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary transition-all" />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="mt-2 pt-4 px-2 border-t flex items-center gap-3 bg-white/50 backdrop-blur-sm sticky bottom-2">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-4 py-3 rounded-xl border border-border-subtle text-xs font-bold text-text-main hover:bg-bg transition-all active:scale-9"
+                    >
+                        Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-hidden">
             {/* Custom Tabs */}
             <div className="flex border-b border-border-subtle mb-4 shrink-0">
                 <button
@@ -462,7 +924,7 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                 </button>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {formData.model.toolIds?.map((id, index) => (
+                                {formData.model.toolIds?.map((id: string, index: number) => (
                                     <div key={index} className="flex items-center gap-2 bg-primary/10 text-primary px-2.5 py-1 rounded-lg text-xs font-bold border border-primary/20">
                                         {id}
                                         <button onClick={() => handleRemoveToolId(index)} className="hover:text-danger">
@@ -704,7 +1166,7 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                 </button>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {formData.advanced.endCallPhrases?.map((phrase, index) => (
+                                {formData.advanced.endCallPhrases?.map((phrase: string, index: number) => (
                                     <div key={index} className="flex items-center gap-2 bg-bg border border-border-subtle px-2.5 py-1 rounded-lg text-xs font-medium text-text-main">
                                         {phrase}
                                         <button onClick={() => handleRemoveEndCallPhrase(index)} className="text-text-muted hover:text-danger">
@@ -719,23 +1181,23 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
             </div>
 
             {/* Sticky Action Bar */}
-            <div className="mt-8 pt-6 border-t border-border-subtle flex items-center gap-3 bg-white/50 backdrop-blur-sm sticky bottom-0">
+            <div className="mt-8 pt-6 px-2 border-t border-border-subtle flex items-center gap-3 bg-white/50 backdrop-blur-sm sticky bottom-1">
                 <button
-                    onClick={onClose}
-                    className="btn btn-secondary rounded-xl flex-1 py-3 font-bold"
+                    onClick={() => setStep("templates")}
+                    className="flex-1 px-4 py-3 rounded-xl border border-border-subtle text-xs font-bold text-text-main hover:bg-bg transition-all active:scale-9"
                 >
-                    Cancel
+                    Back to Templates
                 </button>
                 <button
                     onClick={handleSave}
-                    className="btn btn-primary flex-1 py-3 rounded-xl font-bold"
+                    className="flex-[2] btn btn-primary py-3 rounded-xl text-xs font-bold shadow-glow-sm flex items-center justify-center gap-2 group transition-all"
                 >
                     <Save className="w-4 h-4" />
-                    Save Changes
+                    Create Agent
                 </button>
             </div>
         </div>
     );
 }
 
-export default EditAdminAgent;
+export default AddAdminAgent;

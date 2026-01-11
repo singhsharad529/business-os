@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
-import EditAdminAgent from "./EditAdminAgent";
+import EditAdminAgent from "../../components/super-admin/voicebot/EditAdminAgent";
+import AddAdminAgent from "../../components/super-admin/voicebot/AddAdminAgent";
 
 const assistantsData = [
     {
@@ -107,6 +108,7 @@ function MyAgents() {
     const [agents, setAgents] = useState(assistantsData);
     const [searchTerm, setSearchTerm] = useState("");
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+    const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
     const [selectedAgent, setSelectedAgent] = useState<any>(null);
 
     const handleEditAgent = (agent: any) => {
@@ -133,7 +135,10 @@ function MyAgents() {
                         <p className="text-text-muted mt-1">Manage all AI agents and their availability</p>
                     </div>
                     <div className="flex gap-4">
-                        <button className="btn btn-primary flex items-center gap-2">
+                        <button
+                            onClick={() => setIsAddSheetOpen(true)}
+                            className="btn btn-primary flex items-center gap-2"
+                        >
                             <Plus className="w-4 h-4" />
                             Add Agent
                         </button>
@@ -245,6 +250,17 @@ function MyAgents() {
                         onClose={() => setIsEditSheetOpen(false)}
                     />
                 )}
+            </SideSheet>
+
+            <SideSheet
+                isOpen={isAddSheetOpen}
+                onClose={() => setIsAddSheetOpen(false)}
+                title="Create AI Agent"
+                size="md"
+            >
+                <AddAdminAgent
+                    onClose={() => setIsAddSheetOpen(false)}
+                />
             </SideSheet>
         </div>
     );
