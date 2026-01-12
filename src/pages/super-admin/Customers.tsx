@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     Users,
     Briefcase,
@@ -73,6 +74,7 @@ const dummyCustomers = [
 function Customers() {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const navigate = useNavigate();
 
 
 
@@ -205,7 +207,10 @@ function Customers() {
                                             <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer">
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
-                                            <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer">
+                                            <button
+                                                onClick={() => navigate(`/app/super-admin/customers/${user.id}`)}
+                                                className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                            >
                                                 <Eye className="w-4 h-4" />
                                             </button>
                                         </div>
