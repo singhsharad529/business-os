@@ -15,12 +15,15 @@ import {
     Layers,
     ArrowRight,
     User,
-    Users
+    Users,
+    Phone
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
 import EditAdminAgent from "../../components/super-admin/voicebot/EditAdminAgent";
 import AddAdminAgent from "../../components/super-admin/voicebot/AddAdminAgent";
+import AgentUserManagement from "../../components/super-admin/voicebot/AgentUserManagement";
+import TestCall from "@/components/voicebot/TestCall";
 
 const categoriesData = [
     {
@@ -152,11 +155,18 @@ function MyAgents() {
     const [agents, setAgents] = useState(assistantsData);
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
     const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+    const [isUserSheetOpen, setIsUserSheetOpen] = useState(false);
     const [selectedAgent, setSelectedAgent] = useState<any>(null);
+    const [isTestCallOpen, setIsTestCallOpen] = useState(false);
 
     const handleEditAgent = (agent: any) => {
         setSelectedAgent(agent);
         setIsEditSheetOpen(true);
+    };
+
+    const handleManageUsers = (agent: any) => {
+        setSelectedAgent(agent);
+        setIsUserSheetOpen(true);
     };
 
     const handleStatusChange = (id: string) => {
@@ -231,6 +241,13 @@ function MyAgents() {
                         >
                             <Plus className="w-4 h-4" />
                             Add Agent
+                        </button>
+                        <button
+                            onClick={() => setIsTestCallOpen(true)}
+                            className="btn btn-primary flex items-center gap-1.5"
+                        >
+                            <Phone className="w-3.5 h-3.5" />
+                            Test Call
                         </button>
                     </div>
                 </div>
@@ -424,6 +441,13 @@ function MyAgents() {
                                                     <Edit className="w-3.5 h-3.5" />
                                                     Edit Agent
                                                 </button>
+                                                <button
+                                                    onClick={() => handleManageUsers(agent)}
+                                                    className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary"
+                                                    title="Manage Users"
+                                                >
+                                                    <Users className="w-3.5 h-3.5" />
+                                                </button>
                                                 <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
                                                     <Copy className="w-3.5 h-3.5" />
                                                 </button>
@@ -506,6 +530,13 @@ function MyAgents() {
                                             <Edit className="w-3.5 h-3.5" />
                                             Edit Agent
                                         </button>
+                                        <button
+                                            onClick={() => handleManageUsers(agent)}
+                                            className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary"
+                                            title="Manage Users"
+                                        >
+                                            <Users className="w-3.5 h-3.5" />
+                                        </button>
                                         <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
                                             <Copy className="w-3.5 h-3.5" />
                                         </button>
@@ -548,6 +579,28 @@ function MyAgents() {
                 />
             </SideSheet>
 
+            <SideSheet
+                isOpen={isUserSheetOpen}
+                onClose={() => setIsUserSheetOpen(false)}
+                title="Manage Agent Users"
+                size="md"
+            >
+                {selectedAgent && (
+                    <AgentUserManagement
+                        agent={selectedAgent}
+                        onClose={() => setIsUserSheetOpen(false)}
+                    />
+                )}
+            </SideSheet>
+
+            <SideSheet
+                isOpen={isTestCallOpen}
+                onClose={() => setIsTestCallOpen(false)}
+                title="Test Call"
+                size="md"
+            >
+                <TestCall onCancel={() => setIsTestCallOpen(false)} />
+            </SideSheet>
         </div>
     );
 }

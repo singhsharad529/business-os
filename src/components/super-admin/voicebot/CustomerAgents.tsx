@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
+import EditAdminAgent from "./EditAdminAgent";
 
 
 const assistantsData = [
@@ -224,6 +225,19 @@ function CustomerAgents() {
 
 
             </div>
+
+            <SideSheet
+                isOpen={isEditSheetOpen}
+                onClose={() => setIsEditSheetOpen(false)}
+                title="Edit AI Agent"
+                size="md"
+            >
+                {selectedAgent && (
+                    <EditAdminAgent
+                        onClose={() => setIsEditSheetOpen(false)}
+                    />
+                )}
+            </SideSheet>
 
 
         </div>
