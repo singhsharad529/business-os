@@ -26,6 +26,7 @@ import Campaigns from "@/pages/voicebot/Campaigns";
 import AllLeads from "@/pages/super-admin/AllLeads";
 import Customers from "@/pages/super-admin/Customers";
 import MyAgents from "@/pages/super-admin/MyAgents";
+import Customer from "@/pages/super-admin/Customer";
 
 export const router = createBrowserRouter([
     {
@@ -101,6 +102,8 @@ export const router = createBrowserRouter([
                     { path: "super-admin/my-agent", element: <MyAgents /> },
                     { path: "super-admin/all-leads", element: <AllLeads /> },
                     { path: "super-admin/all-customers", element: <Customers /> },
+                    { path: "super-admin/customers/:id", element: <Customer /> },
+
                 ],
             },
 
