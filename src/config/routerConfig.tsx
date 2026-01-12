@@ -27,6 +27,7 @@ import AllLeads from "@/pages/super-admin/AllLeads";
 import Customers from "@/pages/super-admin/Customers";
 import MyAgents from "@/pages/super-admin/MyAgents";
 import Customer from "@/pages/super-admin/Customer";
+import Inbound from "@/pages/super-admin/Inbound";
 
 export const router = createBrowserRouter([
     {
@@ -99,6 +100,7 @@ export const router = createBrowserRouter([
                 element: <SuperAdminRoute />,
                 children: [
                     { path: "super-admin/dashboard", element: <SuperAdminDashboard /> },
+                    { path: "super-admin/inbound", element: <Inbound /> },
                     { path: "super-admin/my-agent", element: <MyAgents /> },
                     { path: "super-admin/all-leads", element: <AllLeads /> },
                     { path: "super-admin/all-customers", element: <Customers /> },

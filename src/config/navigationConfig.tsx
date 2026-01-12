@@ -328,17 +328,23 @@ export const navigationConfig: NavigationConfig = {
       //   route: "/app/super-admin/modules"
       // },
       {
+        id: "inbound",
+        label: "Inbound",
+        icon: "phone",
+        route: "/app/super-admin/inbound"
+      },
+      {
         id: "my_agent",
-        label: "Agent",
+        label: "Agents",
         icon: "bot_message_square",
         route: "/app/super-admin/my-agent"
       },
-      {
-        id: "all_leads",
-        label: "All Leads",
-        icon: "users",
-        route: "/app/super-admin/all-leads"
-      },
+      // {
+      //   id: "all_leads",
+      //   label: "All Leads",
+      //   icon: "users",
+      //   route: "/app/super-admin/all-leads"
+      // },
       {
         id: "all_customers",
         label: "All Customers",

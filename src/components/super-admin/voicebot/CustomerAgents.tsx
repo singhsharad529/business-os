@@ -204,13 +204,13 @@ function CustomerAgents() {
                             </div>
 
                             <div className="flex justify-end gap-2">
-                                {/* <button
+                                <button
                                     onClick={() => handleEditAgent(agent)}
                                     className="btn btn-primary flex-1 py-1.5 text-xs font-bold uppercase tracking-wider shadow-sm"
                                 >
                                     <Edit className="w-3.5 h-3.5" />
                                     Edit Agent
-                                </button> */}
+                                </button>
                                 <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
                                     <Copy className="w-3.5 h-3.5" />
                                 </button>
