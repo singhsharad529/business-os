@@ -391,7 +391,47 @@ function RevenueDashboard() {
                 </Card>
             </div>
 
-
+            {/* Top Clients by Revenue Table */}
+            <Card className="card rounded-xl border border-border-subtle hover:shadow-glow transition-all">
+                <CardHeader className="border-b border-border-subtle/50 px-6 py-4">
+                    <CardTitle className="text-lg font-bold text-text-main">Top Clients by Revenue</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="bg-bg/50 border-b border-border-subtle">
+                                    <th className="px-6 py-3 text-xs font-bold text-text-muted uppercase tracking-wider">Client Company Name</th>
+                                    <th className="px-6 py-3 text-xs font-bold text-text-muted uppercase tracking-wider text-right">Revenue (Monthly)</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border-subtle">
+                                {[
+                                    { name: "Acme Corp", revenue: "$12,450.00" },
+                                    { name: "Global Logistics", revenue: "$10,800.00" },
+                                    { name: "Tech Solutions Inc", revenue: "$9,500.00" },
+                                    { name: "Eco Energy Ltd", revenue: "$8,200.00" },
+                                    { name: "Innovative Apps", revenue: "$7,600.00" },
+                                ].map((client, index) => (
+                                    <tr key={index} className="hover:bg-primary-soft/10 transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-bg border border-border-subtle flex items-center justify-center text-primary font-bold text-xs">
+                                                    {client.name[0]}
+                                                </div>
+                                                <span className="font-medium text-text-main group-hover:text-primary transition-colors">{client.name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right font-mono font-bold text-text-main">
+                                            {client.revenue}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     )
 }
