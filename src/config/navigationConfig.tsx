@@ -97,13 +97,6 @@ export const navigationConfig: NavigationConfig = {
         icon: "dashboard",
         route: "/app/voicebot/dashboard",
         roles: ["company_admin"],
-        children: [
-          {
-            id: "dashboard",
-            label: "Dashboard",
-            route: "/app/voicebot/dashboard"
-          }
-        ]
       },
       {
         id: "inbound-calls",
@@ -111,13 +104,6 @@ export const navigationConfig: NavigationConfig = {
         icon: "phone",
         route: "voicebot/calls",
         roles: ["company_admin",],
-        children: [
-          {
-            id: "voice_calls",
-            label: "Calls",
-            route: "/app/voicebot/calls"
-          },
-        ]
       },
       {
         id: "leads_database",
@@ -125,13 +111,6 @@ export const navigationConfig: NavigationConfig = {
         route: "/app/voicebot/leads-database",
         roles: ["company_admin"],
         icon: "users",
-        children: [
-          {
-            id: "leads_database",
-            label: "Leads Database",
-            route: "/app/voicebot/leads-database"
-          },
-        ]
       },
       // {
       //   id: "campaigns",
@@ -252,13 +231,6 @@ export const navigationConfig: NavigationConfig = {
         icon: "building",
         route: "/app/my-company",
         roles: ["company_admin", "standard_user"],
-        children: [
-          {
-            id: "company_overview",
-            label: "Overview",
-            route: "/app/my-company"
-          },
-        ]
       },
       // {
       //   id: "settings",
