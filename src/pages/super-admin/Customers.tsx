@@ -16,6 +16,7 @@ import CreateUser from "@/components/super-admin/voicebot/CreateUser";
 import { SideSheet } from "@/components/SideSheet";
 import adminCustomerService from "@/api/adminCustomerService";
 import { toast } from "@/hooks/useToast";
+import TableLoader from "@/components/common/TableLoader";
 
 
 function Customers() {
@@ -119,83 +120,86 @@ function Customers() {
                 </div>
 
                 {/* Table Section */}
-                <div className="card p-4">
-                    <div className="flex flex-col sm:flex-row gap-2 mb-4">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                            <input
-                                type="text"
-                                placeholder="Search customers..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="input pl-8 w-full"
-                            />
+                {loading ? (<TableLoader rows={5} columns={6} />) : (
+                    <div className="card p-4">
+                        <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                <input
+                                    type="text"
+                                    placeholder="Search customers..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="input pl-8 w-full"
+                                />
+                            </div>
+
+                            <div className="flex gap-2">
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="input min-w-[120px]"
+                                >
+                                    <option value="all">All Statuses</option>
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+
+                                <button className="btn btn-secondary flex items-center gap-1.5">
+                                    <Filter className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Filter</span>
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="flex gap-2">
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="input min-w-[120px]"
-                            >
-                                <option value="all">All Statuses</option>
-                                <option value="active">Active</option>
-                                <option value="pending">Pending</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-
-                            <button className="btn btn-secondary flex items-center gap-1.5">
-                                <Filter className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Filter</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-border-subtle">
-                                    <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider text-center">Sr.No.</th>
-                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>
-                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>
-                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>
-                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assigned Agent</th>
-                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
-                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border-subtle/50">
-                                {filteredUsers.map((user: any, i: number) => (
-                                    <tr key={user.id} className="hover:bg-bg-alt/30 transition-colors">
-                                        <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
-                                        <td className="py-4 px-3 text-sm text-text-main font-medium">{user.email}</td>
-                                        <td className="py-4 px-3 text-sm text-text-muted">N/A</td>
-                                        <td className="py-4 px-3 text-sm text-text-muted">N/A</td>
-                                        <td className="py-4 px-3 text-sm text-text-muted">N/A</td>
-                                        <td className="py-4 px-3">
-                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-success/10 text-success`}>
-                                                active
-                                            </span>
-                                        </td>
-                                        <td className="py-4 px-3 text-sm text-text-muted">
-                                            <div className="flex items-center gap-2">
-                                                {/* <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b border-border-subtle">
+                                        <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider text-center">Sr.No.</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assigned Agent</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border-subtle/50">
+                                    {filteredUsers.map((user: any, i: number) => (
+                                        <tr key={user.id} className="hover:bg-bg-alt/30 transition-colors">
+                                            <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
+                                            <td className="py-4 px-3 text-sm text-text-main font-medium">{user.email}</td>
+                                            <td className="py-4 px-3 text-sm text-text-muted">N/A</td>
+                                            <td className="py-4 px-3 text-sm text-text-muted">N/A</td>
+                                            <td className="py-4 px-3 text-sm text-text-muted">N/A</td>
+                                            <td className="py-4 px-3">
+                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-success/10 text-success`}>
+                                                    active
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-3 text-sm text-text-muted">
+                                                <div className="flex items-center gap-2">
+                                                    {/* <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer">
                                                     <Edit2 className="w-4 h-4" />
                                                 </button> */}
-                                                <button
-                                                    onClick={() => navigate(`/app/super-admin/customers/${user.id}`)}
-                                                    className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                                    <button
+                                                        onClick={() => navigate(`/app/super-admin/customers/${user.id}`)}
+                                                        className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+
+                )}
             </div>
             {/* Add Lead SideSheet */}
             <SideSheet

@@ -148,7 +148,7 @@ export const ProtectedLayout = () => {
                 </div>
 
                 {/* AI Assistant */}
-                {!location.pathname.includes('voicebot') && <AIAssistant />}
+                {/* {!location.pathname.includes('voicebot') && <AIAssistant />} */}
                 {/* Global Toaster */}
                 <Toaster />
             </div>
