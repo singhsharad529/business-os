@@ -75,13 +75,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return userWithoutPassword;
           }
           else {
-            const companyResponse = await voiceBotService.getCompanyList({});
+            // const companyResponse = await voiceBotService.getCompanyList({});
 
             // console.log('compay list', companyResponse);
 
-            const companyId = companyResponse.companies.filter((company: any) => company.userId === response.user.id);
+            // const companyId = companyResponse.companies.filter((company: any) => company.userId === response.user.id);
 
-            const userWithoutPassword = { ...response.user, companyId: companyId.length > 0 ? companyId[0].id : null, role: "company_admin" };
+            // const userWithoutPassword = { ...response.user, companyId: companyId.length > 0 ? companyId[0].id : null, role: "company_admin" };
+            const userWithoutPassword = { ...response.user, companyId: null, role: "company_admin" };
+
             setUser(userWithoutPassword);
             localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
             return userWithoutPassword;
