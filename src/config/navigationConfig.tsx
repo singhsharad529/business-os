@@ -318,10 +318,10 @@ export const navigationConfig: NavigationConfig = {
       //   route: "/app/super-admin/all-leads"
       // },
       {
-        id: "all_customers",
-        label: "All Customers",
+        id: "all_clients",
+        label: "Clients",
         icon: "building",
-        route: "/app/super-admin/all-customers"
+        route: "/app/super-admin/all-clients"
       }
     ]
   }
