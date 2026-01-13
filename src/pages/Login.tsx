@@ -20,7 +20,7 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const loggedInUser = await login(email, password); // user object or null
+      const loggedInUser = await login(email, password, role); // user object or null
       console.log('loggedInUser', loggedInUser);
 
 

@@ -19,6 +19,15 @@ export const mockUsers: User[] = [
     createdAt: "2024-01-01T00:00:00Z",
   },
   {
+    id: "sa-2",
+    email: "admin2@businessos.com",
+    password: "admin123",
+    name: "Sarah Admin",
+    role: "super_admin",
+    avatar: "SA",
+    createdAt: "2024-01-01T00:00:00Z",
+  },
+  {
     id: "u-1",
     email: "john@acmeprocure.com",
     password: "password",

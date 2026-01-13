@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Users,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import CreateUser from "@/components/super-admin/voicebot/CreateUser";
 import { SideSheet } from "@/components/SideSheet";
+import adminCustomerService from "@/api/adminCustomerService";
 
 const dummyCustomers = [
     {
@@ -77,8 +78,22 @@ function Customers() {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const navigate = useNavigate();
+    const [usersList, setUsersList] = useState<any>(null);
 
     const [isCreateUserSheetOpen, setIsCreateUserSheetOpen] = useState(false);
+
+
+    useEffect(() => {
+        try {
+            const response = adminCustomerService.getUsersList({});
+            console.log('user list', response);
+
+            setUsersList(response);
+        } catch (error) {
+            console.log(error);
+        }
+    }, [])
+
 
     return (
         <div>
