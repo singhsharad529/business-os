@@ -8,7 +8,7 @@ import voiceBotService from '@/api/voicebotService';
 interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void;
-  login: (email: string, password: string) => Promise<User | null>;
+  login: (email: string, password: string, role: 'super_admin' | 'company_admin' | 'standard_user' | '') => Promise<User | null>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<User | null> => {
+  const login = async (email: string, password: string, role: 'super_admin' | 'company_admin' | 'standard_user' | ''): Promise<User | null> => {
 
     try {
 
@@ -51,20 +51,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (u) => u.email === email && u.password === password
       );
 
-
-
       if (foundUser) {
 
-        const response = await userService.login({ email, password }, {});
+        let apiRole: string = role === "company_admin" ? "users" : "admin";
+
+        console.log('apiRole', apiRole);
+        const response = await userService.login({ email, password, role: apiRole }, {});
 
         if (response) {
-
-
-
           localStorage.setItem('businessos_access_token', response.access_token);
-
-
-
 
           // console.log('company id', companyId);
 

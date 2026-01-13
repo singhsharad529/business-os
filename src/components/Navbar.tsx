@@ -1,7 +1,7 @@
 import { LogOut, User, Settings, ChevronDown, Link2, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRef, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { navigationConfig, NavigationChild } from '../config/navigationConfig';
 
 interface NavbarProps {
@@ -16,6 +16,8 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
   const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const navigate = useNavigate();
 
   // Get children menu items for selected parent
   const getChildrenMenuItems = (): NavigationChild[] => {
@@ -160,7 +162,6 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
                 <div className="w-9 h-9 bg-gradient-to-br from-primary-strong via-primary to-accent rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/30 ring-2 ring-white/50">
                   {/* {user?.avatar || user?.name?.charAt(0).toUpperCase()} */}
                   {"JD"}
-
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-white shadow-sm"></div>
               </div>
@@ -200,18 +201,27 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
 
                   {/* Menu Items */}
                   <div className="py-1">
-                    <button className="group w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300 hover:text-primary">
+                    <button className="group w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300 hover:text-primary"
+                      onClick={() => {
+                        navigate(user?.role === 'super_admin' ? '/app/super-admin/profile' : '/app/voicebot/user-profile')
+                        setShowDropdown(false);
+                      }}
+                    >
                       <User className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors duration-300" />
                       <span>Profile Settings</span>
                     </button>
-                    <button className="group w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300 hover:text-primary">
-                      <Settings className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors duration-300" />
-                      <span>Preferences</span>
-                    </button>
-                    <button className="group w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300 hover:text-primary">
-                      <CreditCard className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors duration-300" />
-                      <span>Billing / Credits</span>
-                    </button>
+                    {
+                      user?.role !== 'super_admin' && (
+                        <button className="group w-full px-4 py-2.5 text-left text-sm text-text-main hover:bg-white/20 flex items-center gap-3 transition-colors duration-300 hover:text-primary"
+                          onClick={() => {
+                            navigate('/app/voicebot/billing')
+                            setShowDropdown(false);
+                          }}>
+                          <CreditCard className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors duration-300" />
+                          <span>Billing / Credits</span>
+                        </button>
+                      )
+                    }
 
                     <div className="h-px bg-border-subtle/50 my-1 mx-2" />
                     <button

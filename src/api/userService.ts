@@ -4,9 +4,9 @@ import { AxiosRequestConfig } from "axios";
 // src/api/userService.js
 const userService = {
   login: (
-    data: { email: string; password: string },
+    data: { email: string; password: string; role: string },
     config: AxiosRequestConfig
-  ) => apiService.post("users/login", data, config),
+  ) => apiService.post(`${data.role}/login`, data, config),
 };
 
 export default userService;
