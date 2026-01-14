@@ -719,10 +719,10 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
             </div>
 
             {/* Sticky Action Bar */}
-            <div className="mt-8 pt-6 border-t border-border-subtle flex items-center gap-3 sticky bottom-0">
+            <div className="mt-auto pt-6 pb-2 border-t border-border-subtle flex items-center gap-3 sticky bottom-0 bg-white/95 backdrop-blur-xl z-20 -mx-2 px-2">
                 <button
                     onClick={onClose}
-                    className="flex-1 px-4 py-3 rounded-xl border border-border-subtle text-xs font-bold text-text-main hover:bg-bg transition-all active:scale-9 bg-white/50 backdrop-blur-sm"
+                    className="flex-1 px-4 py-3 rounded-xl border border-border-subtle text-xs font-bold text-text-main hover:bg-bg transition-all active:scale-95 bg-white/50"
                 >
                     Cancel
                 </button>

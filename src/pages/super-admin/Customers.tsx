@@ -185,7 +185,7 @@ function Customers() {
                                                     <Edit2 className="w-4 h-4" />
                                                 </button> */}
                                                     <button
-                                                        onClick={() => navigate(`/app/super-admin/customers/${user.id}`)}
+                                                        onClick={() => navigate(`/app/super-admin/clients/${user.id}`)}
                                                         className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
                                                     >
                                                         <Eye className="w-4 h-4" />
