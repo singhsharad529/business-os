@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     BotMessageSquare,
     Phone,
@@ -35,7 +35,7 @@ interface TestCallProps {
     onCancel: () => void;
 }
 
-type Step = "select-template" | "input-number" | "simulating" | "completed";
+type Step = "select-template" | "prepare-call" | "simulating" | "completed";
 type Tab = "new" | "history";
 
 interface TemplateConfig {
@@ -143,17 +143,27 @@ export default function TestCall({ onCancel }: TestCallProps) {
     const [templates, setTemplates] = useState<any | null>(null);
     const [templatesLoading, setTemplatesLoading] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
-    const [initialCallLoading, setInitialCallLoading] = useState(false);
     const [unassignedNumbers, setUnassignedNumbers] = useState<Number[]>([]);
     const [publishLoading, setPublishLoading] = useState<boolean>(false);
     const [selectedNumber, setSelectedNumber] = useState<string>("");
     const [pagination, setPagination] = useState<any>(null);
     const [historyLoading, setHistoryLoading] = useState<boolean>(false);
-    const [callType, setCallType] = useState<"outbound" | "web">("web");
     const [vapi, setVapi] = useState<Vapi | null>(null);
     const [isWebCallActive, setIsWebCallActive] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [webCallStatus, setWebCallStatus] = useState<"idle" | "connecting" | "connected">("idle");
+    const [transcripts, setTranscripts] = useState<{ role: string; text: string }[]>([]);
+    const transcriptEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        if (webCallStatus === "connected") {
+            scrollToBottom();
+        }
+    }, [transcripts]);
 
     const defaultPageSize = 10;
     const fetchHistoryTestCalls = async (page: number = 1, pageSize: number = defaultPageSize) => {
@@ -227,7 +237,8 @@ export default function TestCall({ onCancel }: TestCallProps) {
         setPhoneNumber("");
         setName("");
         setSelectedTemplate(null);
-        vapi?.stop()
+        setTranscripts([]);
+        vapi?.stop();
     };
 
 
@@ -270,7 +281,6 @@ export default function TestCall({ onCancel }: TestCallProps) {
     }
 
     const startWebCall = async () => {
-        console.log(selectedTemplate);
         if (!vapi || !selectedTemplate?.vapiId) {
             toast.danger("Vapi not initialized or assistant ID missing");
             return;
@@ -279,25 +289,52 @@ export default function TestCall({ onCancel }: TestCallProps) {
         try {
             setWebCallStatus("connecting");
             setStep("simulating");
+            setTranscripts([]);
             await vapi.start(selectedTemplate.vapiId);
 
             // Listen for events
-            vapi.on('call-start', () => console.log('Call started'));
-            vapi.on('call-end', () => console.log('Call ended'));
+            vapi.on('call-start', () => {
+                console.log('Call started');
+                setWebCallStatus("connected");
+            });
+            vapi.on('call-end', () => {
+                console.log('Call ended');
+                setWebCallStatus("idle");
+                setIsWebCallActive(false);
+                setStep("completed");
+            });
             vapi.on('message', (message) => {
                 if (message.type === 'transcript') {
-                    console.log(`${message.role}: ${message.transcript}`);
+                    const role = message.role;
+                    const text = message.transcript;
+
+                    setTranscripts(prev => {
+                        // If the move is final, it should stay. 
+                        // If same role and previous was not final, we might want to update.
+                        // However, simpler for now: just append if it's a new "shot" or handle growth.
+                        // Actually, Vapi sends many partials. 
+                        // To keep it clean in UI, let's just show the latest message per role switch or just append final ones.
+                        // Based on user log, they see it growing.
+
+                        // Simple approach: if the last message is same role, replace it. Otherwise append.
+                        if (prev.length > 0 && prev[prev.length - 1].role === role) {
+                            const newTranscripts = [...prev];
+                            newTranscripts[newTranscripts.length - 1] = { role, text };
+                            return newTranscripts;
+                        }
+                        return [...prev, { role, text }];
+                    });
                 }
             });
         } catch (error) {
             console.error("Failed to start web call", error);
             toast.danger("Failed to start web call");
             setWebCallStatus("idle");
-            setStep("input-number");
+            setStep("prepare-call");
         }
     }
 
-    console.log('call and callstatus', callType, webCallStatus);
+    // console.log('call and callstatus', webCallStatus);
 
 
     const stopWebCall = () => {
@@ -314,30 +351,8 @@ export default function TestCall({ onCancel }: TestCallProps) {
     };
 
     const initialCall = async () => {
-        if (callType === "web") {
-            startWebCall();
-            return;
-        }
-
-        try {
-            setInitialCallLoading(true);
-            const data = {
-                assistantId: selectedTemplate?.vapiId,
-                customerNumber: phoneNumber,
-                customerName: name
-            }
-            const response = await voiceBotService.testCall(data, {});
-            console.log(response);
-            setStep("simulating");
-            getUnassignedNumbers();
-        } catch (error) {
-            // console.log(error);
-            toast.danger("Failed to make initial call");
-        }
-        finally {
-            setInitialCallLoading(false);
-        }
-    }
+        startWebCall();
+    };
 
 
     // const publishAgent = async () => {
@@ -400,14 +415,11 @@ export default function TestCall({ onCancel }: TestCallProps) {
             <div className="flex-1 overflow-y-auto px-1">
                 {activeTab === "new" ? (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-
-
-
                         {step === "select-template" && (
                             <div className="grid grid-cols-1 gap-4">
                                 <div>
-                                    <h3 className="text-lg font-bold text-text-main">Select Template</h3>
-                                    <p className="text-sm text-text-muted">Choose a template for your test agent.</p>
+                                    <h3 className="text-lg font-bold text-text-main">Select Agent</h3>
+                                    <p className="text-sm text-text-muted">Choose an agent for your test call.</p>
                                 </div>
                                 {
                                     templatesLoading ? (
@@ -422,7 +434,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                             key={template.id}
                                             onClick={() => {
                                                 setSelectedTemplate(template);
-                                                setStep("input-number");
+                                                setStep("prepare-call");
                                             }}
                                             className="group flex items-center gap-4 p-4 rounded-xl border border-border-subtle hover:border-primary hover:bg-primary/5 transition-all text-left"
                                         >
@@ -443,7 +455,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                             </div>
                         )}
 
-                        {step === "input-number" && (
+                        {step === "prepare-call" && (
                             <div className="space-y-6 duration-300">
                                 <button
                                     onClick={() => setStep("select-template")}
@@ -454,7 +466,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 </button>
                                 <div className="flex flex-col items-center text-center space-y-4">
                                     <div className={`w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary`}>
-                                        <Phone className="w-8 h-8" />
+                                        <BotMessageSquare className="w-8 h-8" />
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-text-main">Ready for Test Call?</h3>
@@ -464,66 +476,13 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                     </div>
                                 </div>
 
-                                {/* <div className="flex p-1 bg-bg rounded-xl border border-border-subtle">
-                                    <button
-                                        onClick={() => setCallType("web")}
-                                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${callType === "web" ? "bg-white text-primary shadow-sm" : "text-text-muted hover:text-text-main"}`}
-                                    >
-                                        Web Call
-                                    </button>
-                                    <button
-                                        onClick={() => setCallType("outbound")}
-                                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${callType === "outbound" ? "bg-white text-primary shadow-sm" : "text-text-muted hover:text-text-main"}`}
-                                    >
-                                        Phone Call
-                                    </button>
-                                </div> */}
-
                                 <div className="space-y-4 pt-4">
-                                    {callType === "outbound" && (
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-semibold text-text-main flex items-center gap-2">
-                                                Your Phone Number
-                                                <span className="text-[10px] font-normal text-text-muted px-1.5 py-0.5 bg-bg border border-border-subtle rounded text-primary">Required</span>
-                                            </label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-                                                    <Phone className="w-4 h-4" />
-                                                </div>
-                                                <input
-                                                    type="tel"
-                                                    placeholder="+1 (555) 000-0000"
-                                                    value={phoneNumber}
-                                                    onChange={(e) => setPhoneNumber(e.target.value)}
-                                                    className="w-full bg-white border border-border-subtle rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                                />
-                                            </div>
-
-
-                                            <label className="text-xs font-semibold text-text-main flex items-center gap-2">
-                                                Your Name
-                                                <span className="text-[10px] font-normal text-text-muted px-1.5 py-0.5 bg-bg border border-border-subtle rounded text-primary">Required</span>
-                                            </label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-                                                    <User2 className="w-4 h-4" />
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Enter your name"
-                                                    value={name}
-                                                    onChange={(e) => setName(e.target.value)}
-                                                    className="w-full bg-white border border-border-subtle rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
 
                                     <button
                                         onClick={initialCall}
                                         className="btn btn-primary w-full py-4 rounded-xl text-sm font-bold shadow-glow-primary"
                                     >
-                                        {initialCallLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : callType === "web" ? "Start Web Call" : "Start My Test Call"}
+                                        Start Web Call
                                     </button>
                                 </div>
                                 <div className="flex items-center p-2 bg-bg rounded-xl border border-border-subtle gap-3">
@@ -531,9 +490,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                         <Clock className="w-4 h-4 text-primary" />
                                     </div>
                                     <p className="text-[11px] text-text-muted leading-relaxed">
-                                        {callType === "web"
-                                            ? "The call will start right here in your browser. Please allow microphone access when prompted."
-                                            : "You'll receive an outbound call automatically. Please ensure your line is free to pick up."}
+                                        The call will start right here in your browser. Please allow microphone access when prompted.
                                     </p>
                                 </div>
                             </div>
@@ -553,18 +510,38 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 <div className="text-center space-y-2">
                                     <div className="flex items-center justify-center gap-2 text-primary font-bold uppercase tracking-widest text-[10px]">
                                         <Dot className="w-4 h-4 animate-bounce" />
-                                        {callType === "web" ? (webCallStatus === "connecting" ? "Connecting..." : "Live Web Call") : "Initiated Call"}
+                                        {webCallStatus === "connecting" ? "Connecting..." : "Live Web Call"}
                                     </div>
                                     <h3 className="text-xl font-bold text-text-main">{selectedTemplate?.name}</h3>
                                     <p className="text-sm text-text-muted">
-                                        {callType === "web"
-                                            ? (webCallStatus === "connecting" ? "Please wait while we connect you..." : "You are now talking to the agent")
-                                            : "Please pick up the call"}
+                                        {webCallStatus === "connecting" ? "Please wait while we connect you..." : "You are now talking to the agent"}
                                     </p>
-                                    {callType === "outbound" && <p className="text-sm text-text-muted">{phoneNumber}</p>}
                                 </div>
 
-                                {callType === "web" && webCallStatus === "connected" && (
+                                <div className="w-full max-h-[300px] overflow-y-auto space-y-3 p-4 bg-bg rounded-2xl border border-border-subtle custom-scrollbar">
+                                    {transcripts.length === 0 ? (
+                                        <p className="text-xs text-text-muted text-center italic py-4">Waiting for agent to speak...</p>
+                                    ) : (
+                                        <>
+                                            {transcripts.map((t, i) => (
+                                                <div key={i} className={`flex flex-col ${t.role === 'user' ? 'items-end' : 'items-start'}`}>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1 px-1">
+                                                        {t.role === 'user' ? 'You' : selectedTemplate?.name}
+                                                    </span>
+                                                    <div className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${t.role === 'user'
+                                                        ? 'bg-primary text-white rounded-tr-none'
+                                                        : 'bg-white border border-border-subtle text-text-main rounded-tl-none'
+                                                        }`}>
+                                                        {t.text}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <div ref={transcriptEndRef} />
+                                        </>
+                                    )}
+                                </div>
+
+                                {webCallStatus === "connected" && (
                                     <div className="flex gap-4">
                                         <button
                                             onClick={toggleMute}
@@ -645,26 +622,51 @@ export default function TestCall({ onCancel }: TestCallProps) {
                             </div>
                         )}
                         {step === "completed" && (
-                            <div className="flex flex-col items-center justify-center py-10 space-y-6 animate-in fade-in duration-500">
-                                <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center text-success">
-                                    <BotMessageSquare className="w-10 h-10" />
+                            <div className="flex flex-col items-center justify-center py-6 space-y-6 animate-in fade-in duration-500">
+                                <div className="flex flex-col items-center space-y-3">
+                                    <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center text-success">
+                                        <BotMessageSquare className="w-8 h-8" />
+                                    </div>
+                                    <div className="text-center">
+                                        <h3 className="text-xl font-bold text-text-main">Call Summary</h3>
+                                        <p className="text-sm text-text-muted">The call has ended. You can review the transcript below.</p>
+                                    </div>
                                 </div>
-                                <div className="text-center space-y-2">
-                                    <h3 className="text-xl font-bold text-text-main">Test Call Completed</h3>
-                                    <p className="text-sm text-text-muted">Thanks for testing our AI agent!</p>
+
+                                <div className="w-full max-h-[350px] overflow-y-auto space-y-3 p-4 bg-bg rounded-2xl border border-border-subtle custom-scrollbar">
+                                    {transcripts.length === 0 ? (
+                                        <p className="text-xs text-text-muted text-center italic py-4">No transcript available.</p>
+                                    ) : (
+                                        <>
+                                            {transcripts.map((t, i) => (
+                                                <div key={i} className={`flex flex-col ${t.role === 'user' ? 'items-end' : 'items-start'}`}>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1 px-1">
+                                                        {t.role === 'user' ? 'You' : (selectedTemplate?.name || 'Agent')}
+                                                    </span>
+                                                    <div className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${t.role === 'user'
+                                                        ? 'bg-primary text-white rounded-tr-none'
+                                                        : 'bg-white border border-border-subtle text-text-main rounded-tl-none'
+                                                        }`}>
+                                                        {t.text}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
                                 </div>
-                                <div className="w-full flex flex-col gap-3">
+
+                                <div className="w-full grid grid-cols-2 gap-3">
                                     <button
                                         onClick={handleRetry}
-                                        className="btn btn-primary w-full py-4 rounded-xl text-sm font-bold shadow-glow-primary"
+                                        className="btn btn-primary py-4 rounded-xl text-sm font-bold shadow-glow-primary"
                                     >
-                                        Try Another Template
+                                        Try Another
                                     </button>
                                     <button
                                         onClick={() => setActiveTab("history")}
-                                        className="btn btn-secondary w-full py-4 rounded-xl text-sm font-bold"
+                                        className="btn btn-secondary py-4 rounded-xl text-sm font-bold"
                                     >
-                                        View Call History
+                                        History
                                     </button>
                                 </div>
                             </div>
