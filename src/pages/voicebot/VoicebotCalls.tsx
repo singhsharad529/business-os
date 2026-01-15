@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Languages, Briefcase, MoveLeft, Trash, Loader2, Eye, Edit } from "lucide-react";
+import { Search, Filter, RotateCcw, X, BotMessageSquare, Phone, Languages, Briefcase, MoveLeft, Trash, Loader2, Eye, Edit, MessageCircle } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 import { Switch } from "@/components/ui/switch";
@@ -15,6 +15,7 @@ import { toast } from "@/hooks/useToast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AxiosRequestConfig } from "axios";
+import Feedback from "@/components/voicebot/Feedback";
 
 export default function VoicebotCalls() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -34,6 +35,7 @@ export default function VoicebotCalls() {
     const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
     const [callLogs, setCallLogs] = useState<any[]>([]);
     const [detailLoading, setDetailLoading] = useState<boolean>(false);
+    const [isFeedbackSheetOpen, setIsFeedbackSheetOpen] = useState<boolean>(false);
     const { user } = useAuth();
     const { agents, setAgents } = useData();
 
@@ -234,29 +236,25 @@ export default function VoicebotCalls() {
                         <p className="text-text-muted mt-1">View and analyze all your AI agents & calls</p>
                     </div>
                     {
-                        !isOpenedCalls && (
+                        isOpenedCalls && (
                             <div className="flex gap-4">
                                 <button
                                     onClick={() => {
-                                        if (user && !user.companyId) {
-                                            toast.danger("Please create a company from Company section to start using the voicebot");
-
-                                            return;
-                                        }
-                                        setIsNewAgentOpen(true)
+                                        setIsFeedbackSheetOpen(true);
                                     }}
                                     className="btn btn-primary flex items-center gap-1.5"
                                 >
-                                    <BotMessageSquare className="w-3.5 h-3.5" />
-                                    Create Agent
+
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                    Feedback
                                 </button>
-                                <button
+                                {/* <button
                                     onClick={() => setIsTestCallOpen(true)}
                                     className="btn btn-primary flex items-center gap-1.5"
                                 >
                                     <Phone className="w-3.5 h-3.5" />
                                     Test Call
-                                </button>
+                                </button> */}
                             </div>
                         )
                     }
@@ -277,7 +275,7 @@ export default function VoicebotCalls() {
                                                         <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                                                             <BotMessageSquare className="w-5 h-5" />
                                                         </div>
-                                                        <div className="flex items-center gap-2">
+                                                        {/* <div className="flex items-center gap-2">
                                                             <span className={`text-xs font-medium ${agent.status === 'active' ? 'text-primary' : 'text-text-muted'}`}>
                                                                 {agent.status ? agent.status.charAt(0).toUpperCase() + agent.status.slice(1) : "Inactive"}
                                                             </span>
@@ -285,7 +283,7 @@ export default function VoicebotCalls() {
                                                                 checked={agent.status === 'active'}
                                                                 onCheckedChange={(checked) => handleStatusChange(agent.vapiId)}
                                                             />
-                                                        </div>
+                                                        </div> */}
                                                     </div>
 
                                                     <h3 className="text-lg font-bold text-text-main mb-1 truncate">{agent.name}</h3>
@@ -310,7 +308,7 @@ export default function VoicebotCalls() {
                                                     </div>
 
                                                     <div className="flex gap-2">
-                                                        <button
+                                                        {/* <button
                                                             className="btn btn-primary flex-1 py-1.5 text-xs"
                                                             onClick={() => {
                                                                 setSelectedAgentToEdit(agent);
@@ -319,21 +317,21 @@ export default function VoicebotCalls() {
                                                         >
                                                             <Edit className="w-3 h-3" />
                                                             Edit Agent
-                                                        </button>
+                                                        </button> */}
                                                         <button
-                                                            className="btn btn-secondary flex items-center gap-1.5 py-1.5 text-xs px-3"
+                                                            className="btn btn-primary flex-1 py-1.5 text-xs"
                                                             onClick={() => getCallReports(agent)}
                                                         >
                                                             <Phone className="w-3 h-3" />
                                                             Calls
                                                         </button>
-                                                        <button
+                                                        {/* <button
                                                             className="btn btn-secondary flex items-center gap-1.5 py-1.5 text-xs px-3"
                                                             onClick={() => handleDeleteAgent(agent.vapiId)}
                                                         >
                                                             <Trash className="w-3 h-3" />
 
-                                                        </button>
+                                                        </button> */}
                                                     </div>
                                                 </div>
                                             ))}
@@ -534,44 +532,17 @@ export default function VoicebotCalls() {
                 {selectedCall && <CallDetails call={selectedCall} />}
             </SideSheet>
 
-            <SideSheet
-                isOpen={isNewAgentOpen}
-                onClose={() => setIsNewAgentOpen(false)}
-                title="Add New Agent"
-                size="md"
-            >
-                <NewAgent
-                    onCancel={() => setIsNewAgentOpen(false)}
-                    getAllAgents={getAllAgents}
-                />
-            </SideSheet>
 
             <SideSheet
-                isOpen={isEditAgentOpen}
-                onClose={() => setIsEditAgentOpen(false)}
-                title="Edit Agent"
+                isOpen={isFeedbackSheetOpen}
+                onClose={() => setIsFeedbackSheetOpen(false)}
+                title="Submit your feedback"
                 size="md"
             >
-                {selectedAgentToEdit && (
-                    <EditAgent
-                        agent={selectedAgentToEdit}
-                        setSelectedAgentToEdit={setSelectedAgentToEdit}
-                        onSuccess={() => {
-                            // setIsEditAgentOpen(false);
-                            getAllAgents();
-                        }}
-                        onCancel={() => setIsEditAgentOpen(false)}
-                    />
-                )}
+                <Feedback onClose={() => setIsFeedbackSheetOpen(false)} />
             </SideSheet>
-            <SideSheet
-                isOpen={isTestCallOpen}
-                onClose={() => setIsTestCallOpen(false)}
-                title="Test Call"
-                size="md"
-            >
-                <TestCall onCancel={() => setIsTestCallOpen(false)} />
-            </SideSheet>
+
+
             <AlertDialog
                 isOpen={isDeleteAlertOpen}
                 onClose={() => setIsDeleteAlertOpen(false)}

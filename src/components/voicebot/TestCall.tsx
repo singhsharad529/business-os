@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     BotMessageSquare,
     Phone,
@@ -10,8 +10,11 @@ import {
     Dot,
     Loader2,
     User2,
-    BookPlus
+    BookPlus,
+    Mic,
+    MicOff
 } from "lucide-react";
+import Vapi from "@vapi-ai/web";
 import { toast } from "@/hooks/useToast";
 import voiceBotService from "@/api/voicebotService";
 import { AxiosRequestConfig } from "axios";
@@ -26,12 +29,13 @@ import {
 } from "@/components/ui/select";
 import Pagination from "@/components/common/Pagination";
 import TableLoader from "../common/TableLoader";
+import adminAgentService from "@/api/adminAgentService";
 
 interface TestCallProps {
     onCancel: () => void;
 }
 
-type Step = "select-template" | "input-number" | "simulating" | "completed";
+type Step = "select-template" | "prepare-call" | "simulating" | "completed";
 type Tab = "new" | "history";
 
 interface TemplateConfig {
@@ -139,12 +143,27 @@ export default function TestCall({ onCancel }: TestCallProps) {
     const [templates, setTemplates] = useState<any | null>(null);
     const [templatesLoading, setTemplatesLoading] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
-    const [initialCallLoading, setInitialCallLoading] = useState(false);
     const [unassignedNumbers, setUnassignedNumbers] = useState<Number[]>([]);
     const [publishLoading, setPublishLoading] = useState<boolean>(false);
     const [selectedNumber, setSelectedNumber] = useState<string>("");
     const [pagination, setPagination] = useState<any>(null);
     const [historyLoading, setHistoryLoading] = useState<boolean>(false);
+    const [vapi, setVapi] = useState<Vapi | null>(null);
+    const [isWebCallActive, setIsWebCallActive] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [webCallStatus, setWebCallStatus] = useState<"idle" | "connecting" | "connected">("idle");
+    const [transcripts, setTranscripts] = useState<{ role: string; text: string }[]>([]);
+    const transcriptEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        if (webCallStatus === "connected") {
+            scrollToBottom();
+        }
+    }, [transcripts]);
 
     const defaultPageSize = 10;
     const fetchHistoryTestCalls = async (page: number = 1, pageSize: number = defaultPageSize) => {
@@ -176,6 +195,32 @@ export default function TestCall({ onCancel }: TestCallProps) {
 
     useEffect(() => {
         fetchHistoryTestCalls();
+
+        // Initialize Vapi
+        const vapiInstance = new Vapi(import.meta.env.VITE_VAPI_PUBLIC_KEY || "2b18e02a-bad5-493e-91eb-fdfeea7d1763"); // Using orgId as fallback or let user define in .env
+        setVapi(vapiInstance);
+
+        // vapiInstance.on("call-start", () => {
+        //     setWebCallStatus("connected");
+        //     setIsWebCallActive(true);
+        // });
+
+        // vapiInstance.on("call-end", () => {
+        //     setWebCallStatus("idle");
+        //     setIsWebCallActive(false);
+        //     setStep("completed");
+        // });
+
+        // vapiInstance.on("error", (error) => {
+        //     console.error("Vapi Error:", error);
+        //     toast.danger("Call error occurred");
+        //     setWebCallStatus("idle");
+        //     setIsWebCallActive(false);
+        // });
+
+        return () => {
+            vapiInstance.stop();
+        };
     }, []);
 
 
@@ -192,21 +237,25 @@ export default function TestCall({ onCancel }: TestCallProps) {
         setPhoneNumber("");
         setName("");
         setSelectedTemplate(null);
+        setTranscripts([]);
+        vapi?.stop();
     };
 
 
-    const getAgentTemplates = async (page: number = 1, pageSize: number = 10) => {
+    const agentTemplateSize = 10;
+    const getAgentTemplates = async (page: number = 1, pageSize: number = agentTemplateSize) => {
         try {
             setTemplatesLoading(true);
             const config: AxiosRequestConfig = {
                 params: {
+                    include_inactive: false,
                     page,
                     page_size: pageSize
                 }
             };
-            const response = await voiceBotService.getAgentTemplates(config);
-            console.log(response);
-            setTemplates(response);
+            const response = await adminAgentService.getAllAssistants(config);
+            console.log(response.data.assistants);
+            setTemplates(response.data.assistants);
         } catch (error) {
             // console.log(error);
             toast.danger("Failed to fetch agent templates");
@@ -231,48 +280,101 @@ export default function TestCall({ onCancel }: TestCallProps) {
         }
     }
 
-    const initialCall = async () => {
+    const startWebCall = async () => {
+        if (!vapi || !selectedTemplate?.vapiId) {
+            toast.danger("Vapi not initialized or assistant ID missing");
+            return;
+        }
+
         try {
-            setInitialCallLoading(true);
-            const data = {
-                assistantId: selectedTemplate?.vapiAssistantId,
-                customerNumber: phoneNumber,
-                customerName: name
-            }
-            const response = await voiceBotService.testCall(data, {});
-            console.log(response);
+            setWebCallStatus("connecting");
             setStep("simulating");
-            getUnassignedNumbers();
+            setTranscripts([]);
+            await vapi.start(selectedTemplate.vapiId);
+
+            // Listen for events
+            vapi.on('call-start', () => {
+                console.log('Call started');
+                setWebCallStatus("connected");
+            });
+            vapi.on('call-end', () => {
+                console.log('Call ended');
+                setWebCallStatus("idle");
+                setIsWebCallActive(false);
+                setStep("completed");
+            });
+            vapi.on('message', (message) => {
+                if (message.type === 'transcript') {
+                    const role = message.role;
+                    const text = message.transcript;
+
+                    setTranscripts(prev => {
+                        // If the move is final, it should stay. 
+                        // If same role and previous was not final, we might want to update.
+                        // However, simpler for now: just append if it's a new "shot" or handle growth.
+                        // Actually, Vapi sends many partials. 
+                        // To keep it clean in UI, let's just show the latest message per role switch or just append final ones.
+                        // Based on user log, they see it growing.
+
+                        // Simple approach: if the last message is same role, replace it. Otherwise append.
+                        if (prev.length > 0 && prev[prev.length - 1].role === role) {
+                            const newTranscripts = [...prev];
+                            newTranscripts[newTranscripts.length - 1] = { role, text };
+                            return newTranscripts;
+                        }
+                        return [...prev, { role, text }];
+                    });
+                }
+            });
         } catch (error) {
-            // console.log(error);
-            toast.danger("Failed to make initial call");
-        }
-        finally {
-            setInitialCallLoading(false);
+            console.error("Failed to start web call", error);
+            toast.danger("Failed to start web call");
+            setWebCallStatus("idle");
+            setStep("prepare-call");
         }
     }
 
+    // console.log('call and callstatus', webCallStatus);
 
-    const publishAgent = async () => {
-        try {
-            setPublishLoading(true);
-            const data = {
-                assistantId: selectedTemplate?.vapiAssistantId,
-                name: selectedTemplate?.name,
-                phoneNumberId: selectedNumber
-            }
-            const response = await voiceBotService.publishAgent(data, {});
-            console.log(response);
-            toast.success("Agent published successfully");
-            handleRetry();
 
-        } catch (error) {
-            toast.danger("Failed to publish agent");
+    const stopWebCall = () => {
+        if (vapi) {
+            vapi.stop();
         }
-        finally {
-            setPublishLoading(false);
+    };
+
+    const toggleMute = () => {
+        if (vapi) {
+            vapi.setMuted(!isMuted);
+            setIsMuted(!isMuted);
         }
-    }
+    };
+
+    const initialCall = async () => {
+        startWebCall();
+    };
+
+
+    // const publishAgent = async () => {
+    //     try {
+    //         setPublishLoading(true);
+    //         const data = {
+    //             assistantId: selectedTemplate?.vapiId,
+    //             name: selectedTemplate?.name,
+    //             phoneNumberId: selectedNumber
+    //         }
+    //         const response = await voiceBotService.publishAgent(data, {});
+    //         console.log(response);
+    //         toast.success("Agent published successfully");
+    //         handleRetry();
+
+    //     } catch (error) {
+    //         toast.danger("Failed to publish agent");
+    //     }
+    //     finally {
+    //         setPublishLoading(false);
+    //     }
+    // }
 
     useEffect(() => {
 
@@ -313,14 +415,11 @@ export default function TestCall({ onCancel }: TestCallProps) {
             <div className="flex-1 overflow-y-auto px-1">
                 {activeTab === "new" ? (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-
-
-
                         {step === "select-template" && (
                             <div className="grid grid-cols-1 gap-4">
                                 <div>
-                                    <h3 className="text-lg font-bold text-text-main">Select Template</h3>
-                                    <p className="text-sm text-text-muted">Choose a template for your test agent.</p>
+                                    <h3 className="text-lg font-bold text-text-main">Select Agent</h3>
+                                    <p className="text-sm text-text-muted">Choose an agent for your test call.</p>
                                 </div>
                                 {
                                     templatesLoading ? (
@@ -330,12 +429,12 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                             <Skeleton className="w-full h-20 rounded-xl" />
                                             <Skeleton className="w-full h-20 rounded-xl" />
                                         </div>
-                                    ) : templates?.templates?.map((template: any) => (
+                                    ) : templates?.map((template: any) => (
                                         <button
                                             key={template.id}
                                             onClick={() => {
                                                 setSelectedTemplate(template);
-                                                setStep("input-number");
+                                                setStep("prepare-call");
                                             }}
                                             className="group flex items-center gap-4 p-4 rounded-xl border border-border-subtle hover:border-primary hover:bg-primary/5 transition-all text-left"
                                         >
@@ -355,8 +454,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 }
                             </div>
                         )}
-
-                        {step === "input-number" && (
+                        {step === "prepare-call" && (
                             <div className="space-y-6 duration-300">
                                 <button
                                     onClick={() => setStep("select-template")}
@@ -367,59 +465,23 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 </button>
                                 <div className="flex flex-col items-center text-center space-y-4">
                                     <div className={`w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary`}>
-                                        <Phone className="w-8 h-8" />
+                                        <BotMessageSquare className="w-8 h-8" />
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-text-main">Ready for Test Call?</h3>
                                         <p className="text-sm text-text-muted px-6">
-                                            <span className="font-semibold text-text-main">{selectedTemplate?.name}</span> will call you.
+                                            <span className="font-semibold text-text-main">{selectedTemplate?.name}</span> is ready to talk.
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4 pt-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-semibold text-text-main flex items-center gap-2">
-                                            Your Phone Number
-                                            <span className="text-[10px] font-normal text-text-muted px-1.5 py-0.5 bg-bg border border-border-subtle rounded text-primary">Required</span>
-                                        </label>
-                                        <div className="relative">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-                                                <Phone className="w-4 h-4" />
-                                            </div>
-                                            <input
-                                                type="tel"
-                                                placeholder="+1 (555) 000-0000"
-                                                value={phoneNumber}
-                                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                                className="w-full bg-white border border-border-subtle rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                            />
-                                        </div>
-
-
-                                        <label className="text-xs font-semibold text-text-main flex items-center gap-2">
-                                            Your Name
-                                            <span className="text-[10px] font-normal text-text-muted px-1.5 py-0.5 bg-bg border border-border-subtle rounded text-primary">Required</span>
-                                        </label>
-                                        <div className="relative">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-                                                <User2 className="w-4 h-4" />
-                                            </div>
-                                            <input
-                                                type="text"
-                                                placeholder="Enter your name"
-                                                value={name}
-                                                onChange={(e) => setName(e.target.value)}
-                                                className="w-full bg-white border border-border-subtle rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                            />
-                                        </div>
-                                    </div>
 
                                     <button
                                         onClick={initialCall}
                                         className="btn btn-primary w-full py-4 rounded-xl text-sm font-bold shadow-glow-primary"
                                     >
-                                        {initialCallLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Start My Test Call"}
+                                        Start Web Call
                                     </button>
                                 </div>
                                 <div className="flex items-center p-2 bg-bg rounded-xl border border-border-subtle gap-3">
@@ -427,12 +489,11 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                         <Clock className="w-4 h-4 text-primary" />
                                     </div>
                                     <p className="text-[11px] text-text-muted leading-relaxed">
-                                        You'll receive an outbound call automatically. Please ensure your line is free to pick up.
+                                        The call will start right here in your browser. Please allow microphone access when prompted.
                                     </p>
                                 </div>
                             </div>
                         )}
-
                         {step === "simulating" && (
                             <div className="flex flex-col items-center justify-center py-10 space-y-8 animate-in fade-in duration-500">
                                 <div className="relative">
@@ -446,12 +507,53 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 <div className="text-center space-y-2">
                                     <div className="flex items-center justify-center gap-2 text-primary font-bold uppercase tracking-widest text-[10px]">
                                         <Dot className="w-4 h-4 animate-bounce" />
-                                        Initiated Call
+                                        {webCallStatus === "connecting" ? "Connecting..." : "Live Web Call"}
                                     </div>
                                     <h3 className="text-xl font-bold text-text-main">{selectedTemplate?.name}</h3>
-                                    <p className="text-sm text-text-muted">Please pick up the call</p>
-                                    <p className="text-sm text-text-muted">{phoneNumber}</p>
+                                    <p className="text-sm text-text-muted">
+                                        {webCallStatus === "connecting" ? "Please wait while we connect you..." : "You are now talking to the agent"}
+                                    </p>
                                 </div>
+
+                                <div className="w-full max-h-[300px] overflow-y-auto space-y-3 p-4 bg-bg rounded-2xl border border-border-subtle custom-scrollbar">
+                                    {transcripts.length === 0 ? (
+                                        <p className="text-xs text-text-muted text-center italic py-4">Waiting for agent to speak...</p>
+                                    ) : (
+                                        <>
+                                            {transcripts.map((t, i) => (
+                                                <div key={i} className={`flex flex-col ${t.role === 'user' ? 'items-end' : 'items-start'}`}>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1 px-1">
+                                                        {t.role === 'user' ? 'You' : selectedTemplate?.name}
+                                                    </span>
+                                                    <div className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${t.role === 'user'
+                                                        ? 'bg-primary text-white rounded-tr-none'
+                                                        : 'bg-white border border-border-subtle text-text-main rounded-tl-none'
+                                                        }`}>
+                                                        {t.text}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <div ref={transcriptEndRef} />
+                                        </>
+                                    )}
+                                </div>
+
+                                {webCallStatus === "connected" && (
+                                    <div className="flex gap-4">
+                                        {/* <button
+                                            onClick={toggleMute}
+                                            className={`p-4 rounded-full border transition-all ${isMuted ? "bg-danger/10 border-danger text-danger" : "bg-bg border-border-subtle text-text-main"}`}
+                                        >
+                                            {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                                        </button> */}
+                                        <button
+                                            onClick={stopWebCall}
+                                            className="p-4 rounded-full bg-danger text-white shadow-glow-danger"
+                                        >
+                                            <Phone className="w-6 h-6 rotate-[135deg]" />
+                                        </button>
+                                    </div>
+                                )}
 
 
 
@@ -471,53 +573,58 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                         New Test Call
                                     </button>
                                 </div>
-
-                                <hr className="my-4" />
-
-                                <div>
-                                    <p className="text-lg font-bold text-text-main">Publish Agent</p>
-
-                                </div>
-                                <div className="w-full flex flex-col gap-2">
-                                    <div>
-                                        <p className="text-md font-bold text-text-main">Agent Name</p>
-                                        <input type="text" value={selectedTemplate?.name} className="input input-bordered w-full disabled:opacity-50" disabled />
+                            </div>
+                        )}
+                        {step === "completed" && (
+                            <div className="flex flex-col items-center justify-center py-6 space-y-6 animate-in fade-in duration-500">
+                                <div className="flex flex-col items-center space-y-3">
+                                    <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center text-success">
+                                        <BotMessageSquare className="w-8 h-8" />
                                     </div>
-                                    <div>
-                                        <p className="text-md font-bold text-text-main">Select Number</p>
-
-                                        <Select
-                                            value={selectedNumber}
-                                            onValueChange={(value) => setSelectedNumber(value)}
-                                        >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select Number" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-
-                                                {unassignedNumbers.map((number: Number) => (
-                                                    <SelectItem key={number?.id} value={number?.vapiId}>
-                                                        {number?.number}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                    <div className="text-center">
+                                        <h3 className="text-xl font-bold text-text-main">Call Summary</h3>
+                                        <p className="text-sm text-text-muted">The call has ended. You can review the transcript below.</p>
                                     </div>
                                 </div>
 
-                                <div className="w-full">
+                                <div className="w-full max-h-[350px] overflow-y-auto space-y-3 p-4 bg-bg rounded-2xl border border-border-subtle custom-scrollbar">
+                                    {transcripts.length === 0 ? (
+                                        <p className="text-xs text-text-muted text-center italic py-4">No transcript available.</p>
+                                    ) : (
+                                        <>
+                                            {transcripts.map((t, i) => (
+                                                <div key={i} className={`flex flex-col ${t.role === 'user' ? 'items-end' : 'items-start'}`}>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1 px-1">
+                                                        {t.role === 'user' ? 'You' : (selectedTemplate?.name || 'Agent')}
+                                                    </span>
+                                                    <div className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${t.role === 'user'
+                                                        ? 'bg-primary text-white rounded-tr-none'
+                                                        : 'bg-white border border-border-subtle text-text-main rounded-tl-none'
+                                                        }`}>
+                                                        {t.text}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="w-full grid grid-cols-2 gap-3">
                                     <button
-                                        onClick={publishAgent}
-                                        className="btn btn-primary w-full py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                                        onClick={handleRetry}
+                                        className="btn btn-primary py-2 rounded-xl text-sm font-bold shadow-glow-primary"
                                     >
-                                        <BookPlus className="w-4 h-4" />
-                                        {publishLoading ? "Publishing..." : "Publish Agent"}
+                                        Try Another
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab("history")}
+                                        className="btn btn-secondary py-2 rounded-xl text-sm font-bold"
+                                    >
+                                        History
                                     </button>
                                 </div>
                             </div>
                         )}
-
-
                     </div>
                 ) : (
                     /* History Tab */

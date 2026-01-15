@@ -37,6 +37,35 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
     const fetchLead = async () => {
         try {
             setLoading(true);
+
+            if (!leadId) {
+                const dummyResponse = {
+                    lead: {
+                        id: "a406397c-a784-4de3-b284-8b6823646c2d",
+                        userId: "e14d0d6e-d081-462b-ab44-382758738b92",
+                        sourceFileId: "179c7a69-46ff-4b92-a794-0dd6989c0b06",
+                        sourceGcsKey: "e14d0d6e-d081-462b-ab44-382758738b92/database/files/Data Base.xlsx",
+                        leadName: "Sofia Alvarez",
+                        leadPhoneNumber: "+1-415-555-0182",
+                        leadEmail: "sofia@ecoharvest.mx",
+                        lastCalledAt: "2026-01-31T00:00:00",
+                        leadCompany: "EcoHarvest",
+                        leadExpertiseDomain: "AgriTech",
+                        createdAt: "2026-01-07T16:46:40.295",
+                        updatedAt: "2026-01-08T16:51:27.383",
+                        attributes: {}
+                    },
+                    calls: [],
+                    callCount: 0
+                };
+                setLeadFromApi(dummyResponse.lead as Lead);
+                setEditedLead(dummyResponse.lead as Lead);
+                setAttributes([]);
+                setLeadCalls([]);
+                setLoading(false);
+                return;
+            }
+
             const response = await voiceBotService.getLead(leadId, {});
             console.log(response);
             setLeadFromApi(response.lead);

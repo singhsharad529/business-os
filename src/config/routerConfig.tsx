@@ -23,6 +23,14 @@ import VoicebotCalls from "@/pages/voicebot/VoicebotCalls";
 import VoicebotLeadDatabase from "@/pages/voicebot/VoicebotLeadDatabase";
 import { MyCompanyDashboard } from "@/pages/single-company/MyCompanyDashboard";
 import Campaigns from "@/pages/voicebot/Campaigns";
+import AllLeads from "@/pages/super-admin/AllLeads";
+import Customers from "@/pages/super-admin/Customers";
+import MyAgents from "@/pages/super-admin/MyAgents";
+import Customer from "@/pages/super-admin/Customer";
+import Inbound from "@/pages/super-admin/Inbound";
+import AdminProfile from "@/pages/super-admin/AdminProfile";
+import UserProfie from "@/pages/voicebot/UserProfie";
+import Billing from "@/pages/voicebot/Billing";
 
 export const router = createBrowserRouter([
     {
@@ -89,13 +97,28 @@ export const router = createBrowserRouter([
                 path: "my-company",
                 element: <MyCompanyDashboard />,
             },
+            {
+                path: "voicebot/user-profile",
+                element: <UserProfie />,
+            },
+            {
+                path: "voicebot/billing",
+                element: <Billing />,
+            },
 
             // SUPER ADMIN ROUTES (under Apps section)
             {
                 element: <SuperAdminRoute />,
                 children: [
                     { path: "super-admin/dashboard", element: <SuperAdminDashboard /> },
-                    { path: "super-admin/companies", element: <Companies /> },
+                    { path: "super-admin/inbound", element: <Inbound /> },
+                    { path: "super-admin/my-agent", element: <MyAgents /> },
+                    { path: "super-admin/all-leads", element: <AllLeads /> },
+                    { path: "super-admin/all-clients", element: <Customers /> },
+                    { path: "super-admin/clients/:id", element: <Customer /> },
+                    { path: "super-admin/profile", element: <AdminProfile /> },
+
+
                 ],
             },
 
