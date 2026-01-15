@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import Pagination from "@/components/common/Pagination";
 import TableLoader from "../common/TableLoader";
+import adminAgentService from "@/api/adminAgentService";
 
 interface TestCallProps {
     onCancel: () => void;
@@ -195,18 +196,20 @@ export default function TestCall({ onCancel }: TestCallProps) {
     };
 
 
-    const getAgentTemplates = async (page: number = 1, pageSize: number = 10) => {
+    const agentTemplateSize = 10;
+    const getAgentTemplates = async (page: number = 1, pageSize: number = agentTemplateSize) => {
         try {
             setTemplatesLoading(true);
             const config: AxiosRequestConfig = {
                 params: {
+                    include_inactive: false,
                     page,
                     page_size: pageSize
                 }
             };
-            const response = await voiceBotService.getAgentTemplates(config);
-            console.log(response);
-            setTemplates(response);
+            const response = await adminAgentService.getAllAssistants(config);
+            console.log(response.data.assistants);
+            setTemplates(response.data.assistants);
         } catch (error) {
             // console.log(error);
             toast.danger("Failed to fetch agent templates");
@@ -253,26 +256,26 @@ export default function TestCall({ onCancel }: TestCallProps) {
     }
 
 
-    const publishAgent = async () => {
-        try {
-            setPublishLoading(true);
-            const data = {
-                assistantId: selectedTemplate?.vapiAssistantId,
-                name: selectedTemplate?.name,
-                phoneNumberId: selectedNumber
-            }
-            const response = await voiceBotService.publishAgent(data, {});
-            console.log(response);
-            toast.success("Agent published successfully");
-            handleRetry();
+    // const publishAgent = async () => {
+    //     try {
+    //         setPublishLoading(true);
+    //         const data = {
+    //             assistantId: selectedTemplate?.vapiAssistantId,
+    //             name: selectedTemplate?.name,
+    //             phoneNumberId: selectedNumber
+    //         }
+    //         const response = await voiceBotService.publishAgent(data, {});
+    //         console.log(response);
+    //         toast.success("Agent published successfully");
+    //         handleRetry();
 
-        } catch (error) {
-            toast.danger("Failed to publish agent");
-        }
-        finally {
-            setPublishLoading(false);
-        }
-    }
+    //     } catch (error) {
+    //         toast.danger("Failed to publish agent");
+    //     }
+    //     finally {
+    //         setPublishLoading(false);
+    //     }
+    // }
 
     useEffect(() => {
 
@@ -330,7 +333,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                             <Skeleton className="w-full h-20 rounded-xl" />
                                             <Skeleton className="w-full h-20 rounded-xl" />
                                         </div>
-                                    ) : templates?.templates?.map((template: any) => (
+                                    ) : templates?.map((template: any) => (
                                         <button
                                             key={template.id}
                                             onClick={() => {
@@ -355,6 +358,9 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 }
                             </div>
                         )}
+
+
+
 
                         {step === "input-number" && (
                             <div className="space-y-6 duration-300">
@@ -433,6 +439,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                             </div>
                         )}
 
+
                         {step === "simulating" && (
                             <div className="flex flex-col items-center justify-center py-10 space-y-8 animate-in fade-in duration-500">
                                 <div className="relative">
@@ -474,7 +481,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
 
                                 <hr className="my-4" />
 
-                                <div>
+                                {/* <div>
                                     <p className="text-lg font-bold text-text-main">Publish Agent</p>
 
                                 </div>
@@ -513,7 +520,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                         <BookPlus className="w-4 h-4" />
                                         {publishLoading ? "Publishing..." : "Publish Agent"}
                                     </button>
-                                </div>
+                                </div> */}
                             </div>
                         )}
 

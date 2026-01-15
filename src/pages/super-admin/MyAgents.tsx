@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Plus,
     BotMessageSquare,
@@ -19,7 +19,8 @@ import {
     Phone,
     Eye,
     Mail,
-    UserX
+    UserX,
+    UserPlus
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
@@ -27,30 +28,13 @@ import EditAdminAgent from "../../components/super-admin/voicebot/EditAdminAgent
 import AddAdminAgent from "../../components/super-admin/voicebot/AddAdminAgent";
 import AgentUserManagement from "../../components/super-admin/voicebot/AgentUserManagement";
 import TestCall from "@/components/voicebot/TestCall";
+import adminAgentService from "@/api/adminAgentService";
+import { toast } from "@/hooks/useToast";
+import TableLoader from "@/components/common/TableLoader";
+import { AxiosRequestConfig } from "axios";
+import CardsLoader from "@/components/common/CardsLoader";
 
-const categoriesData = [
-    {
-        id: "cat-1",
-        name: "Sales",
-        description: "Specialized assistants for sales operations",
-        agentCount: 3,
-        lastUpdated: "2026-01-14 02:40 PM"
-    },
-    {
-        id: "cat-2",
-        name: "Reality",
-        description: "Real estate and property management specialists",
-        agentCount: 3,
-        lastUpdated: "2026-01-14 02:40 PM"
-    },
-    {
-        id: "cat-3",
-        name: "Finance",
-        description: "Expert assistants for financial services",
-        agentCount: 3,
-        lastUpdated: "2026-01-14 02:40 PM"
-    },
-];
+
 
 const activeAgentsData = [
     {
@@ -222,7 +206,8 @@ function MyAgents() {
     const [view, setView] = useState<"categories" | "agents">("categories");
     const [selectedCategory, setSelectedCategory] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [agents, setAgents] = useState(assistantsData);
+    const [categoriesData, setCategoriesData] = useState<any>(null);
+    const [agents, setAgents] = useState<any>(null);
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
     const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
     const [isUserSheetOpen, setIsUserSheetOpen] = useState(false);
@@ -230,6 +215,10 @@ function MyAgents() {
     const [selectedActiveAgent, setSelectedActiveAgent] = useState<any>(null);
     const [isTestCallOpen, setIsTestCallOpen] = useState(false);
     const [isActiveDetailsOpen, setIsActiveDetailsOpen] = useState(false);
+
+    // all loaders
+    const [categoriesLoader, setCategoriesLoader] = useState(false);
+    const [agentsLoader, setAgentsLoader] = useState(false);
 
     const handleEditAgent = (agent: any) => {
         setSelectedAgent(agent);
@@ -247,34 +236,83 @@ function MyAgents() {
     };
 
     const handleStatusChange = (id: string) => {
-        setAgents(prev => prev.map(agent =>
-            agent.id === id
-                ? { ...agent, status: agent.status === 'active' ? 'inactive' : 'active' }
-                : agent
-        ));
+        // setAgents(prev => prev.map(agent =>
+        //     agent.id === id
+        //         ? { ...agent, status: agent.status === 'active' ? 'inactive' : 'active' }
+        //         : agent
+        // ));
     };
 
     const handleSelectCategory = (category: any) => {
         setSelectedCategory(category);
-        setSearchTerm("");
-        setView("agents");
+
     };
 
-    const filteredCategories = categoriesData.filter(cat =>
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const filteredCategories = categoriesData?.filter((cat: any) =>
+        cat.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cat.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const filteredAgentsInCategory = agents.filter(agent =>
-        agent.categoryId === selectedCategory?.id &&
-        (agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            agent.metadata.department.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filteredAgentsInCategory = agents?.filter((agent: any) =>
+    (agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.metadata.department.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    const filteredActiveAgents = activeAgentsData.filter(agent =>
+    const filteredActiveAgents = activeAgentsData?.filter((agent: any) =>
         agent.agentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         agent.clientName.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+
+    const agentPageSize = 10;
+    const fetchAgents = async (cat: any, page: number, pageSize: number = agentPageSize) => {
+
+        console.log('cateory is', cat);
+        setSelectedCategory(cat);
+        setSearchTerm("");
+        setView("agents");
+
+        const config: AxiosRequestConfig = {
+            params: {
+                page: page,
+                pageSize: pageSize
+            }
+        }
+
+        try {
+            setAgentsLoader(true);
+            const response = await adminAgentService.getAgentsByCategory(cat?.value, config);
+            console.log('response', response);
+            setAgents(response.data.templates);
+
+
+        } catch (error) {
+            toast.danger("Failed to fetch agents")
+        }
+        finally {
+            setAgentsLoader(false);
+        }
+    }
+
+    // fetch all agent categories
+    const fetchAgentCategories = async () => {
+        try {
+            setCategoriesLoader(true);
+            const response = await adminAgentService.getAgentCategories({});
+            console.log('response', response);
+            setCategoriesData(response.data.categories)
+        } catch (error) {
+            toast.danger("Failed to fetch agent categories")
+        }
+        finally {
+            setCategoriesLoader(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchAgentCategories();
+    }, [])
+
 
     return (
         <div>
@@ -296,7 +334,7 @@ function MyAgents() {
                                             <ChevronLeft className="w-5 h-5 text-primary" />
                                         </button>
                                         <h1 className="text-3xl font-bold text-text-main font-sans tracking-tight">
-                                            {selectedCategory?.name}
+                                            {selectedCategory?.label}
                                         </h1>
                                     </div>
                                 ) : (
@@ -347,6 +385,7 @@ function MyAgents() {
                         <button
                             onClick={() => {
                                 setActiveTab("active");
+                                setView("categories")
                                 setSearchTerm("");
                             }}
                             className={`pb-2 text-sm font-bold transition-all relative ${activeTab === 'active' ? 'text-primary' : 'text-text-muted hover:text-text-main'}`}
@@ -362,79 +401,102 @@ function MyAgents() {
                 {/* Content Rendering based on Tab and View */}
                 {activeTab === "categories" ? (
                     view === "categories" ? (
-                        <div className="space-y-4">
-                            <div className="card p-4 w-full">
+                        <div>
+                            {
+                                categoriesLoader ? (<TableLoader rows={3} columns={5} />) :
+                                    (
+                                        <div>
+                                            {
 
-                                <div className="flex flex-col sm:flex-row gap-2 mb-4">
-                                    <div className="flex-1 relative">
-                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search categories..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="input pl-8 w-full"
-                                        />
-                                    </div>
-                                </div>
+                                                <div className="space-y-4">
+                                                    <div className="card p-4 w-full">
 
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr className="border-b border-border-subtle">
-                                                <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider text-center">Sr.No.</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Category Name</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Description</th>
-                                                <th className="text-center py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Total Agents</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Updated</th>
-                                                <th className="text-right py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-border-subtle/50">
-                                            {filteredCategories.map((cat, i) => (
-                                                <tr key={cat.id} className="hover:bg-bg-alt/30 transition-colors group cursor-pointer" onClick={() => handleSelectCategory(cat)}>
-                                                    <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
-                                                    <td className="py-4 px-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                                                                <Layers className="w-4 h-4" />
+                                                        <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                                                            <div className="flex-1 relative">
+                                                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Search categories..."
+                                                                    value={searchTerm}
+                                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                                    className="input pl-8 w-full"
+                                                                />
                                                             </div>
-                                                            <span className="text-sm text-text-main font-semibold group-hover:text-primary transition-colors">
-                                                                {cat.name}
-                                                            </span>
                                                         </div>
-                                                    </td>
-                                                    <td className="py-4 px-3 text-sm text-text-muted">
-                                                        {cat.description}
-                                                    </td>
-                                                    <td className="py-4 px-3 text-center">
-                                                        <span className="px-2.5 py-1 bg-bg-alt text-text-main text-[10px] font-bold rounded-full border border-border-subtle">
-                                                            {cat.agentCount} Agents
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-4 px-3 text-sm text-text-muted">
-                                                        {cat.lastUpdated}
-                                                    </td>
-                                                    <td className="py-4 px-3 text-right">
-                                                        <button
-                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleSelectCategory(cat);
-                                                            }}
-                                                        >
-                                                            <ArrowRight className="w-4 h-4" />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+
+                                                        {
+                                                            filteredCategories && filteredCategories.length > 0 ? (
+                                                                <div className="overflow-x-auto">
+                                                                    <table className="w-full">
+                                                                        <thead>
+                                                                            <tr className="border-b border-border-subtle">
+                                                                                <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider text-center">Sr.No.</th>
+                                                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Category Name</th>
+                                                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Description</th>
+                                                                                <th className="text-center py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Total Agents</th>
+                                                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Updated</th>
+                                                                                <th className="text-right py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody className="divide-y divide-border-subtle/50">
+                                                                            {filteredCategories.map((cat: any, i: number) => (
+                                                                                <tr key={cat.id} className="hover:bg-bg-alt/30 transition-colors group cursor-pointer" onClick={() => fetchAgents(cat, 1, agentPageSize)}>
+                                                                                    <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
+                                                                                    <td className="py-4 px-3">
+                                                                                        <div className="flex items-center gap-3">
+                                                                                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                                                                                <Layers className="w-4 h-4" />
+                                                                                            </div>
+                                                                                            <span className="text-sm text-text-main font-semibold group-hover:text-primary transition-colors">
+                                                                                                {cat.label}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                    <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                        {cat.description}
+                                                                                    </td>
+                                                                                    <td className="py-4 px-3 text-center">
+                                                                                        <span className="px-2.5 py-1 bg-bg-alt text-text-main text-[10px] font-bold rounded-full border border-border-subtle">
+                                                                                            {cat.totalAgents} Agents
+                                                                                        </span>
+                                                                                    </td>
+                                                                                    <td className="py-4 px-3 text-sm text-text-muted">
+                                                                                        {cat.lastUpdated}
+                                                                                    </td>
+                                                                                    <td className="py-4 px-3 text-right">
+                                                                                        <button
+                                                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary"
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                fetchAgents(cat, 1, agentPageSize);
+                                                                                            }}
+                                                                                        >
+                                                                                            <ArrowRight className="w-4 h-4" />
+                                                                                        </button>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            ))}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            )
+                                                                :
+                                                                (<div className="flex items-center justify-center h-full">
+                                                                    <p className="text-text-muted">No categories found</p>
+                                                                </div>)
+                                                        }
+                                                    </div>
 
 
 
+                                                </div>
+
+
+                                            }
+
+                                        </div>
+                                    )
+                            }
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -451,94 +513,103 @@ function MyAgents() {
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-
-
-                                {filteredAgentsInCategory.length > 0 ? (
-                                    filteredAgentsInCategory.map((agent) => (
-                                        <div className="card p-5 group hover:shadow-glow transition-all duration-300 glass-morphism border-border-subtle" key={agent.id}>
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="p-2.5 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
-                                                    <BotMessageSquare className="w-5 h-5" />
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {/* <span className={`text-[10px] font-bold uppercase tracking-wider ${agent.status === 'active' ? 'text-success' : 'text-text-muted'}`}>
+                            {
+                                agentsLoader ? (<CardsLoader />) :
+                                    (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {filteredAgentsInCategory && filteredAgentsInCategory.length > 0 ? (
+                                                filteredAgentsInCategory.map((agent: any) => (
+                                                    <div className="card p-5 group hover:shadow-glow transition-all duration-300 glass-morphism border-border-subtle" key={agent.id}>
+                                                        <div className="flex justify-between items-start mb-4">
+                                                            <div className="p-2.5 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
+                                                                <BotMessageSquare className="w-5 h-5" />
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                {/* <span className={`text-[10px] font-bold uppercase tracking-wider ${agent.status === 'active' ? 'text-success' : 'text-text-muted'}`}>
                                                         {agent.status}
                                                     </span> */}
-                                                    {/* <Switch
+                                                                {/* <Switch
                                                         checked={agent.status === 'active'}
                                                         onCheckedChange={() => handleStatusChange(agent.id)}
                                                     /> */}
-                                                </div>
-                                            </div>
+                                                                <button className="btn btn-success btn-sm bg-success/10 text-success text-xs border border-success/10"
+                                                                    onClick={() => handleManageUsers(agent)}
+                                                                >
+                                                                    <UserPlus className="w-4 h-4" />
+                                                                    Assign
+                                                                </button>
+                                                            </div>
+                                                        </div>
 
-                                            <h3 className="text-lg font-bold text-text-main mb-1 truncate group-hover:text-primary transition-colors">
-                                                {agent.name}
-                                            </h3>
-                                            <div className="flex items-center gap-2 text-text-muted mb-4 text-xs font-medium tracking-tight">
-                                                <Briefcase className="w-3 h-3" />
-                                                <span>{agent.metadata.department.charAt(0).toUpperCase() + agent.metadata.department.slice(1)}</span>
-                                            </div>
+                                                        <h3 className="text-lg font-bold text-text-main mb-1 truncate group-hover:text-primary transition-colors">
+                                                            {agent.configurationLabel}
+                                                        </h3>
+                                                        <div className="flex items-center gap-2 text-text-muted mb-4 text-xs font-medium tracking-tight">
+                                                            <Briefcase className="w-3 h-3" />
+                                                            <span>{agent.metadata.department.charAt(0).toUpperCase() + agent.metadata.department.slice(1)}</span>
+                                                        </div>
 
-                                            <div className="space-y-3 mb-6 bg-white/40 p-3 rounded-lg border border-border-subtle/30">
-                                                <div className="flex items-center justify-between text-text-main">
-                                                    <div className="flex items-center gap-2">
-                                                        <Languages className="w-3.5 h-3.5 text-text-muted" />
-                                                        <span className="text-xs">Language</span>
-                                                    </div>
-                                                    <span className="text-xs font-semibold uppercase">{agent.transcriber.language}</span>
-                                                </div>
+                                                        <div className="space-y-3 mb-6 bg-white/40 p-3 rounded-lg border border-border-subtle/30">
+                                                            <div className="flex items-center justify-between text-text-main">
+                                                                <div className="flex items-center gap-2">
+                                                                    <Languages className="w-3.5 h-3.5 text-text-muted" />
+                                                                    <span className="text-xs">Language</span>
+                                                                </div>
+                                                                <span className="text-xs font-semibold uppercase">{agent.language}</span>
+                                                            </div>
 
-                                                <div className="flex items-center justify-between text-text-main">
-                                                    <div className="flex items-center gap-2">
-                                                        <Cpu className="w-3.5 h-3.5 text-text-muted" />
-                                                        <span className="text-xs">Model</span>
-                                                    </div>
-                                                    <span className="text-xs font-semibold">{agent.model.model}</span>
-                                                </div>
+                                                            <div className="flex items-center justify-between text-text-main">
+                                                                <div className="flex items-center gap-2">
+                                                                    <Cpu className="w-3.5 h-3.5 text-text-muted" />
+                                                                    <span className="text-xs">Model</span>
+                                                                </div>
+                                                                <span className="text-xs font-semibold">{agent.model.model}</span>
+                                                            </div>
 
-                                                <div className="flex items-center justify-between text-text-main">
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar className="w-3.5 h-3.5 text-text-muted" />
-                                                        <span className="text-xs">Created</span>
-                                                    </div>
-                                                    <span className="text-xs font-semibold">
-                                                        {new Date(agent.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                                            <div className="flex items-center justify-between text-text-main">
+                                                                <div className="flex items-center gap-2">
+                                                                    <Calendar className="w-3.5 h-3.5 text-text-muted" />
+                                                                    <span className="text-xs">Created</span>
+                                                                </div>
+                                                                <span className="text-xs font-semibold">
+                                                                    {new Date(agent.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                </span>
+                                                            </div>
+                                                        </div>
 
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleEditAgent(agent)}
-                                                    className="btn btn-primary flex-1 py-1.5 text-xs font-bold uppercase tracking-wider shadow-sm"
-                                                >
-                                                    <Edit className="w-3.5 h-3.5" />
-                                                    Edit Agent
-                                                </button>
-                                                {/* <button
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => handleEditAgent(agent)}
+                                                                className="btn btn-primary flex-1 py-1.5 text-xs font-bold uppercase tracking-wider shadow-sm"
+                                                            >
+                                                                <Edit className="w-3.5 h-3.5" />
+                                                                Edit Agent
+                                                            </button>
+                                                            {/* <button
                                                     onClick={() => handleManageUsers(agent)}
                                                     className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary"
                                                     title="Manage Users"
                                                 >
                                                     <Users className="w-3.5 h-3.5" />
                                                 </button> */}
-                                                <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
-                                                    <Copy className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete">
-                                                    <Trash className="w-3.5 h-3.5 text-danger" />
-                                                </button>
-                                            </div>
+                                                            <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
+                                                                <Copy className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete">
+                                                                <Trash className="w-3.5 h-3.5 text-danger" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="col-span-full py-12 text-center text-text-muted italic">
+                                                    No assistants found in this category.
+                                                </div>
+                                            )}
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="col-span-full py-12 text-center text-text-muted italic">
-                                        No assistants found in this category.
-                                    </div>
-                                )}
-                            </div>
+                                    )
+                            }
+
                         </div>
                     )
                 ) : (
