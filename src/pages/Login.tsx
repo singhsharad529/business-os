@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'super_admin' | 'company_admin' | 'standard_user' | ''>('company_admin');
+  const [role, setRole] = useState<'super_admin' | 'company_admin' | 'standard_user' | ''>('super_admin');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, user } = useAuth();
