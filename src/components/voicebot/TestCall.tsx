@@ -200,23 +200,23 @@ export default function TestCall({ onCancel }: TestCallProps) {
         const vapiInstance = new Vapi(import.meta.env.VITE_VAPI_PUBLIC_KEY || "2b18e02a-bad5-493e-91eb-fdfeea7d1763"); // Using orgId as fallback or let user define in .env
         setVapi(vapiInstance);
 
-        vapiInstance.on("call-start", () => {
-            setWebCallStatus("connected");
-            setIsWebCallActive(true);
-        });
+        // vapiInstance.on("call-start", () => {
+        //     setWebCallStatus("connected");
+        //     setIsWebCallActive(true);
+        // });
 
-        vapiInstance.on("call-end", () => {
-            setWebCallStatus("idle");
-            setIsWebCallActive(false);
-            setStep("completed");
-        });
+        // vapiInstance.on("call-end", () => {
+        //     setWebCallStatus("idle");
+        //     setIsWebCallActive(false);
+        //     setStep("completed");
+        // });
 
-        vapiInstance.on("error", (error) => {
-            console.error("Vapi Error:", error);
-            toast.danger("Call error occurred");
-            setWebCallStatus("idle");
-            setIsWebCallActive(false);
-        });
+        // vapiInstance.on("error", (error) => {
+        //     console.error("Vapi Error:", error);
+        //     toast.danger("Call error occurred");
+        //     setWebCallStatus("idle");
+        //     setIsWebCallActive(false);
+        // });
 
         return () => {
             vapiInstance.stop();
@@ -454,7 +454,6 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 }
                             </div>
                         )}
-
                         {step === "prepare-call" && (
                             <div className="space-y-6 duration-300">
                                 <button
@@ -495,8 +494,6 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 </div>
                             </div>
                         )}
-
-
                         {step === "simulating" && (
                             <div className="flex flex-col items-center justify-center py-10 space-y-8 animate-in fade-in duration-500">
                                 <div className="relative">
@@ -543,12 +540,12 @@ export default function TestCall({ onCancel }: TestCallProps) {
 
                                 {webCallStatus === "connected" && (
                                     <div className="flex gap-4">
-                                        <button
+                                        {/* <button
                                             onClick={toggleMute}
                                             className={`p-4 rounded-full border transition-all ${isMuted ? "bg-danger/10 border-danger text-danger" : "bg-bg border-border-subtle text-text-main"}`}
                                         >
                                             {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-                                        </button>
+                                        </button> */}
                                         <button
                                             onClick={stopWebCall}
                                             className="p-4 rounded-full bg-danger text-white shadow-glow-danger"
@@ -576,49 +573,6 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                         New Test Call
                                     </button>
                                 </div>
-
-                                <hr className="my-4" />
-
-                                {/* <div>
-                                    <p className="text-lg font-bold text-text-main">Publish Agent</p>
-
-                                </div>
-                                <div className="w-full flex flex-col gap-2">
-                                    <div>
-                                        <p className="text-md font-bold text-text-main">Agent Name</p>
-                                        <input type="text" value={selectedTemplate?.name} className="input input-bordered w-full disabled:opacity-50" disabled />
-                                    </div>
-                                    <div>
-                                        <p className="text-md font-bold text-text-main">Select Number</p>
-
-                                        <Select
-                                            value={selectedNumber}
-                                            onValueChange={(value) => setSelectedNumber(value)}
-                                        >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select Number" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-
-                                                {unassignedNumbers.map((number: Number) => (
-                                                    <SelectItem key={number?.id} value={number?.vapiId}>
-                                                        {number?.number}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="w-full">
-                                    <button
-                                        onClick={publishAgent}
-                                        className="btn btn-primary w-full py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-                                    >
-                                        <BookPlus className="w-4 h-4" />
-                                        {publishLoading ? "Publishing..." : "Publish Agent"}
-                                    </button>
-                                </div> */}
                             </div>
                         )}
                         {step === "completed" && (
@@ -658,13 +612,13 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                 <div className="w-full grid grid-cols-2 gap-3">
                                     <button
                                         onClick={handleRetry}
-                                        className="btn btn-primary py-4 rounded-xl text-sm font-bold shadow-glow-primary"
+                                        className="btn btn-primary py-2 rounded-xl text-sm font-bold shadow-glow-primary"
                                     >
                                         Try Another
                                     </button>
                                     <button
                                         onClick={() => setActiveTab("history")}
-                                        className="btn btn-secondary py-4 rounded-xl text-sm font-bold"
+                                        className="btn btn-secondary py-2 rounded-xl text-sm font-bold"
                                     >
                                         History
                                     </button>
