@@ -8,6 +8,8 @@ const adminAgentService = {
     apiService.get(`admin/templates/categories/${value}`, config),
   getAllAssistants: (config: AxiosRequestConfig) =>
     apiService.get(`admin/assistants`, config),
+  getAllInboundCalls: (config: AxiosRequestConfig) =>
+    apiService.get(`admin/calls`, config),
 };
 
 export default adminAgentService;
