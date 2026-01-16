@@ -29,6 +29,7 @@ function Customers() {
     const [isCreateUserSheetOpen, setIsCreateUserSheetOpen] = useState(false);
 
 
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -67,7 +68,7 @@ function Customers() {
                             onClick={() => setIsCreateUserSheetOpen(true)}
                         >
                             <UserPlus className="w-3.5 h-3.5" />
-                            Create User
+                            Create Client
                         </button>
                     </div>
                 </div>

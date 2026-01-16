@@ -10,6 +10,10 @@ const adminAgentService = {
     apiService.get(`admin/assistants`, config),
   getAllInboundCalls: (config: AxiosRequestConfig) =>
     apiService.get(`admin/calls`, config),
+  getAllPhoneNumbers: (config: AxiosRequestConfig) =>
+    apiService.get(`admin/phone-numbers`, config),
+  // assignAssistantToUser: (data: any, config: AxiosRequestConfig) =>
+  //   apiService.post(`admin/assistants/assign`, data, config),
 };
 
 export default adminAgentService;

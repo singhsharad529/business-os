@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import {
     Plus,
     BotMessageSquare,
@@ -15,6 +15,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
 import EditAdminAgent from "./EditAdminAgent";
+import CustomerAssignAgent from "./CustomerAssignAgent";
 
 
 const assistantsData = [
@@ -104,7 +105,15 @@ const assistantsData = [
     }
 ];
 
-function CustomerAgents() {
+function CustomerAgents({
+    isAddAgentSheetOpen,
+    setIsAddAgentSheetOpen,
+    userid
+}: {
+    isAddAgentSheetOpen: boolean;
+    setIsAddAgentSheetOpen: React.Dispatch<SetStateAction<boolean>>;
+    userid: string;
+}) {
     const [agents, setAgents] = useState(assistantsData);
     const [searchTerm, setSearchTerm] = useState("");
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
@@ -239,6 +248,19 @@ function CustomerAgents() {
                 )}
             </SideSheet>
 
+
+            <SideSheet
+                isOpen={isAddAgentSheetOpen}
+                onClose={() => setIsAddAgentSheetOpen(false)}
+                title="Assign AI Agent"
+                size="md"
+            >
+
+                <CustomerAssignAgent
+                    onClose={() => setIsAddAgentSheetOpen(false)}
+                />
+
+            </SideSheet>
 
         </div>
     );

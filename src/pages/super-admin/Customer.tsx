@@ -14,6 +14,14 @@ import {
     Edit,
     Download,
     Upload,
+    PhoneCall,
+    Briefcase,
+    UserCheck,
+    Activity,
+    TrendingUp,
+    Clock,
+    DollarSign,
+    Bot,
 } from "lucide-react";
 import CustomerCompany from "../../components/super-admin/voicebot/CustomerCompany";
 import CustomerLeads from "@/components/super-admin/voicebot/CustomerLeads";
@@ -23,6 +31,7 @@ import AddLead from "@/components/voicebot/AddLead";
 import { SideSheet } from "@/components/SideSheet";
 
 import sampleFile from "@/assets/files/leads_data_sample.xlsx";
+import CustomerInboundCalls from "@/components/super-admin/voicebot/CustomerInboundCalls";
 
 
 // Dummy data for a single customer
@@ -72,8 +81,9 @@ const dummyCustomerData = {
 const Customer = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState("profile");
+    const [activeTab, setActiveTab] = useState("profile-company");
     const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
+    const [isAddAgentSheetOpen, setIsAddAgentSheetOpen] = useState(false);
 
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -109,6 +119,8 @@ const Customer = () => {
                         </div>
                     </div>
 
+
+
                     {
                         activeTab === "leads" && (
                             <div className="flex gap-4">
@@ -131,7 +143,7 @@ const Customer = () => {
                         )
                     }
                     {
-                        activeTab === "company" && (
+                        activeTab === "profile-company" && (
                             <button className="btn btn-primary flex items-center gap-2"
                                 onClick={() => setIsEditSheetOpen(true)}
 
@@ -140,27 +152,93 @@ const Customer = () => {
                                 Edit Company</button>
                         )
                     }
+                    {
+                        activeTab === "agents" && (
+                            <button className="btn btn-primary flex items-center gap-2"
+                                onClick={() => setIsAddAgentSheetOpen(true)}
+                            >
+                                <Bot className="w-4 h-4" />
+                                Assign Agent</button>
+                        )
+                    }
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="text-sm text-text-muted">Total Calls</div>
+                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                <PhoneCall className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="text-3xl font-bold text-text-main">{0}</div>
+                        {/* <div className="text-xs text-success mt-2 font-medium">Active organizations</div> */}
+                    </div>
+
+                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="text-sm text-text-muted">Connected</div>
+                            <div className="p-2 bg-success/10 rounded-lg text-success">
+                                <TrendingUp className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="text-3xl font-bold text-text-main">14</div>
+                        {/* <div className="text-xs text-success mt-2 font-medium">~3.4 agents per client</div> */}
+                    </div>
+
+                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="text-sm text-text-muted">Avg Duration</div>
+                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                <Clock className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="text-3xl font-bold text-text-main">12:34</div>
+                        {/* <div className="text-xs text-success mt-2 font-medium">Successful password changes</div> */}
+                    </div>
+
+                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="text-sm text-text-muted">Total Revenue</div>
+                            <div className="p-2 bg-warning/10 rounded-lg text-warning">
+                                <DollarSign className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="text-3xl font-bold text-text-main">$12,345</div>
+                        {/* <div className="text-xs text-text-muted mt-2 font-medium">Daily active agents</div> */}
+                    </div>
+
+                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="text-sm text-text-muted">MRR</div>
+                            <div className="p-2 bg-warning/10 rounded-lg text-warning">
+                                <DollarSign className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="text-3xl font-bold text-text-main">$0</div>
+                        {/* <div className="text-xs text-text-muted mt-2 font-medium">Daily active agents</div> */}
+                    </div>
                 </div>
 
                 {/* Custom Tabs */}
                 <div className="flex border-b border-border-subtle mb-4 shrink-0">
                     <button
-                        onClick={() => setActiveTab("profile")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all relative ${activeTab === "profile" ? "text-primary" : "text-text-muted hover:text-text-main"
+                        onClick={() => setActiveTab("profile-company")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all relative ${activeTab === "profile-company" ? "text-primary" : "text-text-muted hover:text-text-main"
                             }`}
                     >
                         <User className="w-4 h-4" />
-                        Profile
-                        {activeTab === "profile" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
+                        Profile & Company
+                        {activeTab === "profile-company" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
                     </button>
                     <button
-                        onClick={() => setActiveTab("company")}
+                        onClick={() => setActiveTab("inbound")}
                         className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all relative ${activeTab === "company" ? "text-primary" : "text-text-muted hover:text-text-main"
                             }`}
                     >
-                        <Building2 className="w-4 h-4" />
-                        Company
-                        {activeTab === "company" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
+                        <PhoneCall className="w-4 h-4" />
+                        Inbound Calls
+                        {activeTab === "inbound" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
                     </button>
                     <button
                         onClick={() => setActiveTab("leads")}
@@ -184,56 +262,16 @@ const Customer = () => {
 
                 {/* Tab Content */}
                 <div className="mt-6">
-                    {activeTab === "profile" && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="card rounded-xl p-8 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                                <h3 className="text-lg font-semibold text-text-main flex items-center gap-2 mb-2">
-                                    <User className="w-5 h-5 text-primary" />
-                                    Personal Information
-                                </h3>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between py-2 border-b border-border-subtle/50">
-                                        <span className="text-text-muted flex items-center gap-2"><Mail className="w-4 h-4" /> Email</span>
-                                        <span className="text-text-main">{customer.email}</span>
-                                    </div>
-                                    <div className="flex justify-between py-2 border-b border-border-subtle/50">
-                                        <span className="text-text-muted flex items-center gap-2"><Phone className="w-4 h-4" /> Phone</span>
-                                        <span className="text-text-main">{customer.profile.phone}</span>
-                                    </div>
-                                    <div className="flex justify-between py-2 border-b border-border-subtle/50">
-                                        <span className="text-text-muted flex items-center gap-2"><Shield className="w-4 h-4" /> Role</span>
-                                        <span className="text-text-main">{customer.profile.role}</span>
-                                    </div>
-                                    <div className="flex justify-between py-2">
-                                        <span className="text-text-muted flex items-center gap-2"><Calendar className="w-4 h-4" /> Joined</span>
-                                        <span className="text-text-main">{customer.profile.joinedDate}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                                <h3 className="text-lg font-semibold text-text-main mb-2">Account Status</h3>
-                                <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-text-muted">Account Status</span>
-                                        <span className="flex items-center gap-1.5 text-success font-medium">
-                                            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                                            Active
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === "company" && (
+                    {activeTab === "profile-company" && (
                         <CustomerCompany
-                            company={company}
-                            customerEmail={customer.email}
-                            customerPhone={customer.profile.phone}
                             isEditSheetOpen={isEditSheetOpen}
                             setIsEditSheetOpen={setIsEditSheetOpen}
+                            userid={id as string}
                         />
+                    )}
+
+                    {activeTab === "inbound" && (
+                        <CustomerInboundCalls />
                     )}
 
                     {activeTab === "leads" && (
@@ -244,7 +282,12 @@ const Customer = () => {
                     )}
 
                     {activeTab === "agents" && (
-                        <CustomerAgents />
+                        <CustomerAgents
+
+                            isAddAgentSheetOpen={isAddAgentSheetOpen}
+                            setIsAddAgentSheetOpen={setIsAddAgentSheetOpen}
+                            userid={id as string}
+                        />
                     )}
                 </div>
             </div>

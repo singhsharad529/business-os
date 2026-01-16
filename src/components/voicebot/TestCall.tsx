@@ -290,7 +290,8 @@ export default function TestCall({ onCancel }: TestCallProps) {
             setWebCallStatus("connecting");
             setStep("simulating");
             setTranscripts([]);
-            await vapi.start(selectedTemplate.vapiId);
+            const vapiconnected = await vapi.start(selectedTemplate.vapiId);
+            console.log('vapiconnected', vapiconnected);
 
             // Listen for events
             vapi.on('call-start', () => {
