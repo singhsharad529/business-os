@@ -20,7 +20,8 @@ import {
     Eye,
     Mail,
     UserX,
-    UserPlus
+    UserPlus,
+    Component
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
@@ -33,6 +34,7 @@ import { toast } from "@/hooks/useToast";
 import TableLoader from "@/components/common/TableLoader";
 import { AxiosRequestConfig } from "axios";
 import CardsLoader from "@/components/common/CardsLoader";
+import AddCategory from "@/components/super-admin/voicebot/AddCategory";
 
 
 
@@ -215,6 +217,7 @@ function MyAgents() {
     const [selectedActiveAgent, setSelectedActiveAgent] = useState<any>(null);
     const [isTestCallOpen, setIsTestCallOpen] = useState(false);
     const [isActiveDetailsOpen, setIsActiveDetailsOpen] = useState(false);
+    const [isAddCategoryOpen, setIsAddCategoryOpen] = useState<boolean>(false);
 
     // all loaders
     const [categoriesLoader, setCategoriesLoader] = useState(false);
@@ -356,12 +359,19 @@ function MyAgents() {
                             <Plus className="w-4 h-4" />
                             Add Agent
                         </button>
-                        <button
+                        {/* <button
                             onClick={() => setIsTestCallOpen(true)}
                             className="btn btn-primary flex items-center gap-1.5"
                         >
                             <Phone className="w-3.5 h-3.5" />
                             Test Call
+                        </button> */}
+                        <button
+                            onClick={() => setIsAddCategoryOpen(true)}
+                            className="btn btn-primary flex items-center gap-1.5"
+                        >
+                            <Component className="w-3.5 h-3.5" />
+                            Add Category
                         </button>
                     </div>
                 </div>
@@ -461,7 +471,13 @@ function MyAgents() {
                                                                                         </span>
                                                                                     </td>
                                                                                     <td className="py-4 px-3 text-sm text-text-muted">
-                                                                                        {cat.lastUpdated}
+                                                                                        {cat.lastUpdated ? new Date(cat.lastUpdated).toLocaleString('en-US', {
+                                                                                            year: 'numeric',
+                                                                                            month: 'short',
+                                                                                            day: 'numeric',
+                                                                                            hour: '2-digit',
+                                                                                            minute: '2-digit'
+                                                                                        }) : '-'}
                                                                                     </td>
                                                                                     <td className="py-4 px-3 text-right">
                                                                                         <button
@@ -783,6 +799,17 @@ function MyAgents() {
                 size="md"
             >
                 <TestCall onCancel={() => setIsTestCallOpen(false)} />
+            </SideSheet>
+
+            <SideSheet
+                isOpen={isAddCategoryOpen}
+                onClose={() => setIsAddCategoryOpen(false)}
+                title="Add Category"
+                size="md"
+            >
+                <AddCategory onClose={() => setIsAddCategoryOpen(false)}
+                    onSuccess={() => fetchAgentCategories()}
+                />
             </SideSheet>
         </div>
     );
