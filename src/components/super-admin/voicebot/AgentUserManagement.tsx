@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Search, UserPlus, UserMinus, Users, CheckCircle2, User, ArrowLeft } from "lucide-react";
+import { Search, UserPlus, UserMinus, Users, CheckCircle2, User, ArrowLeft, Phone } from "lucide-react";
 import adminCustomerService from "@/api/adminCustomerService";
 import { toast } from "@/hooks/useToast";
 import { Skeleton } from "@/components/ui/skeleton";
+import adminAgentService from "@/api/adminAgentService";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface User {
     id: string;
@@ -31,21 +33,68 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState<"assigned" | "assign">("assigned");
     const [usersLoading, setUsersLoading] = useState<boolean>(false);
+    const [phoneNumbersLoading, setPhoneNumbersLoading] = useState<boolean>(false);
     const [users, setUsers] = useState<any>(null);
     const [currentStep, setCurrentStep] = useState<number>(1);
-    const [selectedUser, setSelectedUser] = useState<any>(null)
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [phoneNumbers, setPhoneNumbers] = useState<any>(null);
+    const [selectedPhoneNumber, setSelectedPhoneNumber] = useState<any>(null);
 
     const availableUsers = users?.filter((u: any) =>
         u.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+
+    const fetchPhoneNumbers = async () => {
+        try {
+            setPhoneNumbersLoading(true);
+            const response = await adminAgentService.getAllPhoneNumbers({});
+            console.log('response', response);
+            if (response && response.phoneNumbers) {
+                setPhoneNumbers(response.phoneNumbers);
+                setSelectedPhoneNumber(response.phoneNumbers[0].id);
+            }
+        } catch (error) {
+            toast.danger("Failed to load phone numbers")
+        }
+        finally {
+            setPhoneNumbersLoading(false);
+        }
+    };
+
     const handleAssign = (user: User) => {
         setSelectedUser(user);
         setCurrentStep(2);
+        fetchPhoneNumbers();
     };
 
-    const handleUnassign = (userId: string) => {
-        setAssignedUsers(assignedUsers.filter(u => u.id !== userId));
+
+    const [assignLoading, setAssignLoading] = useState<boolean>(false);
+
+    const confirmAssignment = async () => {
+        if (!selectedUser || !selectedPhoneNumber) {
+            toast.danger("Please select both a user and a phone number");
+            return;
+        }
+
+        try {
+            setAssignLoading(true);
+            const payload = {
+                assistantId: agent.id,
+                userId: selectedUser.id,
+                phoneNumberId: selectedPhoneNumber
+            };
+
+            // await adminAgentService.assignAssistantToUser(payload, {});
+            toast.success("Agent assigned successfully");
+            // onClose();
+            setCurrentStep(1);
+        } catch (error) {
+            console.error("Assignment error:", error);
+            toast.danger("Failed to assign agent");
+        } finally {
+            setAssignLoading(false);
+        }
     };
 
     const fetchUsers = async () => {
@@ -149,11 +198,65 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
                     <div>
                         <button
                             onClick={() => setCurrentStep(1)}
-                            className="flex items-center gap-2 text-xs text-text-muted hover:text-primary transition-colors mb-2"
+                            className="flex items-center gap-2 text-xs text-text-muted hover:text-primary transition-colors mb-4"
                         >
                             <ArrowLeft className="w-3 h-3" />
                             Back to Users
                         </button>
+
+                        <div className="grid grid-cols-1 gap-3">
+                            <h4 className="text-sm font-bold text-text-main flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-primary" />
+                                Select Number
+                            </h4>
+                            {
+                                phoneNumbersLoading ? (
+                                    <div className="flex items-center w-full">
+                                        <Skeleton className="w-4 h-8 animate-spin w-full" />
+                                    </div>
+                                ) : (
+                                    <Select
+                                        onValueChange={(value) => setSelectedPhoneNumber(value)}
+                                        value={selectedPhoneNumber}
+                                    >
+                                        <SelectTrigger className="w-full bg-background border-border-subtle">
+                                            <SelectValue placeholder="Select a number to link..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {phoneNumbers && phoneNumbers.length > 0 ? (
+                                                phoneNumbers.map((number: any) => (
+                                                    <SelectItem key={number.id} value={number.id}>
+                                                        {number.number}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className="p-2 text-xs text-center text-text-muted">
+                                                    No unassigned numbers available
+                                                </div>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )
+                            }
+                        </div>
+
+                        <div className="mt-8">
+                            <button
+                                onClick={confirmAssignment}
+                                disabled={assignLoading || !selectedPhoneNumber}
+                                className="btn btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                                {assignLoading ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <CheckCircle2 className="w-5 h-5" />
+                                )}
+                                {assignLoading ? "Processing..." : "Assign"}
+                            </button>
+                            <p className="text-[10px] text-center text-text-muted mt-3 px-4">
+                                This will link <b>{agent?.name}</b> to <b>{selectedUser?.email}</b> using the selected phone number.
+                            </p>
+                        </div>
 
                     </div>
                 )

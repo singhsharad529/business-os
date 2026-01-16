@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import {
     Plus,
     BotMessageSquare,
@@ -104,7 +104,15 @@ const assistantsData = [
     }
 ];
 
-function CustomerAgents() {
+function CustomerAgents({
+    isAddAgentSheetOpen,
+    setIsAddAgentSheetOpen,
+    userid
+}: {
+    isAddAgentSheetOpen: boolean;
+    setIsAddAgentSheetOpen: React.Dispatch<SetStateAction<boolean>>;
+    userid: string;
+}) {
     const [agents, setAgents] = useState(assistantsData);
     const [searchTerm, setSearchTerm] = useState("");
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);

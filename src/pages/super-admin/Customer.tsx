@@ -21,6 +21,7 @@ import {
     TrendingUp,
     Clock,
     DollarSign,
+    Bot,
 } from "lucide-react";
 import CustomerCompany from "../../components/super-admin/voicebot/CustomerCompany";
 import CustomerLeads from "@/components/super-admin/voicebot/CustomerLeads";
@@ -82,7 +83,7 @@ const Customer = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("profile-company");
     const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
-
+    const [isAddAgentSheetOpen, setIsAddAgentSheetOpen] = useState(false);
 
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -149,6 +150,15 @@ const Customer = () => {
                             >
                                 <Edit className="w-4 h-4" />
                                 Edit Company</button>
+                        )
+                    }
+                    {
+                        activeTab === "agents" && (
+                            <button className="btn btn-primary flex items-center gap-2"
+                                onClick={() => setIsAddAgentSheetOpen(true)}
+                            >
+                                <Bot className="w-4 h-4" />
+                                Assign Agent</button>
                         )
                     }
                 </div>
@@ -272,7 +282,12 @@ const Customer = () => {
                     )}
 
                     {activeTab === "agents" && (
-                        <CustomerAgents />
+                        <CustomerAgents
+
+                            isAddAgentSheetOpen={isAddAgentSheetOpen}
+                            setIsAddAgentSheetOpen={setIsAddAgentSheetOpen}
+                            userid={id as string}
+                        />
                     )}
                 </div>
             </div>
