@@ -49,7 +49,7 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
         try {
             setPhoneNumbersLoading(true);
             const response = await adminAgentService.getAllPhoneNumbers({});
-            console.log('response', response);
+            // console.log('response', response);
             if (response && response.phoneNumbers) {
                 setPhoneNumbers(response.phoneNumbers);
                 setSelectedPhoneNumber(response.phoneNumbers[0].id);

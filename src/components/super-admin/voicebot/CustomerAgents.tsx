@@ -15,6 +15,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
 import EditAdminAgent from "./EditAdminAgent";
+import CustomerAssignAgent from "./CustomerAssignAgent";
 
 
 const assistantsData = [
@@ -247,6 +248,19 @@ function CustomerAgents({
                 )}
             </SideSheet>
 
+
+            <SideSheet
+                isOpen={isAddAgentSheetOpen}
+                onClose={() => setIsAddAgentSheetOpen(false)}
+                title="Assign AI Agent"
+                size="md"
+            >
+
+                <CustomerAssignAgent
+                    onClose={() => setIsAddAgentSheetOpen(false)}
+                />
+
+            </SideSheet>
 
         </div>
     );
