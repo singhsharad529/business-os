@@ -34,6 +34,12 @@ const adminAgentService = {
       data,
       config as AxiosRequestConfig
     ),
+  unassignAssistantToUser: (data: any, config?: AxiosRequestConfig) =>
+    apiService.post(
+      `admin/phone-numbers/unlink`,
+      data,
+      config as AxiosRequestConfig
+    ),
 };
 
 export default adminAgentService;

@@ -448,7 +448,7 @@ function AddAdminAgent({ onClose }: AddAdminAgentProps) {
                                 </p>
                             </div>
                         </div>
-                        <div className="mt-4 flex items-center text-xs font-bold text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="mt-4 flex items-center text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                             Browse Templates <ChevronRight className="w-4 h-4 ml-1" />
                         </div>
                     </button>

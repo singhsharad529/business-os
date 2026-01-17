@@ -258,6 +258,9 @@ function CustomerAgents({
 
                 <CustomerAssignAgent
                     onClose={() => setIsAddAgentSheetOpen(false)}
+                    onSuccess={() => {
+                        setIsAddAgentSheetOpen(false);
+                    }}
                 />
 
             </SideSheet>

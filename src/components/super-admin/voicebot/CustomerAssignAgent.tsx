@@ -17,12 +17,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useParams } from 'react-router-dom';
 
 interface CustomerAssignAgentProps {
     onClose: () => void;
+    onSuccess: () => void;
 }
 
-function CustomerAssignAgent({ onClose }: CustomerAssignAgentProps) {
+function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
     const [step, setStep] = useState<1 | 2>(1);
 
     // Agent Template State
@@ -37,6 +39,8 @@ function CustomerAssignAgent({ onClose }: CustomerAssignAgentProps) {
 
     // Assignment State
     const [assignLoading, setAssignLoading] = useState(false);
+
+    const { id } = useParams();
 
     const agentTemplateSize = 10;
     const getAgentTemplates = async (page: number = 1, pageSize: number = agentTemplateSize) => {
@@ -81,14 +85,16 @@ function CustomerAssignAgent({ onClose }: CustomerAssignAgentProps) {
     };
 
     const confirmAssignment = async () => {
-        // Handle empty only as requested
-        console.log("Confirming assignment:", {
-            agent: selectedTemplate,
-            phoneNumberId: selectedPhoneNumber
-        });
 
         try {
             setAssignLoading(true);
+            const payload = {
+                assistantId: selectedTemplate.vapiId,
+                userId: id,
+                phoneNumberId: selectedPhoneNumber
+            };
+
+            await adminAgentService.assignAssistantToUser(payload, {});
             // Simulation of async operation
             await new Promise(resolve => setTimeout(resolve, 1000));
             toast.success("Agent assigned successfully");

@@ -22,7 +22,8 @@ import {
     UserX,
     UserPlus,
     Component,
-    Loader
+    Loader,
+    Loader2
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
@@ -125,6 +126,7 @@ function MyAgents() {
     // all loaders
     const [categoriesLoader, setCategoriesLoader] = useState(false);
     const [agentsLoader, setAgentsLoader] = useState(false);
+    const [unAssignLoader, setUnassignLoader] = useState(false)
 
     const handleEditAgent = (agent: any) => {
         setSelectedAgent(agent);
@@ -161,9 +163,7 @@ function MyAgents() {
         agent.metadata.department.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const unAssignUser = () => {
 
-    }
 
     const activeAgentsPageSize = 10;
     const fetchAllActiveAgents = async (page: number = 1, pageSize: number = activeAgentsPageSize) => {
@@ -193,6 +193,35 @@ function MyAgents() {
     const handleActiveAgentPageChange = (page: number) => {
         fetchAllActiveAgents(page);
     };
+
+    const unAssignUser = async () => {
+        try {
+
+            setUnassignLoader(true);
+            const payload: any = {
+                assistantId: selectedActiveAgent.vapiId,
+                userId: selectedActiveAgent.userId,
+                phoneNumberVapiId: selectedActiveAgent.phoneNumberVapiId
+            }
+
+            const response = await adminAgentService.unassignAssistantToUser(payload);
+            if (response) {
+                toast.success("Agent unassigned successfully")
+            }
+            setIsActiveDetailsOpen(false);
+            fetchAllActiveAgents();
+
+        } catch (error) {
+            toast.danger("Failed to unassign agent")
+        }
+        finally {
+            setUnassignLoader(false)
+        }
+
+    }
+
+    console.log('selected active agent', selectedActiveAgent);
+
 
 
     const agentPageSize = 10;
@@ -616,9 +645,6 @@ function MyAgents() {
                                                                         day: "2-digit",
                                                                         month: "short",
                                                                         year: "numeric",
-                                                                        hour: "2-digit",
-                                                                        minute: "2-digit",
-                                                                        hour12: true,
                                                                     })}</td>
                                                                     {/* <td className="py-4 px-3">
                                                                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${agent.status === 'In Use' ? 'bg-success/10 text-success' :
@@ -759,9 +785,11 @@ function MyAgents() {
                                     <BotMessageSquare className="w-5 h-5 text-primary" />
                                     Agent Configuration
                                 </h3>
-                                <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20">
+                                <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
+                                    onClick={unAssignUser}
+                                >
                                     <UserX className="w-4 h-4" />
-                                    Unassign
+                                    {unAssignLoader ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unassign"}
                                 </button>
                             </div>
                             <EditAdminAgent
