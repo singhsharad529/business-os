@@ -2,6 +2,9 @@ import { useState } from "react"
 import { Phone, Mail, User, Calendar, Briefcase, Globe, Plus, X, Loader2, Check } from "lucide-react"
 import voiceBotService from "@/api/voicebotService"
 import { toast } from "@/hooks/useToast"
+import adminAgentService from "@/api/adminAgentService";
+import adminCustomerService from "@/api/adminCustomerService";
+import { useParams } from "react-router-dom";
 
 interface AddLeadProps {
     onClose: () => void;
@@ -18,6 +21,7 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
         leadExpertiseDomain: "",
         lastCalledAt: ""
     });
+    const { id } = useParams();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -34,7 +38,7 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
 
         try {
             setLoading(true);
-            await voiceBotService.createLead(formData, {});
+            await adminCustomerService.addLead(id as string, formData, {});
             toast.success("Lead added successfully");
             if (onSuccess) onSuccess();
             onClose();
