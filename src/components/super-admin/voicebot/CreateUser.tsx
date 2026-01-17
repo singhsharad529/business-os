@@ -1,7 +1,8 @@
 import { useState } from "react"
-import { Mail, Lock, Building2, Briefcase, Loader2, X } from "lucide-react"
+import { Mail, Lock, Building2, Loader2 } from "lucide-react"
 import voiceBotService from "@/api/voicebotService"
 import { toast } from "@/hooks/useToast"
+import adminCustomerService from "@/api/adminCustomerService";
 
 interface CreateUserProps {
     onClose: () => void;
@@ -11,33 +12,45 @@ interface CreateUserProps {
 function CreateUser({ onClose, onSuccess }: CreateUserProps) {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
+        name: "",
         email: "",
         password: "",
         companyName: "",
-        expertiseDomain: ""
+        sendCredentials: false
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!formData.email || !formData.password || !formData.companyName) {
+            toast.danger("Please fill all the fields");
+            return;
+        }
         try {
             setLoading(true);
-            // Assuming there's a service method for creating a user/customer
-            // If not, I'll just simulate it or wait for user to provide the API
-            // For now, let's look for a suitable method in voicebotService
 
-            // To be implemented when API is clear
-            console.log("Creating user with data:", formData);
+            const payload: any = {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                companyName: formData.companyName,
+                // send_credentials: formData.sendCredentials
+            };
+            const response = await adminCustomerService.addCustomer(payload, {});
 
-            // await voiceBotService.createCustomer(formData); 
-
-            toast.success("User created successfully");
-            if (onSuccess) onSuccess();
-            onClose();
+            if (response) {
+                toast.success("User created successfully");
+                if (onSuccess) onSuccess();
+                onClose();
+            }
         } catch (error) {
             console.error(error);
             toast.danger("Failed to create user");
@@ -50,8 +63,28 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-4 p-4">
+                    {/* Name */}
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-text-main block">
+                            Name <span className="text-danger">*</span>
+                        </label>
+                        <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                            <input
+                                type="text"
+                                name="name"
+                                // required
+                                placeholder="John Doe"
+                                className="input w-full pl-10"
+                                value={formData.name}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+
+
                     {/* Email */}
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         <label className="text-xs font-medium text-text-main block">
                             Email Address <span className="text-danger">*</span>
                         </label>
@@ -60,7 +93,7 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
                             <input
                                 type="email"
                                 name="email"
-                                required
+                                // required
                                 placeholder="user@example.com"
                                 className="input w-full pl-10"
                                 value={formData.email}
@@ -70,7 +103,7 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
                     </div>
 
                     {/* Password */}
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         <label className="text-xs font-medium text-text-main block">
                             Password <span className="text-danger">*</span>
                         </label>
@@ -79,7 +112,7 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
                             <input
                                 type="password"
                                 name="password"
-                                required
+                                // required
                                 placeholder="••••••••"
                                 className="input w-full pl-10"
                                 value={formData.password}
@@ -89,7 +122,7 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
                     </div>
 
                     {/* Company Name */}
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         <label className="text-xs font-medium text-text-main block">
                             Company Name <span className="text-danger">*</span>
                         </label>
@@ -98,7 +131,7 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
                             <input
                                 type="text"
                                 name="companyName"
-                                required
+                                // required
                                 placeholder="Acme Inc."
                                 className="input w-full pl-10"
                                 value={formData.companyName}
@@ -107,23 +140,24 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
                         </div>
                     </div>
 
-                    {/* Expertise Domain */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-medium text-text-main block">
-                            Expertise Domain <span className="text-danger">*</span>
-                        </label>
-                        <div className="relative">
-                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                    {/* Send Credentials */}
+                    <div className="flex items-center gap-3 pt-2">
+                        <div className="flex items-center h-5">
                             <input
-                                type="text"
-                                name="expertiseDomain"
-                                required
-                                placeholder="SaaS / Healthcare / Finance"
-                                className="input w-full pl-10"
-                                value={formData.expertiseDomain}
+                                id="sendCredentials"
+                                name="sendCredentials"
+                                type="checkbox"
+                                checked={formData.sendCredentials}
                                 onChange={handleChange}
+                                className="w-4 h-4 text-primary border-border-subtle rounded focus:ring-primary focus:ring-offset-0 cursor-pointer transition-all duration-200"
                             />
                         </div>
+                        <label
+                            htmlFor="sendCredentials"
+                            className="text-sm font-medium text-text-main cursor-pointer select-none"
+                        >
+                            Send Credentials to the user's email
+                        </label>
                     </div>
                 </div>
 

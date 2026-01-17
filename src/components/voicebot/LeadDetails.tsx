@@ -8,6 +8,11 @@ import { CallDetails } from "@/components/voicebot/CallDetails"
 import SideSheetLoader from "@/components/common/SideSheetLoader"
 import { Lead } from "@/types/voicebotTypes"
 import { AlertDialog } from "@/components/ui/AlertDialog"
+import adminAgentService from "@/api/adminAgentService"
+import adminCustomerService from "@/api/adminCustomerService"
+import { useParams } from "react-router-dom"
+import { AxiosRequestConfig } from "axios"
+import { Skeleton } from "../ui/skeleton"
 
 
 interface LeadDetailsProps {
@@ -23,6 +28,7 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
     const [editedLead, setEditedLead] = useState<Lead | null>(null);
     const [attributes, setAttributes] = useState<{ key: string, value: string }[]>([]);
     const [loading, setLoading] = useState(false);
+    const [callLoading, setCallLoading] = useState(false);
     const [selectedCall, setSelectedCall] = useState<any>(null);
     const [activeTab, setActiveTab] = useState("overview");
 
@@ -32,7 +38,34 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
     const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
+    const { id } = useParams();
 
+
+
+    const callsPageSize: number = 10;
+    const fetchLeadCalls = async (page: number = 1, pageSize: number = callsPageSize) => {
+        try {
+
+            setCallLoading(true);
+            const config: AxiosRequestConfig = {
+                params: {
+                    page,
+                    page_size: pageSize,
+                    customerNumber: leadFromApi?.leadPhoneNumber,
+                }
+            }
+
+            const response = await adminCustomerService.getLeadCalls(config);
+            if (response.calls) {
+                setLeadCalls(response.calls);
+            }
+        } catch (error) {
+            console.error(error);
+            toast.danger("Failed to fetch lead calls");
+        } finally {
+            setCallLoading(false);
+        }
+    };
 
     const fetchLead = async () => {
         try {
@@ -66,16 +99,22 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
                 return;
             }
 
-            const response = await voiceBotService.getLead(leadId, {});
-            console.log(response);
+            const response = await adminCustomerService.getLeadById(id as string, leadId, {});
+            // console.log(response);
             setLeadFromApi(response.lead);
             setEditedLead(response.lead);
-            if (response.lead.attributes) {
-                setAttributes(Object.entries(response.lead.attributes).map(([key, value]) => ({ key, value: String(value) })));
-            } else {
-                setAttributes([]);
+            // if (response.lead.attributes) {
+            //     setAttributes(Object.entries(response.lead.attributes).map(([key, value]) => ({ key, value: String(value) })));
+            // } else {
+            //     setAttributes([]);
+            // }
+            if (response.calls) {
+                setLeadCalls(response.calls);
             }
-            setLeadCalls(response.calls);
+            else {
+                // fetchLeadCalls();
+
+            }
         } catch (error) {
             console.error(error);
             toast.danger("Failed to fetch lead details");
@@ -96,7 +135,7 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
                 leadExpertiseDomain: editedLead?.leadExpertiseDomain,
             };
 
-            await voiceBotService.updateLead(leadId, payload, {});
+            await adminCustomerService.updateLead(id as string, leadId, payload, {});
             toast.success("Lead details updated successfully");
             setIsEditing(false);
             if (onUpdate) onUpdate();
@@ -129,25 +168,34 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
         }
     };
 
-    const addAttribute = () => {
-        setAttributes([...attributes, { key: "", value: "" }]);
-    };
 
-    const removeAttribute = (index: number) => {
-        setAttributes(attributes.filter((_, i) => i !== index));
-    };
 
-    const updateAttribute = (index: number, field: 'key' | 'value', value: string) => {
-        const newAttrs = [...attributes];
-        newAttrs[index][field] = value;
-        setAttributes(newAttrs);
-    };
+    // const addAttribute = () => {
+    //     setAttributes([...attributes, { key: "", value: "" }]);
+    // };
+
+    // const removeAttribute = (index: number) => {
+    //     setAttributes(attributes.filter((_, i) => i !== index));
+    // };
+
+    // const updateAttribute = (index: number, field: 'key' | 'value', value: string) => {
+    //     const newAttrs = [...attributes];
+    //     newAttrs[index][field] = value;
+    //     setAttributes(newAttrs);
+    // };
 
 
 
     useEffect(() => {
         fetchLead();
     }, []);
+
+    useEffect(() => {
+        if (activeTab === "calls") {
+
+            fetchLeadCalls();
+        }
+    }, [activeTab]);
 
     return (
         <>
@@ -305,7 +353,7 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
                                                 </div>
 
                                                 {/* Attributes Section */}
-                                                <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-6 border border-border-subtle shadow-soft">
+                                                {/* <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-6 border border-border-subtle shadow-soft">
                                                     <div className="flex items-center justify-between mb-6">
                                                         <h3 className="text-base font-bold text-text-main flex items-center gap-2">
                                                             <div className="p-1.5 bg-primary/10 rounded-lg">
@@ -369,7 +417,7 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
                                                             </div>
                                                         ))}
                                                     </div>
-                                                </div>
+                                                </div> */}
 
                                                 {isEditing ? (
                                                     <div className="flex gap-4">
@@ -408,65 +456,83 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-4">
-                                                        {leadCalls.length === 0 ? (
-                                                            <div className="flex flex-col items-center justify-center py-20 bg-white/40 border-2 border-dashed border-border-subtle rounded-3xl animate-pulse">
-                                                                <div className="p-4 bg-bg-alt rounded-2xl mb-4">
-                                                                    <Phone className="w-10 h-10 text-text-muted opacity-40" />
+
+                                                        {
+                                                            callLoading ? (
+                                                                <div className="space-y-4">
+                                                                    <Skeleton className="w-full h-20" />
+                                                                    <Skeleton className="w-full h-20" />
+                                                                    <Skeleton className="w-full h-20" />
+                                                                    <Skeleton className="w-full h-20" />
                                                                 </div>
-                                                                <p className="text-text-muted font-medium">No recorded calls in history.</p>
-                                                                <p className="text-xs text-text-muted mt-1">Start a campaign to reach out to this lead.</p>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="space-y-3">
-                                                                {leadCalls.map((call, idx) => (
-                                                                    <div
-                                                                        key={idx}
-                                                                        onClick={() => setSelectedCall(call)}
-                                                                        className="group bg-white/60 hover:bg-white border border-border-subtle hover:border-primary/50 p-5 rounded-2xl transition-all duration-300 cursor-pointer shadow-soft hover:shadow-card hover:-translate-y-0.5"
-                                                                    >
-                                                                        <div className="flex items-center justify-between">
-                                                                            <div className="flex items-center gap-4">
-                                                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-200 ${call.status === 'customer-ended-call' || call.status === 'assistant-ended-call' || call.status === 'completed' ? 'bg-success/10 text-success' :
-                                                                                    call.status === 'customer-did-not-answer' || call.status === 'customer-busy' || call.status === 'customer-rejected' ? 'bg-amber-500/10 text-amber-600' :
-                                                                                        call.status === 'ended-with-error' || call.status === 'failed' ? 'bg-danger/10 text-danger' :
-                                                                                            'bg-text-muted/10 text-text-muted'
-                                                                                    }`}>
-                                                                                    <Phone className="w-6 h-6" />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <div className="text-base font-bold text-text-main flex items-center gap-2">
-                                                                                        {call.type === 'inboundPhoneCall' ? 'Inbound' : 'Outbound'} Call
-                                                                                        <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest ${call.status === 'customer-ended-call' || call.status === 'assistant-ended-call' || call.status === 'completed' ? 'bg-success/10 text-success' :
-                                                                                            call.status === 'customer-did-not-answer' || call.status === 'customer-busy' || call.status === 'customer-rejected' ? 'bg-amber-500/10 text-amber-600' :
-                                                                                                call.status === 'ended-with-error' || call.status === 'failed' ? 'bg-danger/10 text-danger' :
-                                                                                                    'bg-text-muted/10 text-text-muted'
-                                                                                            }`}>
-                                                                                            {call.status?.split('-').join(' ')}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                    <div className="text-xs text-text-muted flex items-center gap-3 mt-1 font-medium">
-                                                                                        <span className="flex items-center gap-1">
-                                                                                            <Calendar className="w-3.5 h-3.5" />
-                                                                                            {call.startedAt ? new Date(call.startedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Pending'}
-                                                                                        </span>
-                                                                                        {(call.durationSeconds > 0 || call.durationMinutes > 0) && (
-                                                                                            <span className="flex items-center gap-1">
-                                                                                                <Clock className="w-3.5 h-3.5" />
-                                                                                                {call.durationMinutes > 1 ? `${Math.floor(call.durationMinutes)}m ` : ''}
-                                                                                                {Math.round(call.durationSeconds % 60)}s
-                                                                                            </span>
-                                                                                        )}
-                                                                                    </div>
-                                                                                </div>
+
+                                                            ) : (
+                                                                <div>
+                                                                    {leadCalls.length === 0 ? (
+                                                                        <div className="flex flex-col items-center justify-center py-20 bg-white/40 border-2 border-dashed border-border-subtle rounded-3xl animate-pulse">
+                                                                            <div className="p-4 bg-bg-alt rounded-2xl mb-4">
+                                                                                <Phone className="w-10 h-10 text-text-muted opacity-40" />
                                                                             </div>
-                                                                            <div className="p-2.5 rounded-xl bg-primary/5 text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                                                                <ChevronRight className="w-5 h-5" />
-                                                                            </div>
+                                                                            <p className="text-text-muted font-medium">No recorded calls in history.</p>
+                                                                            <p className="text-xs text-text-muted mt-1">Start a campaign to reach out to this lead.</p>
                                                                         </div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        )}
+                                                                    ) : (
+                                                                        <div className="space-y-3">
+                                                                            {leadCalls.map((call, idx) => (
+                                                                                <div
+                                                                                    key={idx}
+                                                                                    onClick={() => setSelectedCall(call)}
+                                                                                    className="group bg-white/60 hover:bg-white border border-border-subtle hover:border-primary/50 p-5 rounded-2xl transition-all duration-300 cursor-pointer shadow-soft hover:shadow-card hover:-translate-y-0.5"
+                                                                                >
+                                                                                    <div className="flex items-center justify-between">
+                                                                                        <div className="flex items-center gap-4">
+                                                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-200 ${call.status === 'customer-ended-call' || call.status === 'assistant-ended-call' || call.status === 'completed' ? 'bg-success/10 text-success' :
+                                                                                                call.status === 'customer-did-not-answer' || call.status === 'customer-busy' || call.status === 'customer-rejected' ? 'bg-amber-500/10 text-amber-600' :
+                                                                                                    call.status === 'ended-with-error' || call.status === 'failed' ? 'bg-danger/10 text-danger' :
+                                                                                                        'bg-text-muted/10 text-text-muted'
+                                                                                                }`}>
+                                                                                                <Phone className="w-6 h-6" />
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <div className="text-base font-bold text-text-main flex items-center gap-2">
+                                                                                                    {call.type === 'inboundPhoneCall' ? 'Inbound' : 'Outbound'} Call
+                                                                                                    <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest ${call.status === 'customer-ended-call' || call.status === 'assistant-ended-call' || call.status === 'completed' ? 'bg-success/10 text-success' :
+                                                                                                        call.status === 'customer-did-not-answer' || call.status === 'customer-busy' || call.status === 'customer-rejected' ? 'bg-amber-500/10 text-amber-600' :
+                                                                                                            call.status === 'ended-with-error' || call.status === 'failed' ? 'bg-danger/10 text-danger' :
+                                                                                                                'bg-text-muted/10 text-text-muted'
+                                                                                                        }`}>
+                                                                                                        {call.status?.split('-').join(' ')}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                                <div className="text-xs text-text-muted flex items-center gap-3 mt-1 font-medium">
+                                                                                                    <span className="flex items-center gap-1">
+                                                                                                        <Calendar className="w-3.5 h-3.5" />
+                                                                                                        {call.startedAt ? new Date(call.startedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Pending'}
+                                                                                                    </span>
+                                                                                                    {(call.durationSeconds > 0 || call.durationMinutes > 0) && (
+                                                                                                        <span className="flex items-center gap-1">
+                                                                                                            <Clock className="w-3.5 h-3.5" />
+                                                                                                            {call.durationMinutes > 1 ? `${Math.floor(call.durationMinutes)}m ` : ''}
+                                                                                                            {Math.round(call.durationSeconds % 60)}s
+                                                                                                        </span>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="p-2.5 rounded-xl bg-primary/5 text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                                                                            <ChevronRight className="w-5 h-5" />
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+
+                                                                </div>
+                                                            )
+                                                        }
+
+
                                                     </div>
                                                 )}
                                             </TabsContent>

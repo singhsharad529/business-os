@@ -17,6 +17,8 @@ import { SideSheet } from "@/components/SideSheet";
 import adminCustomerService from "@/api/adminCustomerService";
 import { toast } from "@/hooks/useToast";
 import TableLoader from "@/components/common/TableLoader";
+import { AxiosRequestConfig } from "axios";
+import Pagination from "@/components/common/Pagination";
 
 
 function Customers() {
@@ -24,35 +26,58 @@ function Customers() {
     const [statusFilter, setStatusFilter] = useState("all");
     const navigate = useNavigate();
     const [usersList, setUsersList] = useState<any>(null);
+    const [usersPagination, setUsersPagination] = useState<any>(null);
     const [loading, setLoading] = useState(false);
 
     const [isCreateUserSheetOpen, setIsCreateUserSheetOpen] = useState(false);
 
 
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                setLoading(true);
-                const response = await adminCustomerService.getUsersList({});
-                console.log('user list', response);
-                setUsersList(response);
-            } catch (error) {
-                console.log(error);
-                toast.danger("Failed to fetch users list");
-            }
-            finally {
-                setLoading(false);
-            }
-        };
-        fetchUsers();
-    }, []);
+
 
     const filteredUsers = (usersList?.users || []).filter((user: any) => {
         const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === "all" || (user.status || "active") === statusFilter;
         return matchesSearch && matchesStatus;
     });
+
+
+    const userPageSize: number = 10;
+    const fetchUsers = async (page: number = 1, pageSize: number = userPageSize) => {
+        try {
+            setLoading(true);
+            const config: AxiosRequestConfig = {
+                params: {
+                    page,
+                    page_size: pageSize
+                }
+            }
+            const response = await adminCustomerService.getUsersList(config);
+            console.log('user list', response);
+            if (response.users) {
+                setUsersList(response);
+
+            }
+            if (response.pagination) {
+                setUsersPagination(response.pagination);
+            }
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to fetch users list");
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePageChange = (page: number) => {
+        fetchUsers(page);
+    };
+
+    useEffect(() => {
+
+        fetchUsers();
+    }, []);
 
 
     return (
@@ -163,23 +188,25 @@ function Customers() {
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assigned Agent</th>
-                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
+                                        {/* <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th> */}
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border-subtle/50">
                                     {filteredUsers.map((user: any, i: number) => (
                                         <tr key={user.id} className="hover:bg-bg-alt/30 transition-colors">
-                                            <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
+                                            <td className="py-4 px-3 text-center text-xs text-text-muted">
+                                                {(usersPagination?.page - 1) * (usersPagination?.pageSize || userPageSize) + i + 1}
+                                            </td>
                                             <td className="py-4 px-3 text-sm text-text-main font-medium">{user.email}</td>
-                                            <td className="py-4 px-3 text-sm text-text-muted">N/A</td>
-                                            <td className="py-4 px-3 text-sm text-text-muted">N/A</td>
-                                            <td className="py-4 px-3 text-sm text-text-muted">N/A</td>
-                                            <td className="py-4 px-3">
+                                            <td className="py-4 px-3 text-sm text-text-muted">{user.name}</td>
+                                            <td className="py-4 px-3 text-sm text-text-muted">{user.companyName}</td>
+                                            <td className="py-4 px-3 text-sm text-text-muted">{user.assistantsCount}</td>
+                                            {/* <td className="py-4 px-3">
                                                 <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-success/10 text-success`}>
                                                     active
                                                 </span>
-                                            </td>
+                                            </td> */}
                                             <td className="py-4 px-3 text-sm text-text-muted">
                                                 <div className="flex items-center gap-2">
                                                     {/* <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer">
@@ -197,6 +224,15 @@ function Customers() {
                                     ))}
                                 </tbody>
                             </table>
+                            {usersPagination && (
+                                <Pagination
+                                    currentPage={usersPagination.page}
+                                    totalPages={usersPagination.totalPages}
+                                    pageSize={usersPagination.pageSize}
+                                    totalCount={usersPagination.total}
+                                    onPageChange={handlePageChange}
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -206,12 +242,17 @@ function Customers() {
             <SideSheet
                 isOpen={isCreateUserSheetOpen}
                 onClose={() => setIsCreateUserSheetOpen(false)}
-                title="Add New Customer"
+                title="Add New Client"
                 size="md"
             >
                 <CreateUser
                     onClose={() => setIsCreateUserSheetOpen(false)}
-                    onSuccess={() => { }}
+                    onSuccess={() => {
+
+                        setIsCreateUserSheetOpen(false);
+                        fetchUsers();
+
+                    }}
                 />
             </SideSheet>
         </div>
