@@ -24,83 +24,7 @@ interface InboundCall {
     outcome: "Lead" | "Qualified" | "Callback" | "Not Interested";
 }
 
-const dummyInboundCalls: InboundCall[] = [
-    {
-        id: "1",
-        dateTime: "2024-03-12 10:30 AM",
-        client: "TechFlow Systems",
-        callerNumber: "+1 (555) 012-3456",
-        agent: "AI Sarah",
-        status: "Completed",
-        duration: "2m 45s",
-        outcome: "Qualified",
-    },
-    {
-        id: "2",
-        dateTime: "2024-03-12 11:15 AM",
-        client: "GlobalReach Inc.",
-        callerNumber: "+1 (555) 987-6543",
-        agent: "AI David",
-        status: "Completed",
-        duration: "5m 12s",
-        outcome: "Lead",
-    },
-    {
-        id: "3",
-        dateTime: "2024-03-12 01:20 PM",
-        client: "BlackSun Agency",
-        callerNumber: "+1 (555) 456-7890",
-        agent: "AI Sarah",
-        status: "Missed",
-        duration: "0m 00s",
-        outcome: "Callback",
-    },
-    {
-        id: "4",
-        dateTime: "2024-03-12 02:45 PM",
-        client: "Nexus Solutions",
-        callerNumber: "+1 (555) 222-3333",
-        agent: "AI Michael",
-        status: "Completed",
-        duration: "1m 30s",
-        outcome: "Not Interested",
-    },
-    {
-        id: "5",
-        dateTime: "2024-03-12 04:10 PM",
-        client: "Peak HR Group",
-        callerNumber: "+1 (555) 555-4444",
-        agent: "AI David",
-        status: "Completed",
-        duration: "3m 55s",
-        outcome: "Qualified",
-    }
-];
 
-const dummyCallDetail = {
-    id: "1",
-    type: "inboundPhoneCall",
-    status: "completed",
-    customerNumber: "+1 (555) 012-3456",
-    phoneNumber: "+1 (555) 888-9999",
-    startedAt: "2024-03-12T10:30:00Z",
-    endedAt: "2024-03-12T10:32:45Z",
-    totalCost: "0.45",
-    summary: "The caller was interested in the Enterprise plan and asked about security certifications. They are qualified as a hot lead and requested a follow-up email with the SOC2 report.",
-    messages: [
-        { role: 'assistant', message: 'Hello! Thank you for calling TechFlow Systems. How can I help you today?', secondsFromStart: 0.5 },
-        { role: 'user', message: 'Hi, I saw your enterprise plan and I wanted to know more about it.', secondsFromStart: 4.2 },
-        { role: 'assistant', message: 'I would be happy to explain our Enterprise features. It includes unlimited agents, custom integrations, and 24/7 priority support. Do you have any specific requirements in mind?', secondsFromStart: 10.1 },
-        { role: 'user', message: 'Yes, we are a financial firm so security is priority. Do you have SOC2 compliance?', secondsFromStart: 18.5 },
-        { role: 'assistant', message: 'Absolutely. We are SOC2 Type II compliant and can provide our latest audit report. Would you like me to send that to your email?', secondsFromStart: 25.3 },
-        { role: 'user', message: 'That would be great. Please send it to test@example.com.', secondsFromStart: 32.8 },
-        { role: 'assistant', message: 'Perfect, I have noted that down. A member of our security team will reach out shortly with the documents. Is there anything else?', secondsFromStart: 40.2 },
-        { role: 'user', message: 'No, that is all. Thank you!', secondsFromStart: 45.1 },
-    ],
-    recordings: {
-        stereo: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-    }
-};
 
 function Inbound() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -134,7 +58,8 @@ function Inbound() {
             const config: AxiosRequestConfig = {
                 params: {
                     page: page,
-                    page_size: pageSize
+                    page_size: pageSize,
+                    isTestCall: false
                 }
             }
 

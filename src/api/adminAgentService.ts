@@ -8,6 +8,8 @@ const adminAgentService = {
     apiService.get(`admin/templates/categories/${value}`, config),
   getAllTemplates: (config: AxiosRequestConfig) =>
     apiService.get(`admin/templates`, config),
+  getAllActiveAssistants: (config: AxiosRequestConfig) =>
+    apiService.get(`admin/assistants`, config),
   getAllAssistants: (config: AxiosRequestConfig) =>
     apiService.get(`admin/assistants`, config),
   getAllInboundCalls: (config: AxiosRequestConfig) =>
@@ -20,6 +22,18 @@ const adminAgentService = {
   //   apiService.post(`admin/assistants/assign`, data, config),
   setCallId: (callId: string, config: AxiosRequestConfig) =>
     apiService.post(`admin/save-call-id`, { callId }, config),
+  getListModels: (config?: AxiosRequestConfig) =>
+    apiService.get(`vapi/list-models`, config as AxiosRequestConfig),
+  getVoices: (config?: AxiosRequestConfig) =>
+    apiService.get(`vapi/voices`, config as AxiosRequestConfig),
+  createAssistant: (data: any, config?: AxiosRequestConfig) =>
+    apiService.post(`admin/assistants`, data, config as AxiosRequestConfig),
+  assignAssistantToUser: (data: any, config?: AxiosRequestConfig) =>
+    apiService.post(
+      `admin/assistants/assign`,
+      data,
+      config as AxiosRequestConfig
+    ),
 };
 
 export default adminAgentService;

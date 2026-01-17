@@ -77,15 +77,21 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
             return;
         }
 
+
+        console.log("agent", agent);
+        console.log("selectedUser", selectedUser);
+        console.log("selectedPhoneNumber", selectedPhoneNumber);
+
+
         try {
             setAssignLoading(true);
             const payload = {
-                assistantId: agent.id,
+                assistantId: agent.vapiAssistantId,
                 userId: selectedUser.id,
                 phoneNumberId: selectedPhoneNumber
             };
 
-            // await adminAgentService.assignAssistantToUser(payload, {});
+            await adminAgentService.assignAssistantToUser(payload, {});
             toast.success("Agent assigned successfully");
             // onClose();
             setCurrentStep(1);
