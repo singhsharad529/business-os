@@ -38,6 +38,7 @@ import { AxiosRequestConfig } from "axios";
 import CardsLoader from "@/components/common/CardsLoader";
 import AddCategory from "@/components/super-admin/voicebot/AddCategory";
 import Pagination from "@/components/common/Pagination";
+import { AlertDialog } from "@/components/ui/AlertDialog";
 
 
 
@@ -57,6 +58,10 @@ function MyAgents() {
     const [isTestCallOpen, setIsTestCallOpen] = useState(false);
     const [isActiveDetailsOpen, setIsActiveDetailsOpen] = useState(false);
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState<boolean>(false);
+
+    const [agentToDelete, setAgentToDelete] = useState<any>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
     const [allActiveAgents, setAllActiveAgents] = useState<any>(null);
     const [activateAgentsPagination, setActivateAgentsPagination] = useState<any>(null);
@@ -213,7 +218,26 @@ function MyAgents() {
         if (activeTab === "active") {
             fetchAllActiveAgents();
         }
-    }, [activeTab])
+    }, [activeTab]);
+
+
+    const confirmDeleteAgent = async () => {
+        if (!agentToDelete) return;
+
+        try {
+            setDeleteLoading(true);
+            await adminAgentService.deleteAssistant(agentToDelete.vapiId || agentToDelete?.vapiAssistantId, {});
+            toast.success("Agent deleted successfully");
+            await fetchAgents(selectedCategory, 1); // Reload the list
+            setIsDeleteAlertOpen(false);
+            setAgentToDelete(null);
+        } catch (error) {
+            // console.error(error);
+            toast.danger("Failed to delete agent");
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
 
 
     return (
@@ -516,7 +540,12 @@ function MyAgents() {
                                                             <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
                                                                 <Copy className="w-3.5 h-3.5" />
                                                             </button>
-                                                            <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete">
+                                                            <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete"
+                                                                onClick={() => {
+                                                                    setAgentToDelete(agent);
+                                                                    setIsDeleteAlertOpen(true)
+                                                                }}
+                                                            >
                                                                 <Trash className="w-3.5 h-3.5 text-danger" />
                                                             </button>
                                                         </div>
@@ -770,6 +799,16 @@ function MyAgents() {
                     onSuccess={() => fetchAgentCategories()}
                 />
             </SideSheet>
+
+            <AlertDialog
+                isOpen={isDeleteAlertOpen}
+                onClose={() => setIsDeleteAlertOpen(false)}
+                onConfirm={confirmDeleteAgent}
+                title="Delete Agent"
+                description="Are you sure you want to delete this agent? This action cannot be undone and will remove the agent from your list."
+                confirmText="Delete Agent"
+                isLoading={deleteLoading}
+            />
         </div>
     );
 }

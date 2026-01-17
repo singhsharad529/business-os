@@ -24,6 +24,7 @@ import CardsLoader from "@/components/common/CardsLoader";
 import { useParams } from "react-router-dom";
 import adminAgentService from "@/api/adminAgentService";
 import { toast } from "@/hooks/useToast";
+import { AlertDialog } from "@/components/ui/AlertDialog";
 
 
 const assistantsData = [
@@ -130,6 +131,9 @@ function CustomerAgents({
     const [agentLoader, setAgentLoader] = useState(false);
     const [unAssignLoader, setUnassignLoader] = useState(false);
     const [agentToUnassign, setAgentToUnassign] = useState<any>(null);
+    const [agentToDelete, setAgentToDelete] = useState<any>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
     const handleEditAgent = (agent: any) => {
         setSelectedAgent(agent);
@@ -206,6 +210,24 @@ function CustomerAgents({
 
     }
 
+
+    const confirmDeleteAgent = async () => {
+        if (!agentToDelete) return;
+
+        try {
+            setDeleteLoading(true);
+            await adminAgentService.deleteAssistant(agentToDelete.vapiId, {});
+            toast.success("Agent deleted successfully");
+            await fetchAgents(); // Reload the list
+            setIsDeleteAlertOpen(false);
+            setAgentToDelete(null);
+        } catch (error) {
+            // console.error(error);
+            toast.danger("Failed to delete agent");
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
 
     return (
         <div>
@@ -311,7 +333,12 @@ function CustomerAgents({
                                                 {/* <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
                                                     <Copy className="w-3.5 h-3.5" />
                                                 </button> */}
-                                                <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete">
+                                                <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete"
+                                                    onClick={() => {
+                                                        setAgentToDelete(agent);
+                                                        setIsDeleteAlertOpen(true)
+                                                    }}
+                                                >
                                                     <Trash className="w-3.5 h-3.5 text-danger" />
                                                 </button>
                                             </div>
@@ -337,7 +364,14 @@ function CustomerAgents({
                 {selectedAgent && (
                     <EditAdminAgent
                         agent={selectedAgent}
-                        onClose={() => setIsEditSheetOpen(false)}
+                        onClose={() => {
+                            setIsEditSheetOpen(false);
+
+                        }}
+
+                        onSuccess={() => {
+                            fetchAgents();
+                        }}
                     />
                 )}
             </SideSheet>
@@ -359,6 +393,16 @@ function CustomerAgents({
                 />
 
             </SideSheet>
+
+            <AlertDialog
+                isOpen={isDeleteAlertOpen}
+                onClose={() => setIsDeleteAlertOpen(false)}
+                onConfirm={confirmDeleteAgent}
+                title="Delete Agent"
+                description="Are you sure you want to delete this agent? This action cannot be undone and will remove the agent from your list."
+                confirmText="Delete Agent"
+                isLoading={deleteLoading}
+            />
 
         </div>
     );

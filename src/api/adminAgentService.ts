@@ -46,6 +46,11 @@ const adminAgentService = {
       data,
       config as AxiosRequestConfig
     ),
+  deleteAssistant: (assistantId: string, config?: AxiosRequestConfig) =>
+    apiService.delete(
+      `admin/assistants/${assistantId}`,
+      config as AxiosRequestConfig
+    ),
 };
 
 export default adminAgentService;
