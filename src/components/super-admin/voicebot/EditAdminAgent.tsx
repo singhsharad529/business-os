@@ -245,7 +245,7 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
 
             // Since we can't edit adminAgentService.ts, we use apiService directly
             // We assume the endpoint is PATCH admin/assistants/:id
-            await apiService.patch(`admin/assistants/${agent.vapiAssistantId}`, apiPayload, {});
+            await apiService.patch(`admin/assistants/${agent.vapiAssistantId || agent.vapiId}`, apiPayload, {});
 
             toast.success("Assistant updated successfully!");
             if (onSuccess) {

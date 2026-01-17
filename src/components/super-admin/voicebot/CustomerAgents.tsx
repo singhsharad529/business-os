@@ -21,6 +21,9 @@ import CustomerAssignAgent from "./CustomerAssignAgent";
 import adminCustomerService from "@/api/adminCustomerService";
 import { AxiosRequestConfig } from "axios";
 import CardsLoader from "@/components/common/CardsLoader";
+import { useParams } from "react-router-dom";
+import adminAgentService from "@/api/adminAgentService";
+import { toast } from "@/hooks/useToast";
 
 
 const assistantsData = [
@@ -126,11 +129,14 @@ function CustomerAgents({
     const [selectedAgent, setSelectedAgent] = useState<any>(null);
     const [agentLoader, setAgentLoader] = useState(false);
     const [unAssignLoader, setUnassignLoader] = useState(false);
+    const [agentToUnassign, setAgentToUnassign] = useState<any>(null);
 
     const handleEditAgent = (agent: any) => {
         setSelectedAgent(agent);
         setIsEditSheetOpen(true);
     };
+
+    const { id } = useParams()
 
     const handleStatusChange = (id: string) => {
         setAgents(prev => prev.map(agent =>
@@ -174,6 +180,32 @@ function CustomerAgents({
     }, []);
 
 
+    const unAssignUser = async (assistant: any) => {
+        try {
+
+            setUnassignLoader(true);
+            const payload: any = {
+                assistantId: assistant.vapiId,
+                userId: id,
+            }
+            setAgentToUnassign(assistant);
+
+            const response = await adminAgentService.unassignAssistantToUser(payload);
+            if (response) {
+                toast.success("Agent unassigned successfully")
+            }
+
+            fetchAgents();
+
+        } catch (error) {
+            toast.danger("Failed to unassign agent")
+        }
+        finally {
+            setUnassignLoader(false)
+        }
+
+    }
+
 
     return (
         <div>
@@ -211,10 +243,10 @@ function CustomerAgents({
                                                         onCheckedChange={() => handleStatusChange(agent.id)}
                                                     /> */}
                                                     <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
-                                                    // onClick={unAssignUser}
+                                                        onClick={() => unAssignUser(agent)}
                                                     >
                                                         <UserX className="w-4 h-4" />
-                                                        {unAssignLoader ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unassign"}
+                                                        {unAssignLoader && agentToUnassign?.vapiId === agent.vapiId ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unassign"}
                                                     </button>
                                                     {/* <button className="btn btn-secondary text-xs"
                                                         onClick={() => handleTestCall(agent)}
@@ -276,9 +308,9 @@ function CustomerAgents({
                                                 >
                                                     <Users className="w-3.5 h-3.5" />
                                                 </button> */}
-                                                <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
+                                                {/* <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
                                                     <Copy className="w-3.5 h-3.5" />
-                                                </button>
+                                                </button> */}
                                                 <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete">
                                                     <Trash className="w-3.5 h-3.5 text-danger" />
                                                 </button>

@@ -40,6 +40,12 @@ const adminAgentService = {
       data,
       config as AxiosRequestConfig
     ),
+  addCategory: (data: any, config?: AxiosRequestConfig) =>
+    apiService.post(
+      `admin/templates/categories`,
+      data,
+      config as AxiosRequestConfig
+    ),
 };
 
 export default adminAgentService;
