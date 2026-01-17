@@ -41,67 +41,6 @@ import Pagination from "@/components/common/Pagination";
 
 
 
-const activeAgentsData = [
-    {
-        id: "aa-1",
-        agentName: "Follow-up Agent",
-        clientName: "TechChop Inc",
-        assignedDate: "2024-01-10",
-        status: "In Use",
-        clientInfo: {
-            email: "contact@techchop.com",
-            phone: "+1 234 567 890",
-            industry: "Technology"
-        },
-        agentDetails: {
-            model: "gpt-4-turbo",
-            provider: "openai",
-            voiceId: "21m00Tcm4TlvDq8ikWAM",
-            language: "en",
-            transcriber: "deepgram"
-        }
-    },
-    {
-        id: "aa-2",
-        agentName: "Rental Specialist",
-        clientName: "Elite Properties",
-        assignedDate: "2024-01-12",
-        status: "Idle",
-        clientInfo: {
-            email: "ops@eliteprop.com",
-            phone: "+1 987 654 321",
-            industry: "Real Estate"
-        },
-        agentDetails: {
-            model: "gpt-4-turbo",
-            provider: "openai",
-            voiceId: "21m00Tcm4TlvDq8ikWAM",
-            language: "en",
-            transcriber: "deepgram"
-        }
-    },
-    {
-        id: "aa-3",
-        agentName: "Investment Consultant",
-        clientName: "Global Wealth",
-        assignedDate: "2024-01-08",
-        status: "Never Used",
-        clientInfo: {
-            email: "advisors@globalwealth.com",
-            phone: "+1 555 012 3456",
-            industry: "Finance"
-        },
-        agentDetails: {
-            model: "claude-3-opus",
-            provider: "anthropic",
-            voiceId: "21m00Tcm4TlvDq8ikWAM",
-            language: "en",
-            transcriber: "deepgram"
-        }
-    }
-];
-
-
 
 function MyAgents() {
     const [activeTab, setActiveTab] = useState<"categories" | "active">("categories");
@@ -220,14 +159,11 @@ function MyAgents() {
 
     }
 
-    console.log('selected active agent', selectedActiveAgent);
-
-
 
     const agentPageSize = 10;
     const fetchAgents = async (cat: any, page: number, pageSize: number = agentPageSize) => {
 
-        console.log('cateory is', cat);
+        // console.log('cateory is', cat);
         setSelectedCategory(cat);
         setSearchTerm("");
         setView("agents");
@@ -242,7 +178,7 @@ function MyAgents() {
         try {
             setAgentsLoader(true);
             const response = await adminAgentService.getAgentsByCategory(cat?.value, config);
-            console.log('response', response);
+            // console.log('response', response);
             setAgents(response.data.templates);
 
 
@@ -706,7 +642,12 @@ function MyAgents() {
             >
                 {selectedAgent && (
                     <EditAdminAgent
+                        agent={selectedAgent}
                         onClose={() => setIsEditSheetOpen(false)}
+                        onSuccess={() => {
+                            setIsEditSheetOpen(false);
+                            fetchAgents(selectedCategory, activateAgentsPagination.page);
+                        }}
                     />
                 )}
             </SideSheet>
@@ -793,7 +734,12 @@ function MyAgents() {
                                 </button>
                             </div>
                             <EditAdminAgent
+                                agent={selectedActiveAgent}
                                 onClose={() => setIsActiveDetailsOpen(false)}
+                                onSuccess={() => {
+                                    setIsEditSheetOpen(false);
+                                    fetchAllActiveAgents();
+                                }}
                             />
                         </div>
                     </div>
