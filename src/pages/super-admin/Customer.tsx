@@ -22,6 +22,7 @@ import {
     Clock,
     DollarSign,
     Bot,
+    Star,
 } from "lucide-react";
 import CustomerCompany from "../../components/super-admin/voicebot/CustomerCompany";
 import CustomerLeads from "@/components/super-admin/voicebot/CustomerLeads";
@@ -32,6 +33,7 @@ import { SideSheet } from "@/components/SideSheet";
 
 import sampleFile from "@/assets/files/leads_data_sample.xlsx";
 import CustomerInboundCalls from "@/components/super-admin/voicebot/CustomerInboundCalls";
+import CustomerFeedbacks from "@/components/super-admin/voicebot/CustomerFeedbacks";
 
 
 // Dummy data for a single customer
@@ -84,6 +86,7 @@ const Customer = () => {
     const [activeTab, setActiveTab] = useState("profile-company");
     const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
     const [isAddAgentSheetOpen, setIsAddAgentSheetOpen] = useState(false);
+    const [isAddFeedbackSheetOpen, setIsAddFeedbackSheetOpen] = useState(false);
 
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -144,12 +147,20 @@ const Customer = () => {
                     }
                     {
                         activeTab === "profile-company" && (
-                            <button className="btn btn-primary flex items-center gap-2"
-                                onClick={() => setIsEditSheetOpen(true)}
+                            <div className="flex gap-4">
+                                <button className="btn btn-secondary flex items-center gap-2"
+                                    onClick={() => setIsAddFeedbackSheetOpen(true)}
+                                >
+                                    <Star className="w-4 h-4" />
+                                    Feebacks</button>
+                                <button className="btn btn-primary flex items-center gap-2"
+                                    onClick={() => setIsEditSheetOpen(true)}
 
-                            >
-                                <Edit className="w-4 h-4" />
-                                Edit Company</button>
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    Edit Company</button>
+
+                            </div>
                         )
                     }
                     {
@@ -278,6 +289,8 @@ const Customer = () => {
                         <CustomerLeads
                             isImportModalOpen={isImportModalOpen}
                             setIsImportModalOpen={setIsImportModalOpen}
+                            isAddLeadSheetOpen={isAddLeadSheetOpen}
+                            setIsAddLeadSheetOpen={setIsAddLeadSheetOpen}
                         />
                     )}
 
@@ -292,16 +305,18 @@ const Customer = () => {
                 </div>
             </div>
 
+
+
             {/* Add Lead SideSheet */}
             <SideSheet
-                isOpen={isAddLeadSheetOpen}
-                onClose={() => setIsAddLeadSheetOpen(false)}
-                title="Add New Lead"
+                isOpen={isAddFeedbackSheetOpen}
+                onClose={() => setIsAddFeedbackSheetOpen(false)}
+                title="User Feebacks"
                 size="md"
             >
-                <AddLead
-                    onClose={() => setIsAddLeadSheetOpen(false)}
-                    onSuccess={() => { }}
+                <CustomerFeedbacks
+                    onClose={() => setIsAddFeedbackSheetOpen(false)}
+
                 />
             </SideSheet>
         </div>

@@ -1,23 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import adminAgentService from "@/api/adminAgentService";
+import apiService from "@/api/apiService";
+import { toast } from "@/hooks/useToast";
 import {
     Cpu,
-    Mic,
     Languages,
     Settings,
     Plus,
     X,
     Save,
-    Trash,
     BotMessageSquare,
     Volume2,
-    Type,
     Zap,
-    History as HistoryIcon,
-    Briefcase,
     Tags,
     MessageSquare,
-    Clock,
-    VolumeX
+    VolumeX,
+    Loader2
 } from "lucide-react";
 import {
     Select,
@@ -28,174 +26,12 @@ import {
 } from "@/components/ui/select";
 
 interface EditAdminAgentProps {
+    agent: any;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-const DUMMY_AGENT_DATA = {
-    "id": "9fceab74-ae18-41ed-9e06-ed7ff25f2b22",
-    "orgId": "2b18e02a-bad5-493e-91eb-fdfeea7d1763",
-    "name": "Technical Support Bot (Copy)  - Campaign",
-    "model": {
-        "model": "gpt-4-turbo",
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are a technical support specialist for a SaaS platform."
-            },
-            {
-                "role": "system",
-                "content": "Always ask for the customer's account ID before troubleshooting."
-            }
-        ],
-        "provider": "openai",
-        "maxTokens": 1000,
-        "temperature": 0.3,
-        "knowledgeBase": {
-            "fileIds": [
-                "e52ebeec-38b2-4c0b-bc40-d0e61aea3da0"
-            ],
-            "provider": "google"
-        }
-    },
-    "voice": {
-        "speed": 1.1,
-        "voiceId": "21m00Tcm4TlvDq8ikWAM",
-        "provider": "11labs"
-    },
-    "transcriber": {
-        "model": "nova-2",
-        "language": "en",
-        "provider": "deepgram"
-    },
-    "createdAt": "2026-01-08T11:59:30.955000Z",
-    "updatedAt": "2026-01-08T11:59:30.955000Z",
-    "firstMessage": "Hello! I'm your technical support assistant. May I have your account ID?",
-    "maxDurationSeconds": 600,
-    "metadata": {
-        "version": "1.0",
-        "department": "support"
-    },
-    "department": null
-};
 
-const MODELS_DATA = {
-    "openai": {
-        "provider": "openai",
-        "type": "llm",
-        "count": 9,
-        "models": [
-            "gpt-4o",
-            "gpt-4o-mini",
-            "gpt-4-turbo",
-            "gpt-4-turbo-preview",
-            "gpt-4-0125-preview",
-            "gpt-4-1106-preview",
-            "gpt-4",
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-0125"
-        ],
-        "recommended": [
-            "gpt-4o",
-            "gpt-4o-mini",
-            "gpt-4-turbo"
-        ]
-    }
-};
-
-const VOICES_DATA = [
-    {
-        "name": "Roger",
-        "description": "Laid-Back, Casual, Resonant",
-        "voiceId": "CwhRBWXzGAHq8TQ4Fs17",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "Sarah",
-        "description": "Mature, Reassuring, Confident",
-        "voiceId": "EXAVITQu4vr4xnSDxMaL",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "Laura",
-        "description": "Enthusiast, Quirky Attitude",
-        "voiceId": "FGY2WhTYpPnrIDTdsKH5",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "Charlie",
-        "description": "Deep, Confident, Energetic",
-        "voiceId": "IKne3meq5aSn9XLyUdCD",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "George",
-        "description": "Warm, Captivating Storyteller",
-        "voiceId": "JBFqnCBsd6RMkjVDRZzb",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "Callum",
-        "description": "Husky Trickster",
-        "voiceId": "N2lVS1w4EtoT3dr4eOWO",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "River",
-        "description": "Relaxed, Neutral, Informative",
-        "voiceId": "SAz9YHcvj6GT2YYXdXww",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "Harry",
-        "description": "Fierce Warrior",
-        "voiceId": "SOYHLrjzK2X1ezoPC6cr",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "Liam",
-        "description": "Energetic, Social Media Creator",
-        "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "Alice",
-        "description": "Clear, Engaging Educator",
-        "voiceId": "Xb7hH8MSUJpSbSDYk0k2",
-        "provider": "11labs",
-        "type": "premade"
-    },
-    {
-        "name": "Matilda",
-        "description": "Knowledgable, Professional",
-        "voiceId": "XrExE9yKIg1WjnnlVkGX",
-        "provider": "11labs",
-        "type": "premade"
-    }
-];
-
-const TRANSCRIBER_DATA = {
-    "deepgram": {
-        "provider": "deepgram",
-        "type": "stt",
-        "count": 2,
-        "models": [
-            "nova-2",
-            "nova-3"
-        ],
-        "recommended": [
-            "nova-2"
-        ]
-    }
-};
 
 const BACKGROUND_SOUNDS = [
     "off",
@@ -206,46 +42,123 @@ const BACKGROUND_SOUNDS = [
     "street"
 ];
 
-function EditAdminAgent({ onClose }: EditAdminAgentProps) {
+const DEFAULT_FORM_DATA = {
+    name: "",
+    department: "",
+    version: "1.0",
+    model: {
+        provider: "openai",
+        model: "gpt-4o",
+        temperature: 0.7,
+        maxTokens: 500,
+        systemPrompt: "",
+        toolIds: [] as string[]
+    },
+    voice: {
+        provider: "11labs",
+        voiceId: "21m00Tcm4TlvDq8ikWAM",
+        speed: 1.0,
+        cachingEnabled: true
+    },
+    transcriber: {
+        provider: "deepgram",
+        model: "nova-2",
+        language: "en"
+    },
+    advanced: {
+        firstMessage: "",
+        firstMessageMode: "assistant-speaks-first",
+        maxDurationSeconds: 1800,
+        backgroundSound: "office",
+        endCallMessage: "",
+        endCallPhrases: [] as string[]
+    }
+};
+
+function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
     const [activeTab, setActiveTab] = useState<"model" | "voice" | "transcriber" | "advanced">("model");
-    const [formData, setFormData] = useState({
-        name: DUMMY_AGENT_DATA.name,
-        department: DUMMY_AGENT_DATA.metadata.department,
-        version: DUMMY_AGENT_DATA.metadata.version || "1.0",
-        model: {
-            provider: DUMMY_AGENT_DATA.model.provider,
-            model: DUMMY_AGENT_DATA.model.model,
-            temperature: DUMMY_AGENT_DATA.model.temperature,
-            maxTokens: DUMMY_AGENT_DATA.model.maxTokens,
-            systemPrompt: DUMMY_AGENT_DATA.model.messages.filter((m: any) => m.role === "system").map((m: any) => m.content).join("\n"),
-            toolIds: [] as string[]
-        },
-        voice: {
-            provider: DUMMY_AGENT_DATA.voice.provider,
-            voiceId: DUMMY_AGENT_DATA.voice.voiceId,
-            speed: DUMMY_AGENT_DATA.voice.speed
-        },
-        transcriber: {
-            provider: DUMMY_AGENT_DATA.transcriber.provider,
-            model: DUMMY_AGENT_DATA.transcriber.model,
-            language: DUMMY_AGENT_DATA.transcriber.language
-        },
-        advanced: {
-            firstMessage: DUMMY_AGENT_DATA.firstMessage,
-            firstMessageMode: "assistant",
-            maxDurationSeconds: DUMMY_AGENT_DATA.maxDurationSeconds,
-            backgroundSound: "office",
-            endCallMessage: "Thank you for calling. Goodbye!",
-            endCallPhrases: ["Bye bye", "Talk soon"] as string[]
+    const [formData, setFormData] = useState<any>(DEFAULT_FORM_DATA);
+    const [modelsData, setModelsData] = useState<any>(null);
+    const [voicesData, setVoicesData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+
+
+
+
+    useEffect(() => {
+
+        console.log('selected active agent', agent);
+
+
+        const fetchInitialData = async () => {
+            try {
+                const [modelsRes, voicesRes] = await Promise.all([
+                    adminAgentService.getListModels(),
+                    adminAgentService.getVoices()
+                ]);
+                setModelsData(modelsRes);
+                if (voicesRes && voicesRes.voices) {
+                    setVoicesData(voicesRes.voices);
+                } else if (Array.isArray(voicesRes)) {
+                    setVoicesData(voicesRes);
+                }
+            } catch (error) {
+                toast.danger("Error fetching initial data");
+            }
+        };
+        fetchInitialData();
+    }, []);
+
+    useEffect(() => {
+        if (agent) {
+            const systemPrompt = agent.model?.messages
+                ?.filter((m: any) => m.role === "system")
+                .map((m: any) => m.content)
+                .join("\n") || "";
+
+            setFormData({
+                name: agent.name || agent.configurationLabel || "",
+                department: agent.metadata?.department || "",
+                version: agent.metadata?.version || "1.0",
+                model: {
+                    provider: agent.model?.provider || "openai",
+                    model: agent.model?.model || "gpt-4-turbo",
+                    temperature: agent.model?.temperature || 0.6,
+                    maxTokens: agent.model?.maxTokens || 1500,
+                    systemPrompt: systemPrompt,
+                    toolIds: agent.model?.toolIds || []
+                },
+                voice: {
+                    provider: agent.voice?.provider || "11labs",
+                    voiceId: agent.voice?.voiceId || "",
+                    speed: agent.voice?.speed || 1,
+                    cachingEnabled: agent.voice?.cachingEnabled !== undefined ? agent.voice?.cachingEnabled : true
+                },
+                transcriber: {
+                    provider: agent.transcriber?.provider || "deepgram",
+                    model: agent.transcriber?.model || "nova-2",
+                    language: agent.transcriber?.language || "en"
+                },
+                advanced: {
+                    firstMessage: agent.firstMessage || "",
+                    firstMessageMode: agent.firstMessageMode || "assistant-speaks-first",
+                    maxDurationSeconds: agent.maxDurationSeconds || 1800,
+                    backgroundSound: agent.backgroundSound || "office",
+                    endCallMessage: agent.endCallMessage || "",
+                    endCallPhrases: agent.endCallPhrases || []
+                }
+            });
         }
-    });
+    }, [agent]);
 
     const [newToolId, setNewToolId] = useState("");
     const [newEndCallPhrase, setNewEndCallPhrase] = useState("");
 
     const handleAddToolId = () => {
         if (newToolId.trim()) {
-            setFormData(prev => ({
+            setFormData((prev: any) => ({
                 ...prev,
                 model: {
                     ...prev.model,
@@ -257,18 +170,18 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
     };
 
     const handleRemoveToolId = (index: number) => {
-        setFormData(prev => ({
+        setFormData((prev: any) => ({
             ...prev,
             model: {
                 ...prev.model,
-                toolIds: prev.model.toolIds.filter((_, i) => i !== index)
+                toolIds: prev.model.toolIds.filter((_: any, i: number) => i !== index)
             }
         }));
     };
 
     const handleAddEndCallPhrase = () => {
         if (newEndCallPhrase.trim()) {
-            setFormData(prev => ({
+            setFormData((prev: any) => ({
                 ...prev,
                 advanced: {
                     ...prev.advanced,
@@ -280,22 +193,77 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
     };
 
     const handleRemoveEndCallPhrase = (index: number) => {
-        setFormData(prev => ({
+        setFormData((prev: any) => ({
             ...prev,
             advanced: {
                 ...prev.advanced,
-                endCallPhrases: prev.advanced.endCallPhrases.filter((_, i) => i !== index)
+                endCallPhrases: prev.advanced.endCallPhrases.filter((_: any, i: number) => i !== index)
             }
         }));
     };
 
-    const handleSave = () => {
-        console.log("Saving agent data:", formData);
-        onClose();
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            const apiPayload = {
+                name: formData.name,
+                model: {
+                    provider: formData.model.provider,
+                    model: formData.model.model,
+                    messages: [
+                        {
+                            role: "system",
+                            content: formData.model.systemPrompt
+                        }
+                    ],
+                    temperature: formData.model.temperature,
+                    maxTokens: formData.model.maxTokens,
+                    toolIds: formData.model.toolIds
+                },
+                voice: {
+                    provider: formData.voice.provider,
+                    voiceId: formData.voice.voiceId,
+                    speed: formData.voice.speed,
+                    cachingEnabled: formData.voice.cachingEnabled
+                },
+                transcriber: {
+                    provider: formData.transcriber.provider,
+                    model: formData.transcriber.model,
+                    language: formData.transcriber.language
+                },
+                firstMessage: formData.advanced.firstMessage,
+                firstMessageMode: formData.advanced.firstMessageMode,
+                maxDurationSeconds: formData.advanced.maxDurationSeconds,
+                backgroundSound: formData.advanced.backgroundSound,
+                endCallMessage: formData.advanced.endCallMessage,
+                endCallPhrases: formData.advanced.endCallPhrases,
+                metadata: {
+                    department: formData.department,
+                    version: formData.version
+                }
+            };
+
+            // Since we can't edit adminAgentService.ts, we use apiService directly
+            // We assume the endpoint is PATCH admin/assistants/:id
+            await apiService.patch(`admin/assistants/${agent.vapiAssistantId || agent.vapiId}`, apiPayload, {});
+
+            toast.success("Assistant updated successfully!");
+            if (onSuccess) {
+                onSuccess();
+            }
+            // onClose();
+            // Optional: trigger a refresh in the parent component if needed
+            // But we don't have a callback for that in props.
+        } catch (error) {
+            console.error("Error updating assistant:", error);
+            toast.danger("Failed to update assistant");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-hidden">
             {/* Custom Tabs */}
             <div className="flex border-b border-border-subtle mb-4 shrink-0">
                 <button
@@ -336,7 +304,7 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6 px-2">
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6 px-2 mb-4">
                 {activeTab === "model" && (
                     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <section className="space-y-4">
@@ -395,8 +363,6 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="openai">OpenAI</SelectItem>
-                                            <SelectItem value="anthropic">Anthropic</SelectItem>
-                                            <SelectItem value="groq">Groq</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -410,9 +376,16 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {MODELS_DATA.openai.models.map((m: any) => (
-                                                <SelectItem key={m} value={m}>{m}</SelectItem>
-                                            ))}
+                                            {(() => {
+                                                const providerModels = modelsData?.[formData.model.provider]?.models || [];
+                                                const options = [...providerModels];
+                                                if (formData.model.model && !options.includes(formData.model.model)) {
+                                                    options.push(formData.model.model);
+                                                }
+                                                return options.map((m: any) => (
+                                                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                                                ));
+                                            })()}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -462,7 +435,7 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                 </button>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {formData.model.toolIds?.map((id, index) => (
+                                {formData.model.toolIds?.map((id: string, index: number) => (
                                     <div key={index} className="flex items-center gap-2 bg-primary/10 text-primary px-2.5 py-1 rounded-lg text-xs font-bold border border-primary/20">
                                         {id}
                                         <button onClick={() => handleRemoveToolId(index)} className="hover:text-danger">
@@ -503,8 +476,6 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="11labs">Eleven Labs</SelectItem>
-                                            <SelectItem value="google">Google Cloud</SelectItem>
-                                            <SelectItem value="playht">Play.ht</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -526,7 +497,7 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                         <section className="space-y-3">
                             <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">Select Voice</h3>
                             <div className="grid grid-cols-1 gap-3">
-                                {VOICES_DATA.map((v: any) => (
+                                {voicesData?.map((v: any) => (
                                     <button
                                         key={v.voiceId}
                                         onClick={() => setFormData({ ...formData, voice: { ...formData.voice, voiceId: v.voiceId } })}
@@ -540,7 +511,7 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="text-sm font-bold text-text-main">{v.name}</h4>
-                                            <p className="text-xs text-text-muted truncate">{v.description}</p>
+                                            <p className="text-xs text-text-muted truncate">{v.description || v.voiceId}</p>
                                         </div>
                                         {formData.voice.voiceId === v.voiceId && (
                                             <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
@@ -568,8 +539,6 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="deepgram">Deepgram</SelectItem>
-                                        <SelectItem value="google">Google Cloud</SelectItem>
-                                        <SelectItem value="assemblyai">Assembly AI</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -583,9 +552,16 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {TRANSCRIBER_DATA.deepgram.models.map((m: any) => (
-                                            <SelectItem key={m} value={m}>{m}</SelectItem>
-                                        ))}
+                                        {(() => {
+                                            const providerModels = modelsData?.[formData.transcriber.provider]?.models || [];
+                                            const options = [...providerModels];
+                                            if (formData.transcriber.model && !options.includes(formData.transcriber.model)) {
+                                                options.push(formData.transcriber.model);
+                                            }
+                                            return options.map((m: any) => (
+                                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                                            ));
+                                        })()}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -626,13 +602,18 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-semibold text-text-main">First Message Mode</label>
-                                        <input
-                                            type="text"
+                                        <Select
                                             value={formData.advanced.firstMessageMode}
-                                            onChange={(e) => setFormData({ ...formData, advanced: { ...formData.advanced, firstMessageMode: e.target.value } })}
-                                            className="input w-full"
-                                            placeholder="assistant"
-                                        />
+                                            onValueChange={(v) => setFormData({ ...formData, advanced: { ...formData.advanced, firstMessageMode: v } })}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="assistant-speaks-first">Assistant Speaks First</SelectItem>
+                                                {/* <SelectItem value="assistant-waits-for-user">Assistant Waits for User</SelectItem> */}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-semibold text-text-main">Max Duration (seconds)</label>
@@ -704,7 +685,7 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                                 </button>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {formData.advanced.endCallPhrases?.map((phrase, index) => (
+                                {formData.advanced.endCallPhrases?.map((phrase: string, index: number) => (
                                     <div key={index} className="flex items-center gap-2 bg-bg border border-border-subtle px-2.5 py-1 rounded-lg text-xs font-medium text-text-main">
                                         {phrase}
                                         <button onClick={() => handleRemoveEndCallPhrase(index)} className="text-text-muted hover:text-danger">
@@ -728,9 +709,10 @@ function EditAdminAgent({ onClose }: EditAdminAgentProps) {
                 </button>
                 <button
                     onClick={handleSave}
+                    disabled={isSaving}
                     className="flex-[2] btn btn-primary py-3 rounded-xl text-xs font-bold shadow-glow-sm flex items-center justify-center gap-2 group transition-all"
                 >
-                    <Save className="w-4 h-4" />
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     Save Changes
                 </button>
             </div>

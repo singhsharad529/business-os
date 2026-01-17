@@ -21,7 +21,9 @@ import {
     Mail,
     UserX,
     UserPlus,
-    Component
+    Component,
+    Loader,
+    Loader2
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
@@ -35,68 +37,9 @@ import TableLoader from "@/components/common/TableLoader";
 import { AxiosRequestConfig } from "axios";
 import CardsLoader from "@/components/common/CardsLoader";
 import AddCategory from "@/components/super-admin/voicebot/AddCategory";
+import Pagination from "@/components/common/Pagination";
+import { AlertDialog } from "@/components/ui/AlertDialog";
 
-
-
-const activeAgentsData = [
-    {
-        id: "aa-1",
-        agentName: "Follow-up Agent",
-        clientName: "TechChop Inc",
-        assignedDate: "2024-01-10",
-        status: "In Use",
-        clientInfo: {
-            email: "contact@techchop.com",
-            phone: "+1 234 567 890",
-            industry: "Technology"
-        },
-        agentDetails: {
-            model: "gpt-4-turbo",
-            provider: "openai",
-            voiceId: "21m00Tcm4TlvDq8ikWAM",
-            language: "en",
-            transcriber: "deepgram"
-        }
-    },
-    {
-        id: "aa-2",
-        agentName: "Rental Specialist",
-        clientName: "Elite Properties",
-        assignedDate: "2024-01-12",
-        status: "Idle",
-        clientInfo: {
-            email: "ops@eliteprop.com",
-            phone: "+1 987 654 321",
-            industry: "Real Estate"
-        },
-        agentDetails: {
-            model: "gpt-4-turbo",
-            provider: "openai",
-            voiceId: "21m00Tcm4TlvDq8ikWAM",
-            language: "en",
-            transcriber: "deepgram"
-        }
-    },
-    {
-        id: "aa-3",
-        agentName: "Investment Consultant",
-        clientName: "Global Wealth",
-        assignedDate: "2024-01-08",
-        status: "Never Used",
-        clientInfo: {
-            email: "advisors@globalwealth.com",
-            phone: "+1 555 012 3456",
-            industry: "Finance"
-        },
-        agentDetails: {
-            model: "claude-3-opus",
-            provider: "anthropic",
-            voiceId: "21m00Tcm4TlvDq8ikWAM",
-            language: "en",
-            transcriber: "deepgram"
-        }
-    }
-];
 
 
 
@@ -116,9 +59,18 @@ function MyAgents() {
     const [isActiveDetailsOpen, setIsActiveDetailsOpen] = useState(false);
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState<boolean>(false);
 
+    const [agentToDelete, setAgentToDelete] = useState<any>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+
+    const [allActiveAgents, setAllActiveAgents] = useState<any>(null);
+    const [activateAgentsPagination, setActivateAgentsPagination] = useState<any>(null);
+    const [activateAgentLoading, setActivateAgentLoading] = useState(false);
+
     // all loaders
     const [categoriesLoader, setCategoriesLoader] = useState(false);
     const [agentsLoader, setAgentsLoader] = useState(false);
+    const [unAssignLoader, setUnassignLoader] = useState(false)
 
     const handleEditAgent = (agent: any) => {
         setSelectedAgent(agent);
@@ -133,19 +85,6 @@ function MyAgents() {
     const handleManageUsers = (agent: any) => {
         setSelectedAgent(agent);
         setIsUserSheetOpen(true);
-    };
-
-    const handleStatusChange = (id: string) => {
-        // setAgents(prev => prev.map(agent =>
-        //     agent.id === id
-        //         ? { ...agent, status: agent.status === 'active' ? 'inactive' : 'active' }
-        //         : agent
-        // ));
-    };
-
-    const handleSelectCategory = (category: any) => {
-        setSelectedCategory(category);
-
     };
 
     const handleTestCall = (agent: any) => {
@@ -163,16 +102,73 @@ function MyAgents() {
         agent.metadata.department.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    const filteredActiveAgents = activeAgentsData?.filter((agent: any) =>
-        agent.agentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        agent.clientName.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredActiveAgents = allActiveAgents?.filter((agent: any) =>
+        agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.metadata.department.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+
+
+    const activeAgentsPageSize = 10;
+    const fetchAllActiveAgents = async (page: number = 1, pageSize: number = activeAgentsPageSize) => {
+        try {
+            setActivateAgentLoading(true);
+            const config: AxiosRequestConfig = {
+                params: {
+                    page: page,
+                    page_size: pageSize
+                }
+            }
+            const response = await adminAgentService.getAllActiveAssistants(config);
+            if (response.data && response.data.assistants) {
+                setAllActiveAgents(response.data.assistants);
+            }
+            if (response.data && response.data.pagination) {
+                setActivateAgentsPagination(response.data.pagination);
+            }
+        } catch (error) {
+            toast.danger("Failed to fetch active agents");
+        }
+        finally {
+            setActivateAgentLoading(false);
+        }
+    }
+
+    const handleActiveAgentPageChange = (page: number) => {
+        fetchAllActiveAgents(page);
+    };
+
+    const unAssignUser = async () => {
+        try {
+
+            setUnassignLoader(true);
+            const payload: any = {
+                assistantId: selectedActiveAgent.vapiId,
+                userId: selectedActiveAgent.userId,
+                phoneNumberVapiId: selectedActiveAgent.phoneNumberVapiId
+            }
+
+            const response = await adminAgentService.unassignAssistantToUser(payload);
+            if (response) {
+                toast.success("Agent unassigned successfully")
+            }
+            setIsActiveDetailsOpen(false);
+            fetchAllActiveAgents();
+
+        } catch (error) {
+            toast.danger("Failed to unassign agent")
+        }
+        finally {
+            setUnassignLoader(false)
+        }
+
+    }
 
 
     const agentPageSize = 10;
     const fetchAgents = async (cat: any, page: number, pageSize: number = agentPageSize) => {
 
-        console.log('cateory is', cat);
+        // console.log('cateory is', cat);
         setSelectedCategory(cat);
         setSearchTerm("");
         setView("agents");
@@ -187,7 +183,7 @@ function MyAgents() {
         try {
             setAgentsLoader(true);
             const response = await adminAgentService.getAgentsByCategory(cat?.value, config);
-            console.log('response', response);
+            // console.log('response', response);
             setAgents(response.data.templates);
 
 
@@ -217,6 +213,31 @@ function MyAgents() {
     useEffect(() => {
         fetchAgentCategories();
     }, [])
+
+    useEffect(() => {
+        if (activeTab === "active") {
+            fetchAllActiveAgents();
+        }
+    }, [activeTab]);
+
+
+    const confirmDeleteAgent = async () => {
+        if (!agentToDelete) return;
+
+        try {
+            setDeleteLoading(true);
+            await adminAgentService.deleteAssistant(agentToDelete.vapiId || agentToDelete?.vapiAssistantId, {});
+            toast.success("Agent deleted successfully");
+            await fetchAgents(selectedCategory, 1); // Reload the list
+            setIsDeleteAlertOpen(false);
+            setAgentToDelete(null);
+        } catch (error) {
+            // console.error(error);
+            toast.danger("Failed to delete agent");
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
 
 
     return (
@@ -519,7 +540,12 @@ function MyAgents() {
                                                             <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
                                                                 <Copy className="w-3.5 h-3.5" />
                                                             </button>
-                                                            <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete">
+                                                            <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete"
+                                                                onClick={() => {
+                                                                    setAgentToDelete(agent);
+                                                                    setIsDeleteAlertOpen(true)
+                                                                }}
+                                                            >
                                                                 <Trash className="w-3.5 h-3.5 text-danger" />
                                                             </button>
                                                         </div>
@@ -537,65 +563,102 @@ function MyAgents() {
                         </div>
                     )
                 ) : (
-                    <div className="card p-4">
-                        <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                            <div className="flex-1 relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                <input
-                                    type="text"
-                                    placeholder="Search active agents..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="input pl-10 w-full"
-                                />
-                            </div>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-border-subtle">
-                                        <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider text-center">Sr. No.</th>
-                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Agent Name</th>
-                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Client Name</th>
-                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assigned Date</th>
-                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
-                                        <th className="text-right py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border-subtle/50">
-                                    {filteredActiveAgents.map((agent, i) => (
-                                        <tr key={agent.id} className="hover:bg-bg-alt/30 transition-colors">
-                                            <td className="py-4 px-3 text-center text-xs text-text-muted">{i + 1}</td>
-                                            <td className="py-4 px-3 text-sm text-text-main font-medium">{agent.agentName}</td>
-                                            <td className="py-4 px-3 text-sm text-text-muted">{agent.clientName}</td>
-                                            <td className="py-4 px-3 text-sm text-text-muted">{agent.assignedDate}</td>
-                                            <td className="py-4 px-3">
-                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${agent.status === 'In Use' ? 'bg-success/10 text-success' :
-                                                    agent.status === 'Idle' ? 'bg-warning/10 text-warning' :
-                                                        'bg-bg-alt text-text-muted'
-                                                    }`}>
-                                                    {agent.status}
-                                                </span>
-                                            </td>
-
-                                            <td className="py-4 px-3 text-right">
-                                                <button
-                                                    onClick={() => handleViewActiveDetails(agent)}
-                                                    className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {filteredActiveAgents.length === 0 && (
-                                <div className="py-12 text-center text-text-muted italic">
-                                    No active agents matching your search.
+                    <div>
+                        {
+                            activateAgentLoading ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <TableLoader rows={3} columns={5} />
                                 </div>
-                            )}
-                        </div>
+                            ) : (
+                                <div>
+                                    <div className="card p-4">
+                                        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                                            <div className="flex-1 relative">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search active agents..."
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                    className="input pl-10 w-full"
+                                                />
+                                            </div>
+                                        </div>
+                                        {
+                                            allActiveAgents && allActiveAgents.length > 0 ? (
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full">
+                                                        <thead>
+                                                            <tr className="border-b border-border-subtle">
+                                                                <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider text-center">Sr. No.</th>
+                                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Agent Name</th>
+                                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Client Name</th>
+                                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assigned Date</th>
+                                                                {/* <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th> */}
+                                                                <th className="text-right py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-border-subtle/50">
+                                                            {filteredActiveAgents.map((agent: any, i: number) => (
+                                                                <tr key={agent.id} className="hover:bg-bg-alt/30 transition-colors">
+                                                                    <td className="py-4 px-3 text-center text-xs text-text-muted">
+                                                                        {(activateAgentsPagination?.page - 1) * (activateAgentsPagination?.pageSize || agentPageSize) + i + 1}
+                                                                    </td>
+                                                                    <td className="py-4 px-3 text-sm text-text-main font-medium">{agent.name}</td>
+                                                                    <td className="py-4 px-3 text-sm text-text-muted">{agent.clientName}</td>
+                                                                    <td className="py-4 px-3 text-sm text-text-muted">{new Date(agent.createdAt).toLocaleString("en-IN", {
+                                                                        day: "2-digit",
+                                                                        month: "short",
+                                                                        year: "numeric",
+                                                                    })}</td>
+                                                                    {/* <td className="py-4 px-3">
+                                                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${agent.status === 'In Use' ? 'bg-success/10 text-success' :
+                                                                            agent.status === 'Idle' ? 'bg-warning/10 text-warning' :
+                                                                                'bg-bg-alt text-text-muted'
+                                                                            }`}>
+                                                                            {agent.status}
+                                                                        </span>
+                                                                    </td> */}
+
+                                                                    <td className="py-4 px-3 text-right">
+                                                                        <button
+                                                                            onClick={() => handleViewActiveDetails(agent)}
+                                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
+                                                                        >
+                                                                            <Eye className="w-4 h-4" />
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                    {filteredActiveAgents.length === 0 && (
+                                                        <div className="py-12 text-center text-text-muted italic">
+                                                            No active agents matching your search.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )
+                                                :
+                                                (
+                                                    (<div className="flex items-center justify-center h-full">
+                                                        <p className="text-text-muted">No active agents found</p>
+                                                    </div>)
+                                                )
+                                        }
+                                        {activateAgentsPagination && (
+                                            <Pagination
+                                                currentPage={activateAgentsPagination.page}
+                                                totalPages={activateAgentsPagination.totalPages}
+                                                pageSize={activateAgentsPagination.pageSize}
+                                                totalCount={activateAgentsPagination.total}
+                                                onPageChange={handleActiveAgentPageChange}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        }
                     </div>
                 )}
             </div>
@@ -608,7 +671,12 @@ function MyAgents() {
             >
                 {selectedAgent && (
                     <EditAdminAgent
+                        agent={selectedAgent}
                         onClose={() => setIsEditSheetOpen(false)}
+                        onSuccess={() => {
+                            setIsEditSheetOpen(false);
+                            fetchAgents(selectedCategory, activateAgentsPagination.page);
+                        }}
                     />
                 )}
             </SideSheet>
@@ -660,11 +728,11 @@ function MyAgents() {
                                             <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
                                                 {selectedActiveAgent.clientName}
                                             </h2>
-                                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded-md border border-primary/20">
-                                                {selectedActiveAgent.clientInfo.industry}
-                                            </span>
+                                            {/* <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded-md border border-primary/20">
+                                                {selectedActiveAgent?.clientInfo.industry}
+                                            </span> */}
                                         </div>
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-text-muted font-medium">
+                                        {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-text-muted font-medium">
                                             <span className="flex items-center gap-1.5">
                                                 <Mail className="w-3.5 h-3.5 text-primary/70" />
                                                 {selectedActiveAgent.clientInfo.email}
@@ -674,7 +742,7 @@ function MyAgents() {
                                                 <Phone className="w-3.5 h-3.5 text-primary/70" />
                                                 {selectedActiveAgent.clientInfo.phone}
                                             </span>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </div>
                             </div>
@@ -687,13 +755,20 @@ function MyAgents() {
                                     <BotMessageSquare className="w-5 h-5 text-primary" />
                                     Agent Configuration
                                 </h3>
-                                <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20">
+                                <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
+                                    onClick={unAssignUser}
+                                >
                                     <UserX className="w-4 h-4" />
-                                    Unassign
+                                    {unAssignLoader ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unassign"}
                                 </button>
                             </div>
                             <EditAdminAgent
+                                agent={selectedActiveAgent}
                                 onClose={() => setIsActiveDetailsOpen(false)}
+                                onSuccess={() => {
+                                    setIsEditSheetOpen(false);
+                                    fetchAllActiveAgents();
+                                }}
                             />
                         </div>
                     </div>
@@ -724,6 +799,16 @@ function MyAgents() {
                     onSuccess={() => fetchAgentCategories()}
                 />
             </SideSheet>
+
+            <AlertDialog
+                isOpen={isDeleteAlertOpen}
+                onClose={() => setIsDeleteAlertOpen(false)}
+                onConfirm={confirmDeleteAgent}
+                title="Delete Agent"
+                description="Are you sure you want to delete this agent? This action cannot be undone and will remove the agent from your list."
+                confirmText="Delete Agent"
+                isLoading={deleteLoading}
+            />
         </div>
     );
 }

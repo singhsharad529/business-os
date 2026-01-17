@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Tag, FileText, Loader2 } from "lucide-react"
 import { toast } from "@/hooks/useToast"
+import adminAgentService from "@/api/adminAgentService";
 
 interface AddCategoryProps {
     onClose: () => void;
@@ -27,13 +28,18 @@ function AddCategory({ onClose, onSuccess }: AddCategoryProps) {
             console.log("Creating category with data:", formData);
 
             // Simulating API call for now
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const payload: any = {
+                value: formData.name.toLowerCase(),
+                label: formData.name,
+                description: formData.description
+            }
+            await adminAgentService.addCategory(payload, {});
 
             toast.success("Category created successfully");
             if (onSuccess) onSuccess();
             onClose();
         } catch (error) {
-            console.error(error);
+            // console.error(error);
             toast.danger("Failed to create category");
         } finally {
             setLoading(false);
