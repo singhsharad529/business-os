@@ -98,110 +98,7 @@ const activeAgentsData = [
     }
 ];
 
-const assistantsData = [
-    // Sales
-    {
-        "id": "sales-1",
-        "categoryId": "cat-1",
-        "name": "Follow-up Agent",
-        "status": "active",
-        "model": { "model": "gpt-4-turbo", "provider": "openai" },
-        "voice": { "voiceId": "21m00Tcm4TlvDq8ikWAM", "provider": "11labs" },
-        "transcriber": { "language": "en", "provider": "deepgram" },
-        "createdAt": "2026-01-14T14:40:00.000Z",
-        "metadata": { "department": "sales" }
-    },
-    {
-        "id": "sales-2",
-        "categoryId": "cat-1",
-        "name": "Inbound Support",
-        "status": "active",
-        "model": { "model": "gpt-4-turbo", "provider": "openai" },
-        "voice": { "voiceId": "21m00Tcm4TlvDq8ikWAM", "provider": "11labs" },
-        "transcriber": { "language": "en", "provider": "deepgram" },
-        "createdAt": "2026-01-14T14:40:00.000Z",
-        "metadata": { "department": "sales" }
-    },
-    {
-        "id": "sales-3",
-        "categoryId": "cat-1",
-        "name": "Outbound Agent",
-        "status": "active",
-        "model": { "model": "gpt-4-turbo", "provider": "openai" },
-        "voice": { "voiceId": "21m00Tcm4TlvDq8ikWAM", "provider": "11labs" },
-        "transcriber": { "language": "en", "provider": "deepgram" },
-        "createdAt": "2026-01-14T14:40:00.000Z",
-        "metadata": { "department": "sales" }
-    },
-    // Reality
-    {
-        "id": "reality-1",
-        "categoryId": "cat-2",
-        "name": "Rental Specialist",
-        "status": "active",
-        "model": { "model": "gpt-4-turbo", "provider": "openai" },
-        "voice": { "voiceId": "21m00Tcm4TlvDq8ikWAM", "provider": "11labs" },
-        "transcriber": { "language": "en", "provider": "deepgram" },
-        "createdAt": "2026-01-14T14:40:00.000Z",
-        "metadata": { "department": "reality" }
-    },
-    {
-        "id": "reality-2",
-        "categoryId": "cat-2",
-        "name": "Buyer's Agent",
-        "status": "active",
-        "model": { "model": "gpt-4-turbo", "provider": "openai" },
-        "voice": { "voiceId": "21m00Tcm4TlvDq8ikWAM", "provider": "11labs" },
-        "transcriber": { "language": "en", "provider": "deepgram" },
-        "createdAt": "2026-01-14T14:40:00.000Z",
-        "metadata": { "department": "reality" }
-    },
-    {
-        "id": "reality-3",
-        "categoryId": "cat-2",
-        "name": "Property Listing Agent",
-        "status": "active",
-        "model": { "model": "gpt-4-turbo", "provider": "openai" },
-        "voice": { "voiceId": "21m00Tcm4TlvDq8ikWAM", "provider": "11labs" },
-        "transcriber": { "language": "en", "provider": "deepgram" },
-        "createdAt": "2026-01-14T14:40:00.000Z",
-        "metadata": { "department": "reality" }
-    },
-    // Finance
-    {
-        "id": "finance-1",
-        "categoryId": "cat-3",
-        "name": "Investment Consultant",
-        "status": "active",
-        "model": { "model": "gpt-4-turbo", "provider": "openai" },
-        "voice": { "voiceId": "21m00Tcm4TlvDq8ikWAM", "provider": "11labs" },
-        "transcriber": { "language": "en", "provider": "deepgram" },
-        "createdAt": "2026-01-14T14:40:00.000Z",
-        "metadata": { "department": "finance" }
-    },
-    {
-        "id": "finance-2",
-        "categoryId": "cat-3",
-        "name": "Loan Advisor",
-        "status": "active",
-        "model": { "model": "gpt-4-turbo", "provider": "openai" },
-        "voice": { "voiceId": "21m00Tcm4TlvDq8ikWAM", "provider": "11labs" },
-        "transcriber": { "language": "en", "provider": "deepgram" },
-        "createdAt": "2026-01-14T14:40:00.000Z",
-        "metadata": { "department": "finance" }
-    },
-    {
-        "id": "finance-3",
-        "categoryId": "cat-3",
-        "name": "Account Support",
-        "status": "active",
-        "model": { "model": "gpt-4-turbo", "provider": "openai" },
-        "voice": { "voiceId": "21m00Tcm4TlvDq8ikWAM", "provider": "11labs" },
-        "transcriber": { "language": "en", "provider": "deepgram" },
-        "createdAt": "2026-01-14T14:40:00.000Z",
-        "metadata": { "department": "finance" }
-    },
-];
+
 
 function MyAgents() {
     const [activeTab, setActiveTab] = useState<"categories" | "active">("categories");
@@ -250,6 +147,11 @@ function MyAgents() {
         setSelectedCategory(category);
 
     };
+
+    const handleTestCall = (agent: any) => {
+        setSelectedAgent(agent);
+        setIsTestCallOpen(true);
+    }
 
     const filteredCategories = categoriesData?.filter((cat: any) =>
         cat.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -554,6 +456,12 @@ function MyAgents() {
                                                                     <UserPlus className="w-4 h-4" />
                                                                     Assign
                                                                 </button>
+                                                                <button className="btn btn-secondary text-xs"
+                                                                    onClick={() => handleTestCall(agent)}
+                                                                >
+                                                                    <Phone className="w-4 h-4" />
+                                                                    Test
+                                                                </button>
                                                             </div>
                                                         </div>
 
@@ -794,11 +702,16 @@ function MyAgents() {
 
             <SideSheet
                 isOpen={isTestCallOpen}
-                onClose={() => setIsTestCallOpen(false)}
+                onClose={() => { setIsTestCallOpen(false); setSelectedAgent(null); }}
                 title="Test Call"
                 size="md"
             >
-                <TestCall onCancel={() => setIsTestCallOpen(false)} />
+                <TestCall onCancel={() => {
+                    setIsTestCallOpen(false);
+
+                }}
+                    agent={selectedAgent}
+                />
             </SideSheet>
 
             <SideSheet

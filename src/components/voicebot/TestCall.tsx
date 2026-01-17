@@ -33,18 +33,11 @@ import adminAgentService from "@/api/adminAgentService";
 
 interface TestCallProps {
     onCancel: () => void;
+    agent: any;
 }
 
 type Step = "select-template" | "prepare-call" | "simulating" | "completed";
 type Tab = "new" | "history";
-
-interface TemplateConfig {
-    id: string;
-    value: string;
-    label: string;
-    description: string;
-}
-
 
 
 
@@ -64,57 +57,6 @@ interface TestCallRecord {
     }>;
 }
 
-const DUMMY_HISTORY: TestCallRecord[] = [
-    {
-        id: "mock1",
-        agentName: "Outbound Sales",
-        agentRole: "Sales",
-        phoneNumber: "+1 (555) 123-4567",
-        duration: 124,
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        status: "completed",
-        summary: "The agent called the user to discuss a potential business partnership. The user expressed interest and requested a follow-up document.",
-        messages: [
-            { role: "assistant", message: "Hello, this is Alex from Business OS. Am I speaking with the business manager?", secondsFromStart: 1 },
-            { role: "user", message: "Yes, this is him. How can I help you?", secondsFromStart: 5 },
-            { role: "assistant", message: "I'm calling about our new automation tools that could save your team 20 hours a week. Would you be interested in a brief overview?", secondsFromStart: 12 },
-            { role: "user", message: "That sounds interesting. Can you send me some documentation first?", secondsFromStart: 20 },
-            { role: "assistant", message: "Absolutely. I'll send that over to your email right away. When would be a good time to follow up?", secondsFromStart: 28 },
-            { role: "user", message: "Try me on Thursday afternoon.", secondsFromStart: 35 },
-            { role: "assistant", message: "Perfect. I've noted that. Have a great day!", secondsFromStart: 40 }
-        ]
-    },
-    {
-        id: "mock2",
-        agentName: "Loan Advisor",
-        agentRole: "Finance",
-        phoneNumber: "+1 (555) 987-6543",
-        duration: 45,
-        timestamp: new Date(Date.now() - 86400000).toISOString(),
-        status: "completed",
-        summary: "Client inquired about personal loan interest rates and eligibility criteria.",
-        messages: [
-            { role: "assistant", message: "Thank you for calling Finance Direct. How can I assist you with your loan inquiry today?", secondsFromStart: 2 },
-            { role: "user", message: "I'm looking for a personal loan of about $10,000.", secondsFromStart: 8 },
-            { role: "assistant", message: "I can help with that. Our current rates start at 5.9%. Do you know your current credit score range?", secondsFromStart: 15 },
-            { role: "user", message: "It's around 720.", secondsFromStart: 22 }
-        ]
-    },
-    {
-        id: "mock3",
-        agentName: "Property Listing Agent",
-        agentRole: "Realty",
-        phoneNumber: "+1 (555) 456-7890",
-        duration: 0,
-        timestamp: new Date(Date.now() - 172800000).toISOString(),
-        status: "failed",
-        summary: "The call was disconnected before the user could provide details.",
-        messages: [
-            { role: "assistant", message: "Hello, this is Realty Plus. Are you calling to list a property?", secondsFromStart: 2 }
-        ]
-    }
-];
-
 
 interface Number {
     id: string;
@@ -133,19 +75,12 @@ interface Number {
 }
 
 
-export default function TestCall({ onCancel }: TestCallProps) {
+export default function TestCall({ onCancel, agent }: TestCallProps) {
     const [activeTab, setActiveTab] = useState<Tab>("new");
-    const [step, setStep] = useState<Step>("select-template");
-    const [phoneNumber, setPhoneNumber] = useState<string>("");
-    const [name, setName] = useState<string>("");
+    const [step, setStep] = useState<Step>("prepare-call");
+    // const [phoneNumber, setPhoneNumber] = useState<string>("");
     const [history, setHistory] = useState<any>(null);
     const [selectedHistoryItem, setSelectedHistoryItem] = useState<any | null>(null);
-    const [templates, setTemplates] = useState<any | null>(null);
-    const [templatesLoading, setTemplatesLoading] = useState(false);
-    const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
-    const [unassignedNumbers, setUnassignedNumbers] = useState<Number[]>([]);
-    const [publishLoading, setPublishLoading] = useState<boolean>(false);
-    const [selectedNumber, setSelectedNumber] = useState<string>("");
     const [pagination, setPagination] = useState<any>(null);
     const [historyLoading, setHistoryLoading] = useState<boolean>(false);
     const [vapi, setVapi] = useState<Vapi | null>(null);
@@ -170,16 +105,20 @@ export default function TestCall({ onCancel }: TestCallProps) {
         try {
             const config = {
                 params: {
-                    isTestCall: true,
                     page,
                     page_size: pageSize
                 }
             };
             setHistoryLoading(true);
-            const response = await voiceBotService.getHistoryTestCalls(config);
+            const response = await adminAgentService.getHistoryTestCalls(config);
             // console.log('response', response);
-            setHistory(response.reports);
-            setPagination(response.pagination);
+            if (response.data && response.data.reports) {
+                setHistory(response.data.reports);
+
+            }
+            if (response.data && response.data.pagination) {
+                setPagination(response.data.pagination);
+            }
         } catch (error) {
             console.error("Failed to fetch history test calls", error);
             toast.danger("Failed to fetch history test calls");
@@ -233,44 +172,43 @@ export default function TestCall({ onCancel }: TestCallProps) {
     };
 
     const handleRetry = () => {
-        setStep("select-template");
-        setPhoneNumber("");
-        setName("");
-        setSelectedTemplate(null);
+        setStep("prepare-call");
+        // setPhoneNumber("");
         setTranscripts([]);
         vapi?.stop();
+        fetchHistoryTestCalls();
     };
 
 
-    const agentTemplateSize = 10;
-    const getAgentTemplates = async (page: number = 1, pageSize: number = agentTemplateSize) => {
-        try {
-            setTemplatesLoading(true);
-            const config: AxiosRequestConfig = {
-                params: {
-                    include_inactive: false,
-                    page,
-                    page_size: pageSize
-                }
-            };
-            const response = await adminAgentService.getAllAssistants(config);
-            console.log(response.data.assistants);
-            setTemplates(response.data.assistants);
-        } catch (error) {
-            // console.log(error);
-            toast.danger("Failed to fetch agent templates");
-        }
-        finally {
-            setTemplatesLoading(false);
-        }
-    }
+    // const agentTemplateSize = 10;
+    // const getAgentTemplates = async (page: number = 1, pageSize: number = agentTemplateSize) => {
+    //     try {
+    //         setTemplatesLoading(true);
+    //         const config: AxiosRequestConfig = {
+    //             params: {
+    //                 include_inactive: false,
+    //                 page,
+    //                 page_size: pageSize
+    //             }
+    //         };
+    //         const response = await adminAgentService.getAllAssistants(config);
+    //         console.log(response.data.assistants);
+    //         setTemplates(response.data.assistants);
+    //     } catch (error) {
+    //         // console.log(error);
+    //         toast.danger("Failed to fetch agent templates");
+    //     }
+    //     finally {
+    //         setTemplatesLoading(false);
+    //     }
+    // }
 
 
     const getUnassignedNumbers = async () => {
         try {
             const response = await voiceBotService.getNumbers({});
             console.log(response.unassignedPhoneNumbers);
-            setUnassignedNumbers(response.unassignedPhoneNumbers);
+            // setUnassignedNumbers(response.unassignedPhoneNumbers);
         } catch (error) {
             // console.log(error);
             toast.danger("Failed to fetch unassigned numbers");
@@ -280,8 +218,17 @@ export default function TestCall({ onCancel }: TestCallProps) {
         }
     }
 
+    const setCallId = async (callId: string) => {
+        try {
+            const response = await adminAgentService.setCallId(callId, {});
+            console.log(response);
+        } catch (error) {
+            toast.danger("Failed to set call ID");
+        }
+    }
+
     const startWebCall = async () => {
-        if (!vapi || !selectedTemplate?.vapiId) {
+        if (!vapi || !agent?.vapiAssistantId) {
             toast.danger("Vapi not initialized or assistant ID missing");
             return;
         }
@@ -290,8 +237,9 @@ export default function TestCall({ onCancel }: TestCallProps) {
             setWebCallStatus("connecting");
             setStep("simulating");
             setTranscripts([]);
-            const vapiconnected = await vapi.start(selectedTemplate.vapiId);
+            const vapiconnected = await vapi.start(agent.vapiAssistantId);
             console.log('vapiconnected', vapiconnected);
+
 
             // Listen for events
             vapi.on('call-start', () => {
@@ -327,6 +275,9 @@ export default function TestCall({ onCancel }: TestCallProps) {
                     });
                 }
             });
+
+            await setCallId(vapiconnected?.id as string);
+
         } catch (error) {
             console.error("Failed to start web call", error);
             toast.danger("Failed to start web call");
@@ -341,6 +292,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
     const stopWebCall = () => {
         if (vapi) {
             vapi.stop();
+            fetchHistoryTestCalls();
         }
     };
 
@@ -360,8 +312,8 @@ export default function TestCall({ onCancel }: TestCallProps) {
     //     try {
     //         setPublishLoading(true);
     //         const data = {
-    //             assistantId: selectedTemplate?.vapiId,
-    //             name: selectedTemplate?.name,
+    //             assistantId: agent?.vapiId,
+    //             name: agent?.name,
     //             phoneNumberId: selectedNumber
     //         }
     //         const response = await voiceBotService.publishAgent(data, {});
@@ -377,13 +329,13 @@ export default function TestCall({ onCancel }: TestCallProps) {
     //     }
     // }
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        if (activeTab === "new" && !templates) {
-            getAgentTemplates();
-        }
+    //     if (activeTab === "new" && !templates) {
+    //         getAgentTemplates();
+    //     }
 
-    }, [activeTab])
+    // }, [activeTab])
 
 
 
@@ -393,7 +345,14 @@ export default function TestCall({ onCancel }: TestCallProps) {
             {!selectedHistoryItem && (
                 <div className="flex border-b border-border-subtle mb-6">
                     <button
-                        onClick={() => setActiveTab("new")}
+                        onClick={() => {
+                            setActiveTab("new");
+                            vapi?.stop();
+                            setStep("prepare-call");
+                            setTranscripts([]);
+                            fetchHistoryTestCalls();
+
+                        }}
                         className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all relative ${activeTab === "new" ? "text-primary" : "text-text-muted hover:text-text-main"
                             }`}
                     >
@@ -416,7 +375,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
             <div className="flex-1 overflow-y-auto px-1">
                 {activeTab === "new" ? (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        {step === "select-template" && (
+                        {/* {step === "select-template" && (
                             <div className="grid grid-cols-1 gap-4">
                                 <div>
                                     <h3 className="text-lg font-bold text-text-main">Select Agent</h3>
@@ -454,16 +413,16 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                     ))
                                 }
                             </div>
-                        )}
+                        )} */}
                         {step === "prepare-call" && (
                             <div className="space-y-6 duration-300">
-                                <button
+                                {/* <button
                                     onClick={() => setStep("select-template")}
                                     className="flex items-center gap-2 text-xs text-text-muted hover:text-primary transition-colors mb-2"
                                 >
                                     <ArrowLeft className="w-3 h-3" />
                                     Back to Templates
-                                </button>
+                                </button> */}
                                 <div className="flex flex-col items-center text-center space-y-4">
                                     <div className={`w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary`}>
                                         <BotMessageSquare className="w-8 h-8" />
@@ -471,7 +430,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                     <div>
                                         <h3 className="text-xl font-bold text-text-main">Ready for Test Call?</h3>
                                         <p className="text-sm text-text-muted px-6">
-                                            <span className="font-semibold text-text-main">{selectedTemplate?.name}</span> is ready to talk.
+                                            <span className="font-semibold text-text-main">{agent?.name}</span> is ready to talk.
                                         </p>
                                     </div>
                                 </div>
@@ -510,7 +469,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                         <Dot className="w-4 h-4 animate-bounce" />
                                         {webCallStatus === "connecting" ? "Connecting..." : "Live Web Call"}
                                     </div>
-                                    <h3 className="text-xl font-bold text-text-main">{selectedTemplate?.name}</h3>
+                                    <h3 className="text-xl font-bold text-text-main">{agent?.name}</h3>
                                     <p className="text-sm text-text-muted">
                                         {webCallStatus === "connecting" ? "Please wait while we connect you..." : "You are now talking to the agent"}
                                     </p>
@@ -524,7 +483,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                             {transcripts.map((t, i) => (
                                                 <div key={i} className={`flex flex-col ${t.role === 'user' ? 'items-end' : 'items-start'}`}>
                                                     <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1 px-1">
-                                                        {t.role === 'user' ? 'You' : selectedTemplate?.name}
+                                                        {t.role === 'user' ? 'You' : agent?.name}
                                                     </span>
                                                     <div className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${t.role === 'user'
                                                         ? 'bg-primary text-white rounded-tr-none'
@@ -596,7 +555,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                             {transcripts.map((t, i) => (
                                                 <div key={i} className={`flex flex-col ${t.role === 'user' ? 'items-end' : 'items-start'}`}>
                                                     <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1 px-1">
-                                                        {t.role === 'user' ? 'You' : (selectedTemplate?.name || 'Agent')}
+                                                        {t.role === 'user' ? 'You' : (agent?.name || 'Agent')}
                                                     </span>
                                                     <div className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${t.role === 'user'
                                                         ? 'bg-primary text-white rounded-tr-none'
@@ -673,15 +632,20 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                                                     {history?.map((item: any) => (
                                                                         <tr
                                                                             key={item.id}
-                                                                            onClick={() => setSelectedHistoryItem(item)}
+                                                                            onClick={() => setSelectedHistoryItem({
+                                                                                ...item,
+                                                                                customerNumber: item.customerNumber || (item.type === 'webCall' ? 'Web User' : (item.status === 'initiated' ? 'Pending' : 'N/A')),
+                                                                                status: (item.status?.split('.').pop() || item.status || 'Ended').replace(/-/g, ' '),
+                                                                                phoneNumber: item.phoneNumber || (item.type === 'webCall' ? 'Browser' : 'N/A')
+                                                                            })}
                                                                             className="group hover:bg-bg/60 transition-all cursor-pointer"
                                                                         >
                                                                             <td className="py-4 px-4">
                                                                                 <div className="flex flex-col">
-                                                                                    <span className="text-xs font-bold text-text-main group-hover:text-primary transition-colors leading-tight">{item.assistantName || 'Unknown Agent'}</span>
+                                                                                    <span className="text-xs font-bold text-text-main group-hover:text-primary transition-colors leading-tight">{item.assistantName || 'Untitled Assistant'}</span>
                                                                                     <span className="text-[10px] text-text-muted flex items-center gap-1 mt-0.5">
-                                                                                        <Phone className="w-2.5 h-2.5" />
-                                                                                        {item.customerNumber}
+                                                                                        {item.type === 'webCall' ? <BotMessageSquare className="w-2.5 h-2.5 text-primary" /> : <Phone className="w-2.5 h-2.5 text-primary/60" />}
+                                                                                        <span className="capitalize">{item.customerNumber || item.type?.replace(/([A-Z])/g, ' $1') || (item.status === 'initiated' ? 'Initiated' : 'N/A')}</span>
                                                                                     </span>
                                                                                 </div>
                                                                             </td>
@@ -693,11 +657,13 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                                                             </td>
                                                                             <td className="py-4 px-4 text-right">
                                                                                 <div className="flex flex-col items-end">
-                                                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter ${item.status === 'completed' || item.status === 'customer-ended-call' || item.status === 'assistant-ended-call'
+                                                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter ${item.status?.includes('ended') || item.status === 'completed'
                                                                                         ? 'bg-success/10 text-success border border-success/20'
-                                                                                        : 'bg-danger/10 text-danger border border-danger/20'
+                                                                                        : item.status?.includes('error') || item.status === 'failed'
+                                                                                            ? 'bg-danger/10 text-danger border border-danger/20'
+                                                                                            : 'bg-primary/10 text-primary border border-primary/20'
                                                                                         }`}>
-                                                                                        {item.status?.replace(/-/g, ' ')}
+                                                                                        {(item.status?.split('.').pop() || 'Ended').replace(/-/g, ' ')}
                                                                                     </span>
                                                                                     <span className="text-[9px] text-text-muted mt-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                                                                                         View Detail →
@@ -714,7 +680,7 @@ export default function TestCall({ onCancel }: TestCallProps) {
                                                                 currentPage={pagination?.page}
                                                                 totalPages={pagination?.totalPages}
                                                                 pageSize={pagination?.pageSize}
-                                                                totalCount={pagination?.totalCount}
+                                                                totalCount={pagination?.total}
                                                                 onPageChange={handlePageChange}
                                                             />
                                                         )}

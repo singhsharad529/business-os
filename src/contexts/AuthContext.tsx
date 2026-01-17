@@ -51,49 +51,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (u) => u.email === email && u.password === password
       );
 
-      if (foundUser) {
 
-        let apiRole: string = role === "company_admin" ? "users" : "admin";
+      let apiRole: string = role === "company_admin" ? "users" : "admin";
 
-        console.log('apiRole', apiRole);
-        const response = await userService.login({ email, password, role: apiRole }, {});
-
-        if (response) {
-          localStorage.setItem('businessos_access_token', response.access_token);
-
-          // console.log('company id', companyId);
-
-          if (foundUser?.role === "super_admin") {
-            const userWithoutPassword = { ...response.user, role: "super_admin" };
-            setUser(userWithoutPassword);
-            localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
-            return userWithoutPassword;
-          }
-          else {
-            // const companyResponse = await voiceBotService.getCompanyList({});
-
-            // console.log('compay list', companyResponse);
-
-            // const companyId = companyResponse.companies.filter((company: any) => company.userId === response.user.id);
-
-            // const userWithoutPassword = { ...response.user, companyId: companyId.length > 0 ? companyId[0].id : null, role: "company_admin" };
-            const userWithoutPassword = { ...response.user, companyId: null, role: "company_admin" };
-
-            setUser(userWithoutPassword);
-            localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
-            return userWithoutPassword;
-          }
+      console.log('apiRole', apiRole);
+      const response = await userService.login({ email, password, role: apiRole }, {});
 
 
+      if (response) {
+        localStorage.setItem('businessos_access_token', response.access_token);
 
-          // return userWithoutPassword;
+        // console.log('company id', companyId);
+        console.log('respons', response);
+
+
+        if (response?.admin?.role === "ADMIN") {
+          const userWithoutPassword = { ...response, role: "super_admin" };
+          setUser(userWithoutPassword);
+          localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
+          return userWithoutPassword;
         }
         else {
-          return null;
+          // const companyResponse = await voiceBotService.getCompanyList({});
+
+          // console.log('compay list', companyResponse);
+
+          // const companyId = companyResponse.companies.filter((company: any) => company.userId === response.user.id);
+
+          // const userWithoutPassword = { ...response.user, companyId: companyId.length > 0 ? companyId[0].id : null, role: "company_admin" };
+          const userWithoutPassword = { ...response, companyId: null, role: "company_admin" };
+
+          setUser(userWithoutPassword);
+          localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
+          return userWithoutPassword;
         }
 
 
+
+        // return userWithoutPassword;
       }
+      else {
+        return null;
+      }
+
 
     }
     catch (error) {
