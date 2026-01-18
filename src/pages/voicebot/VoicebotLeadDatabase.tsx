@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Phone, User, BarChart, Activity, Mail, XCircle, Calendar, Database, Download, Upload, Plus, Search, ChevronRight, Check, X, Clock, Zap, Eye, FileSpreadsheet, Trash2, Star } from "lucide-react"
+import { Phone, User, BarChart, Activity, Mail, XCircle, Calendar, Database, Download, Upload, Plus, Search, ChevronRight, Check, X, Clock, Zap, Eye, FileSpreadsheet, Trash2, Star, Filter } from "lucide-react"
 import { mockCallSessions, mockAnalyses, mockVoicebotActions } from "@/data/mockData"
 import { mockAgents } from "@/data/agentMockData"
 import { SideSheet } from "@/components/SideSheet"
@@ -15,6 +15,7 @@ import { toast } from "@/hooks/useToast"
 import Modal from "@/components/common/Modal"
 import { LeadDetails } from "@/components/voicebot/LeadDetails"
 import AddLead from "@/components/voicebot/AddLead"
+import { AxiosRequestConfig } from "axios"
 
 function VoicebotLeadDatabase() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -28,7 +29,8 @@ function VoicebotLeadDatabase() {
         expertise: true,
         lastCalled: true
     });
-    const { leadDatabaseData, setLeadDatabaseData } = useData();
+    const [leads, setLeads] = useState<any>(null);
+    const [pagination, setPagination] = useState<any>(null);
     const [userdataLoading, setUserDataLoading] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [callsPage, setCallsPage] = useState(1);
@@ -41,17 +43,17 @@ function VoicebotLeadDatabase() {
 
     const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
     const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState<string>("");
 
 
     const pageSize = 10;
 
-    const leads = (leadDatabaseData as LeadDatabaseResponse)?.leads || [];
-    const pagination = (leadDatabaseData as LeadDatabaseResponse)?.pagination;
+
 
     const filteredUsers = useMemo(() => {
         if (!leads) return [];
         if (!searchQuery) return leads;
-        return leads.filter(user =>
+        return leads.filter((user: any) =>
             user.leadName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.leadEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.leadCompany.toLowerCase().includes(searchQuery.toLowerCase())
@@ -67,15 +69,29 @@ function VoicebotLeadDatabase() {
         document.body.removeChild(link);
     };
 
-    const getLeadDatabaseData = async (page: number, size: number) => {
 
+    const filteredLeads = leads?.filter((lead: any) => {
+        if (!searchTerm) {
+            return leads;
+        }
+        return lead?.leadName?.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    const leadsPageSize = 10;
+    const getLeadDatabaseData = async (page: number, size: number = leadsPageSize) => {
         try {
             setUserDataLoading(true);
-            const response = await voiceBotService.getLeadDatabaseData({
-                page: page,
-                page_size: size
-            }, {});
-            setLeadDatabaseData(response);
+            const config: AxiosRequestConfig = {
+                params: {
+                    page,
+                    page_size: size
+                }
+            }
+            const response = await voiceBotService.getLeadDatabaseData(config);
+            if (response.leads)
+                setLeads(response.leads);
+            if (response.pagination)
+                setPagination(response.pagination);
         } catch (error) {
             console.log(error);
         }
@@ -110,7 +126,6 @@ function VoicebotLeadDatabase() {
             setUserDataLoading(false);
         }
     };
-
 
 
     useEffect(() => {
@@ -194,43 +209,50 @@ function VoicebotLeadDatabase() {
                                 ) :
                                     (
                                         <>
+                                            <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                                                <div className="flex-1 relative">
+                                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Search leads..."
+                                                        className="input pl-8 w-full"
+                                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
                                             <div className="overflow-x-auto">
                                                 <table className="w-full">
                                                     <thead>
                                                         <tr className="border-b border-border-subtle">
                                                             <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
-                                                            {visibleColumns.email && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>}
-                                                            {visibleColumns.name && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>}
-                                                            {visibleColumns.company && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>}
-                                                            {visibleColumns.phone && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone</th>}
-                                                            {visibleColumns.expertise && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Expertise</th>}
-                                                            {<th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Call Time</th>}
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Expertise</th>
+                                                            <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Call Time</th>
                                                             {/* {visibleColumns.lastCalled && <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Last Called</th>} */}
                                                             <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
 
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-border-subtle/50">
-                                                        {leads.map((user, i) => (
+                                                        {filteredLeads && filteredLeads.map((user: any, i: number) => (
                                                             <tr key={user.id} className={`hover:bg-bg-alt/30 transition-colors`}>
                                                                 <td className="py-4 px-3 text-center text-xs text-text-muted">{(currentPage - 1) * pageSize + i + 1}</td>
-                                                                {visibleColumns.email && <td className="py-4 px-3 text-sm text-text-main font-medium">{user.leadEmail}</td>}
-                                                                {visibleColumns.name && <td className="py-4 px-3 text-sm text-text-muted">{user.leadName}</td>}
-                                                                {visibleColumns.company && <td className="py-4 px-3 text-sm text-text-muted">{user.leadCompany}</td>}
-                                                                {visibleColumns.phone && <td className="py-4 px-3 text-sm text-text-muted">{user.leadPhoneNumber}</td>}
-                                                                {visibleColumns.expertise && (
-                                                                    <td className="py-4 px-3">
-                                                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-bg-alt text-text-muted`}>
-                                                                            {user.leadExpertiseDomain}
-                                                                        </span>
-                                                                    </td>
-                                                                )}
-                                                                {<td className="py-4 px-3 text-sm text-text-muted">
+                                                                <td className="py-4 px-3 text-sm text-text-main font-medium">{user.leadEmail}</td>
+                                                                <td className="py-4 px-3 text-sm text-text-muted">{user.leadName}</td>
+                                                                <td className="py-4 px-3 text-sm text-text-muted">{user.leadCompany}</td>
+                                                                <td className="py-4 px-3 text-sm text-text-muted">{user.leadPhoneNumber}</td>
+                                                                <td className="py-4 px-3">
+                                                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-bg-alt text-text-muted`}>
+                                                                        {user.leadExpertiseDomain}
+                                                                    </span>
+                                                                </td>
+
+                                                                <td className="py-4 px-3 text-sm text-text-muted">
                                                                     {new Date().toLocaleString()}
-                                                                </td>}
-                                                                {/* {visibleColumns.lastCalled && <td className="py-4 px-3 text-sm text-text-muted">
-                                                                    {user.lastCalledAt ? new Date(user.lastCalledAt).toLocaleString() : 'Never'}
-                                                                </td>} */}
+                                                                </td>
                                                                 <td className="py-4 px-3 text-sm text-text-muted">
                                                                     <button
                                                                         onClick={() => {
@@ -252,7 +274,7 @@ function VoicebotLeadDatabase() {
                                                     currentPage={pagination.page}
                                                     totalPages={pagination.totalPages}
                                                     pageSize={pagination.pageSize}
-                                                    totalCount={pagination.totalCount}
+                                                    totalCount={pagination.total}
                                                     onPageChange={handlePageChange}
                                                 />
                                             )}
@@ -393,6 +415,7 @@ function VoicebotLeadDatabase() {
                 {selectedLead && (
                     <LeadDetails
                         leadId={selectedLead.id}
+                        leadFromClient={true}
                         onClose={() => setIsDetailSheetOpen(false)}
                         onUpdate={() => getLeadDatabaseData(currentPage, pageSize)}
                         onDelete={() => getLeadDatabaseData(currentPage, pageSize)}
@@ -410,6 +433,7 @@ function VoicebotLeadDatabase() {
                 <AddLead
                     onClose={() => setIsAddLeadSheetOpen(false)}
                     onSuccess={() => getLeadDatabaseData(currentPage, pageSize)}
+                    leadFromClient={true}
                 />
             </SideSheet>
         </div >

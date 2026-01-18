@@ -60,14 +60,12 @@ const voiceBotService = {
       },
     });
   },
-  getLeadDatabaseData: (
-    params: { page: number; page_size: number },
-    config: AxiosRequestConfig,
-  ) => apiService.get(`vapi/lead-database`, { ...config, params }),
+  getLeadDatabaseData: (config: AxiosRequestConfig) =>
+    apiService.get(`users/leads`, config),
   importLeadDatabaseData: (config: AxiosRequestConfig, file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return apiService.post("vapi/lead-database/upload", formData, {
+    return apiService.post("users/leads/batch", formData, {
       ...config,
       headers: {
         ...config.headers,
@@ -88,23 +86,13 @@ const voiceBotService = {
     config: AxiosRequestConfig,
   ) => apiService.post("templates/publish", data, config),
   getLead: (id: string, config: AxiosRequestConfig) =>
-    apiService.get(`vapi/lead-database/${id}`, config),
-  updateLead: (
-    id: string,
-    data: {
-      leadName?: string;
-      leadEmail?: string;
-      leadPhoneNumber?: string;
-      leadCompany?: string;
-      leadExpertiseDomain?: string;
-      lastCalledAt?: string;
-    },
-    config: AxiosRequestConfig,
-  ) => apiService.put(`vapi/lead-database/${id}`, data, config),
+    apiService.get(`users/leads/${id}`, config),
+  updateLead: (id: string, data: any, config: AxiosRequestConfig) =>
+    apiService.put(`users/leads/${id}`, data, config),
   deleteLead: (id: string, config: AxiosRequestConfig) =>
-    apiService.delete(`vapi/lead-database/${id}`, config),
+    apiService.delete(`users/leads/${id}`, config),
   createLead: (data: any, config: AxiosRequestConfig) =>
-    apiService.post("vapi/lead-database", data, config),
+    apiService.post("users/leads", data, config),
   getCampaignStats: (config: AxiosRequestConfig) =>
     apiService.get("scheduler/campaigns/stats", config),
   getCampaigns: (config: AxiosRequestConfig) =>
