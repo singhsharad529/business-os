@@ -6,6 +6,17 @@ const adminCustomerService = {
     apiService.get("admin/users", config),
   getUserProfile: (userId: string, config: AxiosRequestConfig) =>
     apiService.get(`admin/users/${userId}`, config),
+  uploadFiles: (files: File[], config: AxiosRequestConfig) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    return apiService.post("admin/files/global-kb", formData, {
+      ...config,
+      headers: {
+        ...config.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
   getCustomerAgents: (user_id: string, config: AxiosRequestConfig) =>
     apiService.get(`admin/users/${user_id}/assistants`, config),
   getLeads: (user_id: string, config: AxiosRequestConfig) =>
@@ -46,6 +57,8 @@ const adminCustomerService = {
     apiService.get(`admin/calls`, config),
   updateAgentStatus: (data: any, config: AxiosRequestConfig) =>
     apiService.post(`admin/assistants/toggle-status`, data, config),
+  updateUser: (user_id: string, userData: any, config: AxiosRequestConfig) =>
+    apiService.put(`admin/users/${user_id}`, userData, config),
 };
 
 export default adminCustomerService;

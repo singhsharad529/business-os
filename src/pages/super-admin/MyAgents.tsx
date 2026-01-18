@@ -513,18 +513,18 @@ function MyAgents() {
                                                         checked={agent.status === 'active'}
                                                         onCheckedChange={() => handleStatusChange(agent.id)}
                                                     /> */}
-                                                                <button className="btn btn-success btn-sm bg-success/10 text-success text-xs border border-success/10"
-                                                                    onClick={() => handleManageUsers(agent)}
-                                                                >
-                                                                    <UserPlus className="w-4 h-4" />
-                                                                    Assign
-                                                                </button>
                                                                 <button className="btn btn-secondary text-xs"
                                                                     onClick={() => handleTestCall(agent)}
                                                                 >
                                                                     <Phone className="w-4 h-4" />
                                                                     Test
                                                                 </button>
+                                                                <button className="btn btn-success btn-sm bg-success/10 text-success text-xs border border-success/10"
+                                                                    onClick={() => handleManageUsers(agent)}
+                                                                >
+                                                                    <UserPlus className="w-4 h-4" />
+                                                                </button>
+
                                                             </div>
                                                         </div>
 

@@ -63,7 +63,7 @@ function CustomerAgents({
     const handleStatusChange = async (agentId: string) => {
         // Logic will be added later by the user
         // status will be 'active' or 'inactive'
-        console.log(`Status change for agent ${agentId}`);
+        // console.log(`Status change for agent ${agentId}`);
 
         let isTogglled = false;
 
