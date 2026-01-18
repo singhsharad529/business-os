@@ -9,9 +9,11 @@ import {
     X,
     Upload,
     User,
+    Lock,
+    Eye,
+    EyeOff
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
-import voiceBotService from "@/api/voicebotService";
 import { toast } from "@/hooks/useToast";
 import adminCustomerService from "@/api/adminCustomerService";
 import DashboardLoader from "@/components/common/DashboardLoader";
@@ -36,33 +38,95 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
         },
         taxId: '',
         foundedDate: '',
+        password: '',
         documents: []
     });
     const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleSave = async () => {
+        try {
+            setLoading(true);
+
+            // Clean fields - convert empty strings to null for the API
+            const cleanValue = (val: any) => (val && val.trim() !== '' ? val : null);
+
+            const contactInfo = {
+                email: cleanValue(editData.contactInfo.email),
+                phone: cleanValue(editData.contactInfo.phone),
+                address: cleanValue(editData.contactInfo.address),
+                website: cleanValue(editData.contactInfo.website)
+            };
+
+            const payload: any = {
+                email: cleanValue(editData.contactInfo.email),
+                companyName: cleanValue(editData.name),
+                companyDescription: cleanValue(editData.description),
+                contactInfo: contactInfo,
+                documents: editData.documents.map((doc: any) => ({
+                    documentName: doc.documentName,
+                    gcsKey: doc.gcsKey,
+                    documentType: doc.documentType,
+                    documentUrl: doc.documentUrl
+                }))
+            };
+
+            // Only include password if it has been entered
+            if (editData.password && editData.password.trim() !== '') {
+                payload.password = editData.password;
+            }
+
+            await adminCustomerService.updateUser(userid, payload, {});
+            toast.success("Profile and company details updated successfully");
+            setIsEditSheetOpen(false);
+
+            // Clear password field after successful save
+            setEditData((prev: any) => ({ ...prev, password: '' }));
+
+            fetchProfileCompany();
+        } catch (error) {
+            console.error("Update error:", error);
+            toast.danger("Failed to update details");
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     const fetchProfileCompany = async () => {
         try {
             setLoading(true);
             const response = await adminCustomerService.getUserProfile(userid, {});
-            console.log("response", response);
             setProfileData(response);
 
             if (response.companies && response.companies.length > 0) {
                 const comp = response.companies[0];
+                const userEmail = response.user?.email || '';
+
                 setEditData({
-                    ...comp,
-                    contactInfo: comp.contactInfo || {
-                        email: '',
-                        phone: '',
-                        address: '',
-                        website: ''
-                    }
+                    name: comp.name || '',
+                    description: comp.description || '',
+                    contactInfo: {
+                        email: comp.contactInfo?.email || userEmail,
+                        phone: comp.contactInfo?.phone || '',
+                        address: comp.contactInfo?.address || '',
+                        website: comp.contactInfo?.website || ''
+                    },
+                    taxId: comp.taxId || '',
+                    foundedDate: comp.foundedDate || '',
+                    password: '',
+                    documents: comp.documents || []
                 });
+            } else if (response.user) {
+                setEditData((prev: any) => ({
+                    ...prev,
+                    contactInfo: {
+                        ...prev.contactInfo,
+                        email: response.user.email || ''
+                    }
+                }));
             }
-
-
         } catch (error) {
             toast.danger("Failed to fetch profile company");
         }
@@ -344,6 +408,34 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                             </div>
                         </div>
                         <div>
+                            <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Lock className="w-3.5 h-3.5" />
+                                Update Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={editData.password}
+                                    onChange={(e) => setEditData({
+                                        ...editData,
+                                        password: e.target.value
+                                    })}
+                                    className="input pr-10"
+                                    placeholder="Enter new password (optional)"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-3 text-text-muted hover:text-primary transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-text-muted mt-1.5 ml-1 italic">
+                                Leave blank if you don't wish to change the user's password.
+                            </p>
+                        </div>
+                        <div>
                             <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Physical Address</label>
                             <input
                                 type="text"
@@ -395,12 +487,13 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
 
                                         try {
                                             setUploading(true);
-                                            const response = await voiceBotService.uploadFiles(files, {});
+                                            const response = await adminCustomerService.uploadFiles(files, {});
 
                                             const newDocs = response.files.map((f: any) => ({
                                                 documentName: f.fileName,
                                                 documentType: f.fileName.split('.').pop()?.toLowerCase() || 'file',
                                                 gcsKey: f.gcs.gcsKey,
+                                                documentUrl: f.vapi?.url || f.url || '',
                                                 uploadedAt: f.vapi?.createdAt || new Date().toISOString()
                                             }));
 
@@ -441,9 +534,9 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                     </div>
 
                     <div className="flex gap-2">
-                        <button type="submit" className="btn btn-primary flex-1 rounded-xl"
-                        // onClick={handleSave}
-
+                        <button type="button" className="btn btn-primary flex-1 rounded-xl"
+                            onClick={handleSave}
+                            disabled={loading}
                         >
                             {loading ? 'Saving...' : 'Save All Changes'}
                         </button>

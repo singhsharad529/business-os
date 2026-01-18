@@ -9,6 +9,7 @@ import { useParams } from "react-router-dom";
 import TableLoader from "@/components/common/TableLoader";
 import Pagination from "@/components/common/Pagination";
 import AddLead from "@/components/voicebot/AddLead";
+import { toast } from "@/hooks/useToast";
 
 function CustomerLeads({ isImportModalOpen, setIsImportModalOpen, isAddLeadSheetOpen, setIsAddLeadSheetOpen }: { isImportModalOpen: boolean, setIsImportModalOpen: (value: boolean) => void, isAddLeadSheetOpen: boolean, setIsAddLeadSheetOpen: (value: boolean) => void }) {
     const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
@@ -24,9 +25,17 @@ function CustomerLeads({ isImportModalOpen, setIsImportModalOpen, isAddLeadSheet
         if (!leaddbfile) return;
         try {
             setUserDataLoading(true);
-            // Implement import logic if needed
+            const response = await adminCustomerService.importLeadDatabaseData(id as string, {}, leaddbfile);
+
+            if (response) {
+                toast.success("Lead database imported successfully");
+                getLeadsData();
+                setLeaddbfile(null);
+                setIsImportModalOpen(false);
+            }
         } catch (error) {
-            console.error("Error importing leads:", error);
+            // console.log(error);
+            toast.danger("Failed to import lead database");
         }
         finally {
             setUserDataLoading(false);
@@ -257,14 +266,14 @@ function CustomerLeads({ isImportModalOpen, setIsImportModalOpen, isAddLeadSheet
                 isOpen={isDetailSheetOpen}
                 onClose={() => {
                     setIsDetailSheetOpen(false);
-                    setSelectedLeadId('');
+                    setSelectedLeadId(selectedLeadId);
                 }}
                 title="Lead Profile Details"
                 size="md"
             >
 
                 <LeadDetails
-                    leadId={""}
+                    leadId={selectedLeadId}
                     onClose={() => {
                         setIsDetailSheetOpen(false);
                         setSelectedLeadId('');

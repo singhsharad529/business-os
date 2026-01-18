@@ -89,7 +89,7 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
 
     useEffect(() => {
 
-        console.log('selected active agent', agent);
+        // console.log('selected active agent', agent);
 
 
         const fetchInitialData = async () => {
@@ -119,7 +119,7 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
                 .join("\n") || "";
 
             setFormData({
-                name: agent.name || agent.configurationLabel || "",
+                name: agent.name || "",
                 department: agent.metadata?.department || "",
                 version: agent.metadata?.version || "1.0",
                 model: {
@@ -255,6 +255,7 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
             // Optional: trigger a refresh in the parent component if needed
             // But we don't have a callback for that in props.
         } catch (error) {
+
             console.error("Error updating assistant:", error);
             toast.danger("Failed to update assistant");
         } finally {
