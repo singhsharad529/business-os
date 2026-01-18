@@ -28,6 +28,16 @@ const adminAgentService = {
     apiService.get(`vapi/voices`, config as AxiosRequestConfig),
   createAssistant: (data: any, config?: AxiosRequestConfig) =>
     apiService.post(`admin/assistants`, data, config as AxiosRequestConfig),
+  duplicateAssistant: (
+    assistantId: string,
+    data: any,
+    config?: AxiosRequestConfig,
+  ) =>
+    apiService.post(
+      `admin/assistants/${assistantId}/duplicate`,
+      data,
+      config as AxiosRequestConfig,
+    ),
   assignAssistantToUser: (data: any, config?: AxiosRequestConfig) =>
     apiService.post(
       `admin/assistants/assign`,

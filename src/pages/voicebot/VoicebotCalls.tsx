@@ -52,17 +52,21 @@ export default function VoicebotCalls() {
 
 
 
-    const getAllAgents = async (returnAll: boolean = true) => {
+    const allAgentPageSize = 10;
+    const getAllAgents = async (page: number = 1, pageSize: number = allAgentPageSize) => {
         try {
             setLoading(true);
             const requestConfig: AxiosRequestConfig = {
                 params: {
-                    returnAll
+                    page,
+                    page_size: pageSize
                 }
             }
             const response = await voiceBotService.getAllAgents(requestConfig);
-            // console.log(response);
-            setAgents(response);
+            console.log(response);
+            if (response.assistants) {
+                setAgents(response.assistants);
+            }
 
         } catch (error) {
             // console.log(error);
@@ -265,11 +269,11 @@ export default function VoicebotCalls() {
                 ) : (
                     <div className="flex flex-col min-h-[500px]">
                         {
-                            agents && agents.agents && agents.agents.length > 0 ? (
+                            agents && agents.length > 0 ? (
                                 <div>
                                     {!isOpenedCalls && (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {agents.agents.map((agent: any) => (
+                                            {agents.map((agent: any) => (
                                                 <div className="card p-5 group hover:shadow-glow transition-all duration-300" key={agent.id}>
                                                     <div className="flex justify-between items-start mb-4">
                                                         <div className="p-2.5 bg-primary-soft rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">

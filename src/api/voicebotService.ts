@@ -6,7 +6,7 @@ const voiceBotService = {
   getDashboardData: (config: AxiosRequestConfig) =>
     apiService.get("dashboard/voicebot", config),
   getAllAgents: (config: AxiosRequestConfig) =>
-    apiService.get("vapi/quick-agents", config),
+    apiService.get("users/assistants", config),
   getAgentRoles: (config: AxiosRequestConfig) =>
     apiService.get("vapi/agent-roles", config),
   getAgentLanguages: (config: AxiosRequestConfig) =>
@@ -17,7 +17,7 @@ const voiceBotService = {
     apiService.get("vapi/agent-configurations", config),
   createQuickAgent: (
     data: QuickAgentSetupRequest,
-    config: AxiosRequestConfig
+    config: AxiosRequestConfig,
   ) => apiService.post("vapi/quick-agent-setup", data, config),
   getCompanyList: (config: AxiosRequestConfig) =>
     apiService.get("company/", config),
@@ -38,12 +38,12 @@ const voiceBotService = {
   linkPhoneNumber: (
     vapiIdPhoneNumber: string,
     assistantId: string | null,
-    config: AxiosRequestConfig
+    config: AxiosRequestConfig,
   ) =>
     apiService.patch(
       `vapi/phone-numbers/${vapiIdPhoneNumber}/link`,
       { assistantId },
-      config
+      config,
     ),
   getAgentCallReports: (
     params: {
@@ -52,7 +52,7 @@ const voiceBotService = {
       page?: number;
       page_size?: number;
     },
-    config: AxiosRequestConfig
+    config: AxiosRequestConfig,
   ) => apiService.get("vapi/calls/reports", { ...config, params }),
   getCallDetail: (vapiId: string, config: AxiosRequestConfig) =>
     apiService.get(`vapi/calls/${vapiId}`, config),
@@ -69,7 +69,7 @@ const voiceBotService = {
   },
   getLeadDatabaseData: (
     params: { page: number; page_size: number },
-    config: AxiosRequestConfig
+    config: AxiosRequestConfig,
   ) => apiService.get(`vapi/lead-database`, { ...config, params }),
   importLeadDatabaseData: (config: AxiosRequestConfig, file: File) => {
     const formData = new FormData();
@@ -86,13 +86,13 @@ const voiceBotService = {
     apiService.get("templates/list", config),
   testCall: (
     data: { assistantId: string; customerNumber: string; customerName: string },
-    config: AxiosRequestConfig
+    config: AxiosRequestConfig,
   ) => apiService.post("templates/test-outbound-call", data, config),
   getHistoryTestCalls: (config: AxiosRequestConfig) =>
     apiService.get("vapi/calls/reports", config),
   publishAgent: (
     data: { assistantId: string; name: string; phoneNumberId?: string },
-    config: AxiosRequestConfig
+    config: AxiosRequestConfig,
   ) => apiService.post("templates/publish", data, config),
   getLead: (id: string, config: AxiosRequestConfig) =>
     apiService.get(`vapi/lead-database/${id}`, config),
@@ -106,7 +106,7 @@ const voiceBotService = {
       leadExpertiseDomain?: string;
       lastCalledAt?: string;
     },
-    config: AxiosRequestConfig
+    config: AxiosRequestConfig,
   ) => apiService.put(`vapi/lead-database/${id}`, data, config),
   deleteLead: (id: string, config: AxiosRequestConfig) =>
     apiService.delete(`vapi/lead-database/${id}`, config),
