@@ -44,6 +44,8 @@ const adminCustomerService = {
     apiService.put(`admin/users/${user_id}/leads/${lead_id}`, leadData, config),
   getLeadCalls: (config: AxiosRequestConfig) =>
     apiService.get(`admin/calls`, config),
+  updateAgentStatus: (data: any, config: AxiosRequestConfig) =>
+    apiService.post(`admin/assistants/toggle-status`, data, config),
 };
 
 export default adminCustomerService;

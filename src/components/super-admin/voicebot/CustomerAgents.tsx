@@ -27,92 +27,7 @@ import { toast } from "@/hooks/useToast";
 import { AlertDialog } from "@/components/ui/AlertDialog";
 
 
-const assistantsData = [
-    {
-        "id": "9fceab74-ae18-41ed-9e06-ed7ff25f2b22",
-        "name": "Technical Support Bot",
-        "status": "active",
-        "model": {
-            "model": "gpt-4-turbo",
-            "provider": "openai"
-        },
-        "voice": {
-            "voiceId": "21m00Tcm4TlvDq8ikWAM",
-            "provider": "11labs"
-        },
-        "transcriber": {
-            "language": "en",
-            "provider": "deepgram"
-        },
-        "createdAt": "2026-01-08T11:59:30.955000+00:00",
-        "metadata": {
-            "department": "support"
-        }
-    },
-    {
-        "id": "73eb016e-ca14-487b-adc4-33bc1c4bacfc",
-        "name": "Sales Representative",
-        "status": "active",
-        "model": {
-            "model": "gpt-4-turbo",
-            "provider": "openai"
-        },
-        "voice": {
-            "voiceId": "21m00Tcm4TlvDq8ikWAM",
-            "provider": "11labs"
-        },
-        "transcriber": {
-            "language": "es",
-            "provider": "deepgram"
-        },
-        "createdAt": "2026-01-07T21:38:28.265000+00:00",
-        "metadata": {
-            "department": "sales"
-        }
-    },
-    {
-        "id": "f2b62b01-2443-4774-bef5-39aad21cbdb4",
-        "name": "Lead Qualifier",
-        "status": "inactive",
-        "model": {
-            "model": "gpt-3.5-turbo",
-            "provider": "openai"
-        },
-        "voice": {
-            "voiceId": "21m00Tcm4TlvDq8ikWAM",
-            "provider": "11labs"
-        },
-        "transcriber": {
-            "language": "en",
-            "provider": "deepgram"
-        },
-        "createdAt": "2026-01-07T21:08:07.439000+00:00",
-        "metadata": {
-            "department": "marketing"
-        }
-    },
-    {
-        "id": "fffb174b-2a80-4d47-a68e-840d34a075fd",
-        "name": "Billing Assistant",
-        "status": "active",
-        "model": {
-            "model": "claude-3-opus",
-            "provider": "anthropic"
-        },
-        "voice": {
-            "voiceId": "21m00Tcm4TlvDq8ikWAM",
-            "provider": "11labs"
-        },
-        "transcriber": {
-            "language": "fr",
-            "provider": "deepgram"
-        },
-        "createdAt": "2026-01-07T21:07:44.186000+00:00",
-        "metadata": {
-            "department": "finance"
-        }
-    }
-];
+
 
 function CustomerAgents({
     isAddAgentSheetOpen,
@@ -123,7 +38,7 @@ function CustomerAgents({
     setIsAddAgentSheetOpen: React.Dispatch<SetStateAction<boolean>>;
     userid: string;
 }) {
-    const [agents, setAgents] = useState(assistantsData);
+    const [agents, setAgents] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
     const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
@@ -142,13 +57,55 @@ function CustomerAgents({
 
     const { id } = useParams()
 
-    const handleStatusChange = (id: string) => {
-        setAgents(prev => prev.map(agent =>
-            agent.id === id
-                ? { ...agent, status: agent.status === 'active' ? 'inactive' : 'active' }
-                : agent
-        ));
+
+
+
+    const handleStatusChange = async (agentId: string) => {
+        // Logic will be added later by the user
+        // status will be 'active' or 'inactive'
+        console.log(`Status change for agent ${agentId}`);
+
+        let isTogglled = false;
+
+        try {
+
+            const tempAgents = [...agents];
+            const agentIndex = tempAgents.findIndex((agent: any) => agent.vapiId === agentId);
+            if (agentIndex === -1) {
+                toast.danger("Agent not found");
+                return;
+            }
+            tempAgents[agentIndex].status = tempAgents[agentIndex].status === true ? false : true;
+            setAgents(tempAgents);
+
+            isTogglled = true;
+
+            const response = await adminCustomerService.updateAgentStatus({
+                assistantId: agentId,
+                isActive: tempAgents[agentIndex].status === true ? true : false
+            }, {});
+            console.log(response);
+            toast.success("Agent status updated successfully");
+            fetchAgents();
+
+            // setAgents(response);
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to update agent status");
+            if (isTogglled) {
+
+                const tempAgents = [...agents];
+                const agentIndex = tempAgents.findIndex((agent: any) => agent.vapiId === agentId);
+
+                tempAgents[agentIndex].status = tempAgents[agentIndex].status === true ? false : true;
+                setAgents(tempAgents);
+
+            }
+        } finally {
+
+        }
     };
+
 
     const filteredAgentsInCategory = agents?.filter((agent: any) =>
     (agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -257,18 +214,17 @@ function CustomerAgents({
                                                     <BotMessageSquare className="w-5 h-5" />
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    {/* <span className={`text-[10px] font-bold uppercase tracking-wider ${agent.status === 'active' ? 'text-success' : 'text-text-muted'}`}>
-                                                        {agent.status}
-                                                    </span> */}
-                                                    {/* <Switch
-                                                        checked={agent.status === 'active'}
-                                                        onCheckedChange={() => handleStatusChange(agent.id)}
-                                                    /> */}
-                                                    <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
+                                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${agent.status === true ? 'text-success' : 'text-text-muted'}`}>
+                                                        {agent.status == true ? "Active" : "Inactive"}
+                                                    </span>
+                                                    <Switch
+                                                        checked={agent.status === true}
+                                                        onCheckedChange={() => handleStatusChange(agent.vapiId)}
+                                                    />
+                                                    <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20 py-1.5 px-3" title="Unassign"
                                                         onClick={() => unAssignUser(agent)}
                                                     >
-                                                        <UserX className="w-4 h-4" />
-                                                        {unAssignLoader && agentToUnassign?.vapiId === agent.vapiId ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unassign"}
+                                                        {unAssignLoader && agentToUnassign?.vapiId === agent.vapiId ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
                                                     </button>
                                                     {/* <button className="btn btn-secondary text-xs"
                                                         onClick={() => handleTestCall(agent)}

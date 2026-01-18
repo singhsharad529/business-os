@@ -96,7 +96,7 @@ function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
 
             await adminAgentService.assignAssistantToUser(payload, {});
             // Simulation of async operation
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // await new Promise(resolve => setTimeout(resolve, 1000));
             toast.success("Agent assigned successfully");
             if (onSuccess) {
                 onSuccess();
