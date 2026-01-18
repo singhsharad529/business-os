@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AxiosRequestConfig } from "axios";
 import Feedback from "@/components/voicebot/Feedback";
+import Pagination from "@/components/common/Pagination";
 
 export default function VoicebotCalls() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -25,15 +26,13 @@ export default function VoicebotCalls() {
     const [selectedCall, setSelectedCall] = useState<any>(null);
     const [isSideSheetOpen, setIsSideSheetOpen] = useState<boolean>(false);
     const [isOpenedCalls, setIsOpenedCalls] = useState<boolean>(false);
-    const [isNewAgentOpen, setIsNewAgentOpen] = useState<boolean>(false);
-    const [isTestCallOpen, setIsTestCallOpen] = useState<boolean>(false);
-    const [selectedAgentToEdit, setSelectedAgentToEdit] = useState<any>(null);
-    const [isEditAgentOpen, setIsEditAgentOpen] = useState<boolean>(false);
+    const [selectedAgent, setSelectedAgent] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState<boolean>(false);
     const [agentToDelete, setAgentToDelete] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
     const [callLogs, setCallLogs] = useState<any[]>([]);
+    const [callsPagination, setCallsPagination] = useState<any>(null);
     const [detailLoading, setDetailLoading] = useState<boolean>(false);
     const [isFeedbackSheetOpen, setIsFeedbackSheetOpen] = useState<boolean>(false);
     const { user } = useAuth();
@@ -149,25 +148,15 @@ export default function VoicebotCalls() {
 
 
     const handleCallClick = async (call: any) => {
-        if (!call.vapiId) return;
-        try {
-            setDetailLoading(true);
-            const response = await voiceBotService.getCallDetail(call.vapiId, {});
-            setSelectedCall(response);
-            setIsSideSheetOpen(true);
-        } catch (error) {
-            // console.error(error);
-            toast.danger("Failed to load call details");
-        } finally {
-            setDetailLoading(false);
-        }
+
+        setSelectedCall(call);
+        setIsSideSheetOpen(true);
+
     };
 
-    const getCallReports = async (agent: any) => {
-        // if (!agent.vapiId || !agent.phoneNumbers?.[0]?.vapiId) {
-        //     toast.danger("Agent or Phone Number ID missing");
-        //     return;
-        // }
+
+    const callsPageSize: number = 10;
+    const getCallReports = async (agent: any, page: number = 1, pageSize: number = callsPageSize) => {
 
         try {
             setLoading(true);
@@ -176,13 +165,20 @@ export default function VoicebotCalls() {
             setSearchTerm("");
             setStatusFilter("all");
             setSentimentFilter([]);
-            const response = await voiceBotService.getAgentCallReports({
-                assistantId: agent.vapiId,
-                phoneNumberId: agent.phoneNumbers?.[0]?.vapiId,
-                page: 1,
-                page_size: 20
-            }, {});
-            setCallLogs(response.reports || []);
+            const config: AxiosRequestConfig = {
+                params: {
+                    assistantId: agent.vapiId,
+                    page: page,
+                    page_size: pageSize
+                }
+            }
+            const response = await voiceBotService.getAgentCalls(config);
+            if (response.calls) {
+                setCallLogs(response.calls);
+            }
+            if (response.pagination) {
+                setCallsPagination(response.pagination);
+            }
         } catch (error) {
             console.error(error);
             toast.danger("Failed to get call reports");
@@ -191,6 +187,10 @@ export default function VoicebotCalls() {
         }
     }
 
+
+    const callsPaginationHandler = () => {
+        getCallReports(selectedAgent, callsPagination?.page, callsPageSize);
+    }
     const getCallLogs = async () => {
         try {
             setLoading(true);
@@ -324,7 +324,10 @@ export default function VoicebotCalls() {
                                                         </button> */}
                                                         <button
                                                             className="btn btn-primary flex-1 py-1.5 text-xs"
-                                                            onClick={() => getCallReports(agent)}
+                                                            onClick={() => {
+                                                                setSelectedAgent(agent);
+                                                                getCallReports(agent);
+                                                            }}
                                                         >
                                                             <Phone className="w-3 h-3" />
                                                             Calls
@@ -508,6 +511,17 @@ export default function VoicebotCalls() {
                                                             ))}
                                                         </tbody>
                                                     </table>
+                                                    {
+                                                        callsPagination && (
+                                                            <Pagination
+                                                                currentPage={callsPagination.page}
+                                                                totalPages={callsPagination.totalPages}
+                                                                pageSize={callsPagination.pageSize}
+                                                                totalCount={callsPagination.total}
+                                                                onPageChange={callsPaginationHandler}
+                                                            />
+                                                        )
+                                                    }
                                                 </div>
                                             )}
                                         </div>

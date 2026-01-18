@@ -45,15 +45,8 @@ const voiceBotService = {
       { assistantId },
       config,
     ),
-  getAgentCallReports: (
-    params: {
-      assistantId: string;
-      phoneNumberId: string;
-      page?: number;
-      page_size?: number;
-    },
-    config: AxiosRequestConfig,
-  ) => apiService.get("vapi/calls/reports", { ...config, params }),
+  getAgentCalls: (config: AxiosRequestConfig) =>
+    apiService.get("/users/calls", config),
   getCallDetail: (vapiId: string, config: AxiosRequestConfig) =>
     apiService.get(`vapi/calls/${vapiId}`, config),
   uploadFiles: (files: File[], config: AxiosRequestConfig) => {
