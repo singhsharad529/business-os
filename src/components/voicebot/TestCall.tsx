@@ -228,7 +228,7 @@ export default function TestCall({ onCancel, agent }: TestCallProps) {
     }
 
     const startWebCall = async () => {
-        if (!vapi || !agent?.vapiAssistantId) {
+        if (!vapi || !agent?.vapiId) {
             toast.danger("Vapi not initialized or assistant ID missing");
             return;
         }
@@ -237,7 +237,7 @@ export default function TestCall({ onCancel, agent }: TestCallProps) {
             setWebCallStatus("connecting");
             setStep("simulating");
             setTranscripts([]);
-            const vapiconnected = await vapi.start(agent.vapiAssistantId);
+            const vapiconnected = await vapi.start(agent.vapiId);
             console.log('vapiconnected', vapiconnected);
 
 
