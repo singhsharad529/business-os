@@ -70,7 +70,8 @@ function MyAgents() {
     // all loaders
     const [categoriesLoader, setCategoriesLoader] = useState(false);
     const [agentsLoader, setAgentsLoader] = useState(false);
-    const [unAssignLoader, setUnassignLoader] = useState(false)
+    const [unAssignLoader, setUnassignLoader] = useState(false);
+    const [duplicateAgentId, setDuplicateAgentId] = useState<any>(null);
 
     const handleEditAgent = (agent: any) => {
         setSelectedAgent(agent);
@@ -91,6 +92,42 @@ function MyAgents() {
         setSelectedAgent(agent);
         setIsTestCallOpen(true);
     }
+
+
+
+    // add duplicate agent
+    const addDuplicateAgent = async (copyAgent: any) => {
+        try {
+            setDuplicateAgentId(copyAgent.vapiId);
+            const payload: any = {
+                assistantId: copyAgent.vapiId,
+                name: copyAgent.name,
+                description: copyAgent.description,
+                categoryId: selectedCategory.id,
+
+            }
+
+            const config: AxiosRequestConfig = {
+                params: {
+                    type: "TEMPLATE"
+                }
+            }
+
+            const response = await adminAgentService.duplicateAssistant(copyAgent.vapiId, payload, config);
+            if (response) {
+                toast.success("Agent duplicated successfully");
+                fetchAgents(selectedCategory, 1);
+            }
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to duplicate agent")
+        }
+        finally {
+            setDuplicateAgentId(null);
+        }
+    }
+
+
 
     const filteredCategories = categoriesData?.filter((cat: any) =>
         cat.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -203,7 +240,7 @@ function MyAgents() {
         try {
             setCategoriesLoader(true);
             const response = await adminAgentService.getAgentCategories({});
-            console.log('response', response);
+            // console.log('response', response);
             setCategoriesData(response.data.categories)
         } catch (error) {
             toast.danger("Failed to fetch agent categories")
@@ -579,8 +616,16 @@ function MyAgents() {
                                                 >
                                                     <Users className="w-3.5 h-3.5" />
                                                 </button> */}
-                                                            <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
-                                                                <Copy className="w-3.5 h-3.5" />
+                                                            <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate"
+                                                                onClick={() =>
+                                                                    addDuplicateAgent(agent)
+                                                                }
+                                                            >
+                                                                {duplicateAgentId && duplicateAgentId === agent.vapiId ? (
+                                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                ) : (
+                                                                    <Copy className="w-3.5 h-3.5" />
+                                                                )}
                                                             </button>
                                                             <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete"
                                                                 onClick={() => {
