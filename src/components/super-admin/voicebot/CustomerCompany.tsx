@@ -491,9 +491,9 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
 
                                             const newDocs = response.files.map((f: any) => ({
                                                 documentName: f.fileName,
-                                                documentType: f.fileName.split('.').pop()?.toLowerCase() || 'file',
-                                                gcsKey: f.gcs.gcsKey,
-                                                documentUrl: f.vapi?.url || f.url || '',
+                                                documentType: f.contentType?.split('/').pop() || f.fileName.split('.').pop()?.toLowerCase() || 'file',
+                                                gcsKey: f.gcsKey,
+                                                documentUrl: f.vapi?.url || '',
                                                 uploadedAt: f.vapi?.createdAt || new Date().toISOString()
                                             }));
 
