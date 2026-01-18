@@ -32,30 +32,30 @@ export function MyCompanyDashboard() {
     });
     const [uploading, setUploading] = useState(false);
 
-    const getCompanyDetails = async (newCompanyId?: string) => {
+    const getCompanyDetails = async () => {
         try {
             setCompanyLoading(true);
-            if (!newCompanyId && !user?.companyId) return;
+            const response = await voiceBotService.getProfile({});
 
-            const response = await voiceBotService.getCompanyById(newCompanyId || user?.companyId, {});
-            setCompany(response);
-            if (response) {
+            if (response && response.companies && response.companies.length > 0) {
+                const companyData = response.companies[0];
+                setCompany(companyData);
                 setEditData({
-                    name: response.name || '',
-                    description: response.description || '',
+                    name: companyData.name || '',
+                    description: companyData.description || '',
                     contactInfo: {
-                        email: response.contactInfo?.email || '',
-                        phone: response.contactInfo?.phone || '',
-                        address: response.contactInfo?.address || '',
-                        website: response.contactInfo?.website || ''
+                        email: companyData.contactInfo?.email || '',
+                        phone: companyData.contactInfo?.phone || '',
+                        address: companyData.contactInfo?.address || '',
+                        website: companyData.contactInfo?.website || ''
                     },
-                    taxId: response.taxId || '',
-                    foundedDate: response.foundedDate || '',
-                    documents: response.documents || []
+                    taxId: companyData.taxId || '',
+                    foundedDate: companyData.foundedDate || '',
+                    documents: companyData.documents || []
                 });
             }
         } catch (error) {
-            console.error(error);
+            console.error('Error fetching company details:', error);
         } finally {
             setCompanyLoading(false);
         }
@@ -63,7 +63,6 @@ export function MyCompanyDashboard() {
 
     const handleSave = async () => {
 
-        let newCompanyId: string = "";
         try {
             console.log('Saving company data:', editData);
             let response;
@@ -81,7 +80,6 @@ export function MyCompanyDashboard() {
                     setIsEditSheetOpen(false);
                     if (user) {
                         const newUser: User = { ...user, companyId: response.id };
-                        newCompanyId = response.id;
                         setUser(newUser);
                         localStorage.setItem('businessos_user', JSON.stringify(newUser));
                     }
@@ -89,7 +87,7 @@ export function MyCompanyDashboard() {
             }
 
             // Refresh details
-            await getCompanyDetails(newCompanyId);
+            await getCompanyDetails();
             setIsEditSheetOpen(false);
         } catch (error) {
             console.error('Error saving company:', error);

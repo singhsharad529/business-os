@@ -20,9 +20,10 @@ interface LeadDetailsProps {
     onUpdate?: () => void;
     onDelete?: (leadId: string) => void;
     onClose: () => void;
+    leadFromClient?: boolean;
 }
 
-export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetailsProps) {
+export function LeadDetails({ leadId, onUpdate, onDelete, onClose, leadFromClient = false }: LeadDetailsProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [leadFromApi, setLeadFromApi] = useState<Lead | null>(null);
     const [editedLead, setEditedLead] = useState<Lead | null>(null);
@@ -99,21 +100,18 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
                 return;
             }
 
-            const response = await adminCustomerService.getLeadById(id as string, leadId, {});
-            // console.log(response);
-            setLeadFromApi(response.lead);
-            setEditedLead(response.lead);
-            // if (response.lead.attributes) {
-            //     setAttributes(Object.entries(response.lead.attributes).map(([key, value]) => ({ key, value: String(value) })));
-            // } else {
-            //     setAttributes([]);
-            // }
-            if (response.calls) {
-                setLeadCalls(response.calls);
+            if (leadFromClient) {
+                const response = await voiceBotService.getLead(leadId, {});
+                setLeadFromApi(response);
+                setEditedLead(response);
             }
             else {
-                // fetchLeadCalls();
-
+                const response = await adminCustomerService.getLeadById(id as string, leadId, {});
+                setLeadFromApi(response.lead);
+                setEditedLead(response.lead);
+                if (response.calls) {
+                    setLeadCalls(response.calls);
+                }
             }
         } catch (error) {
             console.error(error);
@@ -135,7 +133,11 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose }: LeadDetails
                 leadExpertiseDomain: editedLead?.leadExpertiseDomain,
             };
 
-            await adminCustomerService.updateLead(id as string, leadId, payload, {});
+            if (leadFromClient) {
+                await voiceBotService.updateLead(leadId, payload, {});
+            } else {
+                await adminCustomerService.updateLead(id as string, leadId, payload, {});
+            }
             toast.success("Lead details updated successfully");
             setIsEditing(false);
             if (onUpdate) onUpdate();

@@ -9,9 +9,10 @@ import { useParams } from "react-router-dom";
 interface AddLeadProps {
     onClose: () => void;
     onSuccess?: () => void;
+    leadFromClient?: boolean;
 }
 
-function AddLead({ onClose, onSuccess }: AddLeadProps) {
+function AddLead({ onClose, onSuccess, leadFromClient = false }: AddLeadProps) {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         leadName: "",
@@ -19,7 +20,7 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
         leadPhoneNumber: "",
         leadCompany: "",
         leadExpertiseDomain: "",
-        lastCalledAt: ""
+        // lastCalledAt: ""
     });
     const { id } = useParams();
 
@@ -38,7 +39,11 @@ function AddLead({ onClose, onSuccess }: AddLeadProps) {
 
         try {
             setLoading(true);
-            await adminCustomerService.addLead(id as string, formData, {});
+            if (leadFromClient) {
+                await voiceBotService.createLead(formData, {});
+            } else {
+                await adminCustomerService.addLead(id as string, formData, {});
+            }
             toast.success("Lead added successfully");
             if (onSuccess) onSuccess();
             onClose();
