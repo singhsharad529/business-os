@@ -79,7 +79,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // const companyId = companyResponse.companies.filter((company: any) => company.userId === response.user.id);
 
           // const userWithoutPassword = { ...response.user, companyId: companyId.length > 0 ? companyId[0].id : null, role: "company_admin" };
-          const userWithoutPassword = { ...response, companyId: null, role: "company_admin" };
+          const companyId = response.companies?.[0]?.id || null;
+          const userWithoutPassword = { ...response, companyId, role: "company_admin" };
 
           setUser(userWithoutPassword);
           localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));

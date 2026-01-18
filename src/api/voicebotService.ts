@@ -7,6 +7,8 @@ const voiceBotService = {
     apiService.get("dashboard/voicebot", config),
   getAllAgents: (config: AxiosRequestConfig) =>
     apiService.get("users/assistants", config),
+  getProfile: (config: AxiosRequestConfig) =>
+    apiService.get("users/me", config),
   getAgentRoles: (config: AxiosRequestConfig) =>
     apiService.get("vapi/agent-roles", config),
   getAgentLanguages: (config: AxiosRequestConfig) =>
