@@ -98,7 +98,9 @@ function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
             // Simulation of async operation
             await new Promise(resolve => setTimeout(resolve, 1000));
             toast.success("Agent assigned successfully");
-            onClose();
+            if (onSuccess) {
+                onSuccess();
+            }
         } catch (error) {
             console.error(error);
             toast.danger("Failed to assign agent");

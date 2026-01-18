@@ -4,8 +4,8 @@ import { AxiosRequestConfig } from "axios";
 const adminAgentService = {
   getAgentCategories: (config: AxiosRequestConfig) =>
     apiService.get("admin/templates/categories", config),
-  getAgentsByCategory: (value: string, config: AxiosRequestConfig) =>
-    apiService.get(`admin/templates/categories/${value}`, config),
+  getAgentsByCategory: (config: AxiosRequestConfig) =>
+    apiService.get(`admin/assistants`, config),
   getAllTemplates: (config: AxiosRequestConfig) =>
     apiService.get(`admin/templates`, config),
   getAllActiveAssistants: (config: AxiosRequestConfig) =>
@@ -32,24 +32,24 @@ const adminAgentService = {
     apiService.post(
       `admin/assistants/assign`,
       data,
-      config as AxiosRequestConfig
+      config as AxiosRequestConfig,
     ),
   unassignAssistantToUser: (data: any, config?: AxiosRequestConfig) =>
     apiService.post(
       `admin/phone-numbers/unlink`,
       data,
-      config as AxiosRequestConfig
+      config as AxiosRequestConfig,
     ),
   addCategory: (data: any, config?: AxiosRequestConfig) =>
     apiService.post(
       `admin/templates/categories`,
       data,
-      config as AxiosRequestConfig
+      config as AxiosRequestConfig,
     ),
   deleteAssistant: (assistantId: string, config?: AxiosRequestConfig) =>
     apiService.delete(
       `admin/assistants/${assistantId}`,
-      config as AxiosRequestConfig
+      config as AxiosRequestConfig,
     ),
 };
 

@@ -176,15 +176,18 @@ function MyAgents() {
         const config: AxiosRequestConfig = {
             params: {
                 page: page,
-                pageSize: pageSize
+                page_size: pageSize,
+                type: "TEMPLATE",
+                categoryId: cat?.id
             }
         }
 
         try {
             setAgentsLoader(true);
-            const response = await adminAgentService.getAgentsByCategory(cat?.value, config);
+            const response = await adminAgentService.getAgentsByCategory(config);
             // console.log('response', response);
-            setAgents(response.data.templates);
+            if (response.data && response.data.assistants)
+                setAgents(response.data.assistants);
 
 
         } catch (error) {
@@ -248,12 +251,13 @@ function MyAgents() {
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             {
-                                view === "agents" ? (
+                                view === "agents" && (
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => {
                                                 setView("categories");
                                                 setSearchTerm("");
+                                                setSelectedCategory(null);
                                             }}
                                             className="p-1 hover:bg-bg-alt rounded-lg transition-colors text-text-muted hover:text-primary mr-1"
                                         >
@@ -263,25 +267,53 @@ function MyAgents() {
                                             {selectedCategory?.label}
                                         </h1>
                                     </div>
-                                ) : (
+                                )
+                            }
+                            {
+                                view === "categories" && activeTab === "categories" && (
                                     <h1 className="text-3xl font-bold text-text-main font-sans tracking-tight">
-                                        All Agents
+                                        All Categories
+                                    </h1>
+                                )
+                            }
+                            {
+                                activeTab === "active" && (
+                                    <h1 className="text-3xl font-bold text-text-main font-sans tracking-tight">
+                                        All Active Agents
                                     </h1>
                                 )
                             }
                         </div>
                         <p className="text-text-muted">
-                            List of all currently active AI agents across all categories
+                            {
+                                activeTab === "categories" && view === "categories" && (
+                                    "List of all categories"
+                                )
+                            }
+                            {
+                                activeTab === "categories" && view === "agents" && (
+                                    `List of all ${selectedCategory?.label} templates`
+                                )
+                            }
+                            {
+                                activeTab === "active" && (
+                                    "List of all currently active agents assigned to clients"
+                                )
+                            }
                         </p>
                     </div>
                     <div className="flex gap-4">
-                        <button
-                            onClick={() => setIsAddSheetOpen(true)}
-                            className="btn btn-primary flex items-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Add Agent
-                        </button>
+                        {
+                            selectedCategory && (
+                                <button
+                                    onClick={() => setIsAddSheetOpen(true)}
+                                    className="btn btn-primary flex items-center gap-2"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Agent
+                                </button>
+                            )
+                        }
                         {/* <button
                             onClick={() => setIsTestCallOpen(true)}
                             className="btn btn-primary flex items-center gap-1.5"
@@ -304,13 +336,23 @@ function MyAgents() {
                     <div className="flex gap-8">
                         <button
                             onClick={() => {
-                                setActiveTab("categories");
-                                setView("categories");
-                                setSearchTerm("");
+                                {
+                                    if (selectedCategory) {
+                                        setActiveTab("categories");
+                                        setView("agents");
+                                        setSearchTerm("");
+
+                                    } else {
+                                        setActiveTab("categories");
+                                        setView("categories");
+                                        setSearchTerm("");
+
+                                    }
+                                }
                             }}
                             className={`pb-2 text-sm font-bold transition-all relative ${activeTab === 'categories' ? 'text-primary' : 'text-text-muted hover:text-text-main'}`}
                         >
-                            All Categories
+                            {selectedCategory ? "All Templates" : "All Categories"}
                             {activeTab === 'categories' && (
                                 <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
                             )}
@@ -487,7 +529,7 @@ function MyAgents() {
                                                         </div>
 
                                                         <h3 className="text-lg font-bold text-text-main mb-1 truncate group-hover:text-primary transition-colors">
-                                                            {agent.configurationLabel}
+                                                            {agent?.name}
                                                         </h3>
                                                         <div className="flex items-center gap-2 text-text-muted mb-4 text-xs font-medium tracking-tight">
                                                             <Briefcase className="w-3 h-3" />
@@ -675,7 +717,7 @@ function MyAgents() {
                         onClose={() => setIsEditSheetOpen(false)}
                         onSuccess={() => {
                             setIsEditSheetOpen(false);
-                            fetchAgents(selectedCategory, activateAgentsPagination.page);
+                            fetchAgents(selectedCategory, 1);
                         }}
                     />
                 )}
@@ -689,6 +731,11 @@ function MyAgents() {
             >
                 <AddAdminAgent
                     onClose={() => setIsAddSheetOpen(false)}
+                    onSuccess={() => {
+                        setIsAddSheetOpen(false);
+                        fetchAgents(selectedCategory, 1);
+                    }}
+                    category={selectedCategory}
                 />
             </SideSheet>
 

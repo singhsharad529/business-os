@@ -27,6 +27,8 @@ import {
 
 interface AddAdminAgentProps {
     onClose: () => void;
+    onSuccess: () => void;
+    category: any;
 }
 
 
@@ -192,7 +194,7 @@ const DEFAULT_FORM_DATA = {
     }
 };
 
-function AddAdminAgent({ onClose }: AddAdminAgentProps) {
+function AddAdminAgent({ onClose, onSuccess, category }: AddAdminAgentProps) {
     const [step, setStep] = useState<"selection" | "templates" | "form">("selection");
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState<"model" | "voice" | "transcriber" | "advanced">("model");
@@ -201,7 +203,10 @@ function AddAdminAgent({ onClose }: AddAdminAgentProps) {
     const [modelsData, setModelsData] = useState<any>(null);
     const [voicesData, setVoicesData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [createagentLoading, setcreateagentLoading] = useState(false)
+    const [createagentLoading, setcreateagentLoading] = useState(false);
+
+    // console.log('category', category);
+
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -346,6 +351,7 @@ function AddAdminAgent({ onClose }: AddAdminAgentProps) {
         try {
             // Transform formData for API
             const apiPayload = {
+                categoryId: category.id,
                 name: formData.name,
                 model: {
                     provider: formData.model.provider,
@@ -385,7 +391,9 @@ function AddAdminAgent({ onClose }: AddAdminAgentProps) {
 
             await adminAgentService.createAssistant(apiPayload);
             toast.success("Assistant created successfully!");
-            onClose();
+            if (onSuccess) {
+                onSuccess();
+            }
         } catch (error) {
             console.error("Error creating assistant:", error);
             toast.danger("Failed to create assistant");
