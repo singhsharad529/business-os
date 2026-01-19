@@ -121,6 +121,26 @@ const voiceBotService = {
     apiService.patch(`scheduler/campaigns/${id}/status`, data, config),
   getLeadsCategories: (config: AxiosRequestConfig) =>
     apiService.get(`vapi/lead-database/category`, config),
+  getFeedbackList: (config: AxiosRequestConfig) =>
+    apiService.get(`users/feedback`, config),
+  submitFeedback: (
+    data: { subject: string; description: string; files?: File[] },
+    config: AxiosRequestConfig,
+  ) => {
+    const formData = new FormData();
+    formData.append("subject", data.subject);
+    formData.append("description", data.description);
+    if (data.files) {
+      data.files.forEach((file) => formData.append("files", file));
+    }
+    return apiService.post("users/feedback", formData, {
+      ...config,
+      headers: {
+        ...config.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };
 
 export default voiceBotService;
