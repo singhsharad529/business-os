@@ -10,22 +10,19 @@ import {
     Copy,
     Trash,
     Search,
-    Filter,
     ChevronLeft,
     Layers,
     ArrowRight,
     User,
-    Users,
     Phone,
     Eye,
-    Mail,
     UserX,
     UserPlus,
     Component,
-    Loader,
-    Loader2
+    Loader2,
+    BarChart3
 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { useNavigate } from "react-router-dom";
 import { SideSheet } from "@/components/SideSheet";
 import EditAdminAgent from "../../components/super-admin/voicebot/EditAdminAgent";
 import AddAdminAgent from "../../components/super-admin/voicebot/AddAdminAgent";
@@ -44,6 +41,7 @@ import { AlertDialog } from "@/components/ui/AlertDialog";
 
 
 function MyAgents() {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<"categories" | "active">("categories");
     const [view, setView] = useState<"categories" | "agents">("categories");
     const [selectedCategory, setSelectedCategory] = useState<any>(null);
@@ -601,6 +599,16 @@ function MyAgents() {
                                                             </div>
                                                         </div>
 
+                                                        {/* <div className="flex gap-2 mb-4">
+                                                            <button
+                                                                onClick={() => navigate(`/app/super-admin/agent/${agent.vapiId}`)}
+                                                                className="btn btn-secondary flex-1 py-1.5 text-xs font-bold uppercase tracking-wider border-primary/20 text-primary hover:bg-primary hover:text-white transition-all duration-300"
+                                                            >
+                                                                <BarChart3 className="w-3.5 h-3.5" />
+                                                                View Stats
+                                                            </button>
+                                                        </div> */}
+
                                                         <div className="flex gap-2">
                                                             <button
                                                                 onClick={() => handleEditAgent(agent)}
@@ -709,8 +717,16 @@ function MyAgents() {
 
                                                                     <td className="py-4 px-3 text-right">
                                                                         <button
+                                                                            onClick={() => navigate(`/app/super-admin/agent/${agent.vapiId}`)}
+                                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
+                                                                            title="View Stats"
+                                                                        >
+                                                                            <BarChart3 className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
                                                                             onClick={() => handleViewActiveDetails(agent)}
                                                                             className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
+                                                                            title="View Details"
                                                                         >
                                                                             <Eye className="w-4 h-4" />
                                                                         </button>

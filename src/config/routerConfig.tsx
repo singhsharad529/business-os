@@ -31,6 +31,7 @@ import Inbound from "@/pages/super-admin/Inbound";
 import AdminProfile from "@/pages/super-admin/AdminProfile";
 import UserProfie from "@/pages/voicebot/UserProfie";
 import Billing from "@/pages/voicebot/Billing";
+import AgentStats from "@/pages/super-admin/AgentStats";
 
 export const router = createBrowserRouter([
     {
@@ -117,7 +118,7 @@ export const router = createBrowserRouter([
                     { path: "super-admin/all-clients", element: <Customers /> },
                     { path: "super-admin/clients/:id", element: <Customer /> },
                     { path: "super-admin/profile", element: <AdminProfile /> },
-
+                    { path: "super-admin/agent/:id", element: <AgentStats /> },
 
                 ],
             },
