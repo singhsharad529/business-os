@@ -95,6 +95,8 @@ const voiceBotService = {
     apiService.delete(`users/leads/${id}`, config),
   createLead: (data: any, config: AxiosRequestConfig) =>
     apiService.post("users/leads", data, config),
+  getLeadCalls: (config: AxiosRequestConfig) =>
+    apiService.get(`users/calls`, config),
   getCampaignStats: (config: AxiosRequestConfig) =>
     apiService.get("scheduler/campaigns/stats", config),
   getCampaigns: (config: AxiosRequestConfig) =>

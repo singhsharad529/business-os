@@ -56,7 +56,7 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose, leadFromClien
                 }
             }
 
-            const response = await adminCustomerService.getLeadCalls(config);
+            const response = await voiceBotService.getLeadCalls(config);
             if (response.calls) {
                 setLeadCalls(response.calls);
             }
