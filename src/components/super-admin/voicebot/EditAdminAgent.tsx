@@ -15,7 +15,9 @@ import {
     Tags,
     MessageSquare,
     VolumeX,
-    Loader2
+    Loader2,
+    Play,
+    Pause
 } from "lucide-react";
 import {
     Select,
@@ -82,6 +84,40 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
     const [voicesData, setVoicesData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+    const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+
+    const handleTogglePlay = (voice: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (playingVoiceId === voice.voiceId) {
+            audio?.pause();
+            setPlayingVoiceId(null);
+        } else {
+            if (audio) {
+                audio.pause();
+            }
+            const newAudio = new Audio(voice.preview);
+            newAudio.play();
+            newAudio.onended = () => setPlayingVoiceId(null);
+            setAudio(newAudio);
+            setPlayingVoiceId(voice.voiceId);
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (audio) {
+                audio.pause();
+            }
+        };
+    }, [audio]);
+
+    useEffect(() => {
+        if (audio) {
+            audio.pause();
+            setPlayingVoiceId(null);
+        }
+    }, [activeTab]);
 
 
 
@@ -514,11 +550,28 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
                                             <h4 className="text-sm font-bold text-text-main">{v.name}</h4>
                                             <p className="text-xs text-text-muted truncate">{v.description || v.voiceId}</p>
                                         </div>
-                                        {formData.voice.voiceId === v.voiceId && (
-                                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                                                <X className="w-3 h-3 text-white rotate-45" />
-                                            </div>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            {v.preview && (
+                                                <button
+                                                    onClick={(e) => handleTogglePlay(v, e)}
+                                                    className={`p-2 rounded-full transition-all ${playingVoiceId === v.voiceId
+                                                        ? "bg-primary text-white"
+                                                        : "bg-bg text-text-muted hover:text-primary hover:bg-primary/10"
+                                                        }`}
+                                                >
+                                                    {playingVoiceId === v.voiceId ? (
+                                                        <Pause className="w-4 h-4" />
+                                                    ) : (
+                                                        <Play className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            )}
+                                            {/* {formData.voice.voiceId === v.voiceId && (
+                                                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                                    <X className="w-3 h-3 text-white rotate-45" />
+                                                </div>
+                                            )} */}
+                                        </div>
                                     </button>
                                 ))}
                             </div>

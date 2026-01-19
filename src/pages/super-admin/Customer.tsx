@@ -87,12 +87,13 @@ const Customer = () => {
     const [isAddLeadSheetOpen, setIsAddLeadSheetOpen] = useState(false);
     const [isAddAgentSheetOpen, setIsAddAgentSheetOpen] = useState(false);
     const [isAddFeedbackSheetOpen, setIsAddFeedbackSheetOpen] = useState(false);
+    const [customerName, setCustomerName] = useState("");
+    const [companyName, setCompanyName] = useState("");
 
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     // Get customer data or use a default mock
-    const customer = dummyCustomerData[id as keyof typeof dummyCustomerData] || dummyCustomerData["1"];
-    const { company } = customer;
+
 
 
     const getSampleFile = () => {
@@ -117,8 +118,8 @@ const Customer = () => {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-bold text-text-main">{customer.fullName}</h1>
-                            <p className="text-text-muted">{company.name}</p>
+                            <h1 className="text-3xl font-bold text-text-main">{customerName}</h1>
+                            <p className="text-text-muted">{companyName}</p>
                         </div>
                     </div>
 
@@ -278,6 +279,8 @@ const Customer = () => {
                             isEditSheetOpen={isEditSheetOpen}
                             setIsEditSheetOpen={setIsEditSheetOpen}
                             userid={id as string}
+                            setCustomerName={setCustomerName}
+                            setCompanyName={setCompanyName}
                         />
                     )}
 

@@ -7,7 +7,7 @@ const adminAgentService = {
   getAgentsByCategory: (config: AxiosRequestConfig) =>
     apiService.get(`admin/assistants`, config),
   getAllTemplates: (config: AxiosRequestConfig) =>
-    apiService.get(`admin/templates`, config),
+    apiService.get(`admin/assistants`, config),
   getAllActiveAssistants: (config: AxiosRequestConfig) =>
     apiService.get(`admin/assistants`, config),
   getAllAssistants: (config: AxiosRequestConfig) =>

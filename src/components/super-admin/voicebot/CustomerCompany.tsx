@@ -22,9 +22,11 @@ interface CustomerCompanyProps {
     isEditSheetOpen: boolean;
     setIsEditSheetOpen: React.Dispatch<React.SetStateAction<boolean>>;
     userid: string;
+    setCustomerName: React.Dispatch<React.SetStateAction<string>>;
+    setCompanyName: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditSheetOpen, userid }) => {
+const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditSheetOpen, userid, setCustomerName, setCompanyName }) => {
 
     const [profileData, setProfileData] = useState<any>(null);
     const [editData, setEditData] = useState<any>({
@@ -118,6 +120,8 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                     password: '',
                     documents: comp.documents || []
                 });
+
+                setCompanyName(comp.name || '');
             } else if (response.user) {
                 setEditData((prev: any) => ({
                     ...prev,
@@ -126,8 +130,11 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                         email: response.user.email || ''
                     }
                 }));
+                setCustomerName(response.user.name || '');
             }
         } catch (error) {
+            console.log('error', error);
+
             toast.danger("Failed to fetch profile company");
         }
         finally {

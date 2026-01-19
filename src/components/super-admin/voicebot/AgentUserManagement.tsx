@@ -5,6 +5,8 @@ import { toast } from "@/hooks/useToast";
 import { Skeleton } from "@/components/ui/skeleton";
 import adminAgentService from "@/api/adminAgentService";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AxiosRequestConfig } from "axios";
+import Pagination from "@/components/common/Pagination";
 
 interface User {
     id: string;
@@ -39,9 +41,10 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [phoneNumbers, setPhoneNumbers] = useState<any>(null);
     const [selectedPhoneNumber, setSelectedPhoneNumber] = useState<any>(null);
+    const [usersPagination, setUsersPagination] = useState<any>(null);
 
     const availableUsers = users?.filter((u: any) =>
-        u.email.toLowerCase().includes(searchTerm.toLowerCase())
+        u.email.toLowerCase().includes(searchTerm.toLowerCase()) || u.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
 
@@ -86,7 +89,7 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
         try {
             setAssignLoading(true);
             const payload = {
-                assistantId: agent.vapiAssistantId,
+                assistantId: agent.vapiId,
                 userId: selectedUser.id,
                 phoneNumberId: selectedPhoneNumber
             };
@@ -103,14 +106,24 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
         }
     };
 
-    const fetchUsers = async () => {
+    const usersPageSize = 10;
+    const fetchUsers = async (page: number = 1, pageSize: number = usersPageSize) => {
 
         try {
             setUsersLoading(true);
-            const response = await adminCustomerService.getUsersList({});
+            const config: AxiosRequestConfig = {
+                params: {
+                    page,
+                    page_size: pageSize
+                }
+            }
+            const response = await adminCustomerService.getUsersList(config);
             console.log('response', response);
             if (response && response.users) {
                 setUsers(response.users);
+            }
+            if (response && response.pagination) {
+                setUsersPagination(response.pagination);
             }
             // setUsers(response.data);
             console.log(response);
@@ -122,6 +135,10 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
             setUsersLoading(false);
         }
 
+    };
+
+    const handleUsersPagination = (page: number) => {
+        fetchUsers(page);
     };
 
     useEffect(() => {
@@ -190,6 +207,16 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
                                             <div className="py-12 text-center text-text-muted italic bg-bg-alt/20 rounded-2xl border border-dashed border-border-subtle">
                                                 {searchTerm ? "No users found matching your search." : "All available users have been assigned."}
                                             </div>
+                                        )}
+
+                                        {usersPagination && (
+                                            <Pagination
+                                                currentPage={usersPagination.page}
+                                                totalPages={usersPagination.totalPages}
+                                                pageSize={usersPagination.pageSize}
+                                                totalCount={usersPagination.total}
+                                                onPageChange={handleUsersPagination}
+                                            />
                                         )}
                                     </>
                                 )
