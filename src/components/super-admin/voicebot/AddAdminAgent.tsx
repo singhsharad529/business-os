@@ -15,7 +15,9 @@ import {
     MessageSquare,
     VolumeX,
     ChevronRight,
-    Search
+    Search,
+    Play,
+    Pause
 } from "lucide-react";
 import {
     Select,
@@ -24,6 +26,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { AxiosRequestConfig } from "axios";
+import { Skeleton } from "@/components/ui/skeleton";
+import Pagination from "@/components/common/Pagination";
 
 interface AddAdminAgentProps {
     onClose: () => void;
@@ -63,14 +68,16 @@ const VOICES_DATA = [
         "description": "Laid-Back, Casual, Resonant",
         "voiceId": "CwhRBWXzGAHq8TQ4Fs17",
         "provider": "11labs",
-        "type": "premade"
+        "type": "premade",
+        "preview": "https://storage.googleapis.com/eleven-public-prod/premade/voices/CwhRBWXzGAHq8TQ4Fs17/df6788f9-5c96-470d-8312-aab3b3d8f50a.mp3"
     },
     {
         "name": "Sarah",
         "description": "Mature, Reassuring, Confident",
         "voiceId": "EXAVITQu4vr4xnSDxMaL",
         "provider": "11labs",
-        "type": "premade"
+        "type": "premade",
+        "preview": "https://storage.googleapis.com/eleven-public-prod/premade/voices/EXAVITQu4vr4xnSDxMaL/01a3e33c-6e99-4ee7-8543-ff2216a32186.mp3"
     },
     {
         "name": "Laura",
@@ -200,10 +207,45 @@ function AddAdminAgent({ onClose, onSuccess, category }: AddAdminAgentProps) {
     const [activeTab, setActiveTab] = useState<"model" | "voice" | "transcriber" | "advanced">("model");
     const [formData, setFormData] = useState<any>(DEFAULT_FORM_DATA);
     const [templates, setTemplates] = useState<any[]>([]);
+    const [templatesPagination, setTemplatesPagination] = useState<any>(null);
     const [modelsData, setModelsData] = useState<any>(null);
     const [voicesData, setVoicesData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [createagentLoading, setcreateagentLoading] = useState(false);
+    const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+    const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+
+    const handleTogglePlay = (voice: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (playingVoiceId === voice.voiceId) {
+            audio?.pause();
+            setPlayingVoiceId(null);
+        } else {
+            if (audio) {
+                audio.pause();
+            }
+            const newAudio = new Audio(voice.preview);
+            newAudio.play();
+            newAudio.onended = () => setPlayingVoiceId(null);
+            setAudio(newAudio);
+            setPlayingVoiceId(voice.voiceId);
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (audio) {
+                audio.pause();
+            }
+        };
+    }, [audio]);
+
+    useEffect(() => {
+        if (audio) {
+            audio.pause();
+            setPlayingVoiceId(null);
+        }
+    }, [activeTab]);
 
     // console.log('category', category);
 
@@ -224,19 +266,33 @@ function AddAdminAgent({ onClose, onSuccess, category }: AddAdminAgentProps) {
                 }
             } catch (error) {
                 console.error("Error fetching initial data:", error);
+                toast.danger("Error fetching initial data");
                 // Fallback to hardcoded data if API fails or use local constants
-                setModelsData(MODELS_DATA);
-                setVoicesData(VOICES_DATA);
+                // setModelsData(MODELS_DATA);
+                // setVoicesData(VOICES_DATA);
             }
         };
         fetchInitialData();
     }, []);
 
-    const fetchTemplates = async () => {
+    const templatesPageSize: number = 10;
+    const fetchTemplates = async (page: number = 1, pageSize: number = templatesPageSize) => {
         setIsLoading(true);
         try {
-            const res = await adminAgentService.getAllTemplates({});
-            setTemplates(res.data.templates || res.data);
+            const config: AxiosRequestConfig = {
+                params: {
+                    type: "TEMPLATE",
+                    page: page,
+                    page_size: pageSize
+                }
+            }
+            const res = await adminAgentService.getAllTemplates(config);
+            if (res.data && res.data.assistants) {
+                setTemplates(res.data.assistants);
+            }
+            if (res.data && res.data.pagination) {
+                setTemplatesPagination(res.data.pagination);
+            }
         } catch (error) {
             console.error("Error fetching templates:", error);
             // setTemplates(TEMPLATES_DATA);
@@ -244,6 +300,10 @@ function AddAdminAgent({ onClose, onSuccess, category }: AddAdminAgentProps) {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleTemplatesPagination = (page: number) => {
+        fetchTemplates(page);
     };
 
     const handleCreateFromScratch = () => {
@@ -483,8 +543,11 @@ function AddAdminAgent({ onClose, onSuccess, category }: AddAdminAgentProps) {
 
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar px-2">
                     {isLoading ? (
-                        <div className="flex items-center justify-center py-20">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <div className="flex flex-col gap-4">
+                            <Skeleton className="w-full h-20" />
+                            <Skeleton className="w-full h-20" />
+                            <Skeleton className="w-full h-20" />
+                            <Skeleton className="w-full h-20" />
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 gap-4">
@@ -503,12 +566,12 @@ function AddAdminAgent({ onClose, onSuccess, category }: AddAdminAgentProps) {
                                                 {template.name}
                                             </h4>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted bg-bg px-1.5 py-0.5 rounded border border-border-subtle">
-                                                    {template.agentRole}
+                                                <span className="text-[10px] font-bold tracking-wider text-text-muted bg-bg px-1.5 py-0.5 rounded border border-border-subtle">
+                                                    {template.metadata?.agentRole ? template.metadata?.agentRole?.charAt(0).toUpperCase() + template.metadata?.agentRole?.slice(1) : "No Role"}
                                                 </span>
                                                 <span className="text-[10px] font-medium text-text-muted flex items-center gap-1">
                                                     <Languages className="w-3 h-3" />
-                                                    {template.language?.toUpperCase()}
+                                                    {template.metadata?.language ? template.metadata?.language?.charAt(0).toUpperCase() + template.metadata?.language?.slice(1) : "No Language"}
                                                 </span>
                                             </div>
                                         </div>
@@ -516,6 +579,15 @@ function AddAdminAgent({ onClose, onSuccess, category }: AddAdminAgentProps) {
                                     <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary transition-all" />
                                 </button>
                             ))}
+                            {templatesPagination && (
+                                <Pagination
+                                    currentPage={templatesPagination.page}
+                                    totalPages={templatesPagination.totalPages}
+                                    pageSize={templatesPagination.pageSize}
+                                    totalCount={templatesPagination.total}
+                                    onPageChange={handleTemplatesPagination}
+                                />
+                            )}
                         </div>
                     )}
                 </div>
@@ -783,11 +855,28 @@ function AddAdminAgent({ onClose, onSuccess, category }: AddAdminAgentProps) {
                                             <h4 className="text-sm font-bold text-text-main">{v.name}</h4>
                                             <p className="text-xs text-text-muted truncate">{v.description || v.voiceId}</p>
                                         </div>
-                                        {formData.voice.voiceId === v.voiceId && (
-                                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                                                <X className="w-3 h-3 text-white rotate-45" />
-                                            </div>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            {v.preview && (
+                                                <button
+                                                    onClick={(e) => handleTogglePlay(v, e)}
+                                                    className={`p-2 rounded-full transition-all ${playingVoiceId === v.voiceId
+                                                        ? "bg-primary text-white"
+                                                        : "bg-bg text-text-muted hover:text-primary hover:bg-primary/10"
+                                                        }`}
+                                                >
+                                                    {playingVoiceId === v.voiceId ? (
+                                                        <Pause className="w-4 h-4" />
+                                                    ) : (
+                                                        <Play className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            )}
+                                            {/* {formData.voice.voiceId === v.voiceId && (
+                                                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                                    <X className="w-3 h-3 text-white rotate-45" />
+                                                </div>
+                                            )} */}
+                                        </div>
                                     </button>
                                 ))}
                             </div>
