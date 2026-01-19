@@ -188,8 +188,8 @@ export default function VoicebotCalls() {
     }
 
 
-    const callsPaginationHandler = () => {
-        getCallReports(selectedAgent, callsPagination?.page, callsPageSize);
+    const callsPaginationHandler = (page: number) => {
+        getCallReports(selectedAgent, page, callsPageSize);
     }
     const getCallLogs = async () => {
         try {
