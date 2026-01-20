@@ -27,8 +27,8 @@ const voiceBotService = {
     apiService.get(`company/${id}`, config),
   createCompany: (data: any, config: AxiosRequestConfig) =>
     apiService.post("company/", data, config),
-  updateCompany: (id: string, data: any, config: AxiosRequestConfig) =>
-    apiService.patch(`company/${id}`, data, config),
+  updateCompany: (data: any, config: AxiosRequestConfig) =>
+    apiService.put(`users/me`, data, config),
   deleteAgent: (id: string, config: AxiosRequestConfig) =>
     apiService.delete(`vapi/assistants/${id}`, config),
   updateAgent: (vapiId: string, data: any, config: AxiosRequestConfig) =>
@@ -54,7 +54,7 @@ const voiceBotService = {
   uploadFiles: (files: File[], config: AxiosRequestConfig) => {
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
-    return apiService.post("vapi/files/global-kb", formData, {
+    return apiService.post("users/files/global-kb", formData, {
       ...config,
       headers: {
         ...config.headers,

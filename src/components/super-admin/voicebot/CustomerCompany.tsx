@@ -66,12 +66,30 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                 companyName: cleanValue(editData.name),
                 companyDescription: cleanValue(editData.description),
                 contactInfo: contactInfo,
-                documents: editData.documents.map((doc: any) => ({
-                    documentName: doc.documentName,
-                    gcsKey: doc.gcsKey,
-                    documentType: doc.documentType,
-                    documentUrl: doc.documentUrl
-                }))
+                documents: editData.documents.map((doc: any) => {
+                    // Extract gcsKey from URL if it's missing
+                    let gcsKey = doc.gcsKey;
+                    if (!gcsKey && doc.documentUrl) {
+                        try {
+                            const url = new URL(doc.documentUrl);
+                            const pathParts = url.pathname.split('/');
+                            // The path is usually /bucket-name/key
+                            // So key is everything after the first two parts
+                            if (pathParts.length > 2) {
+                                gcsKey = pathParts.slice(2).join('/');
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse documentUrl:", e);
+                        }
+                    }
+
+                    return {
+                        documentName: doc.documentName,
+                        gcsKey: gcsKey,
+                        documentType: doc.documentType,
+                        documentUrl: doc.documentUrl
+                    };
+                })
             };
 
             // Only include password if it has been entered
