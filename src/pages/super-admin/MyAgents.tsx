@@ -22,7 +22,6 @@ import {
     Loader2,
     BarChart3
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { SideSheet } from "@/components/SideSheet";
 import EditAdminAgent from "../../components/super-admin/voicebot/EditAdminAgent";
 import AddAdminAgent from "../../components/super-admin/voicebot/AddAdminAgent";
@@ -36,14 +35,14 @@ import CardsLoader from "@/components/common/CardsLoader";
 import AddCategory from "@/components/super-admin/voicebot/AddCategory";
 import Pagination from "@/components/common/Pagination";
 import { AlertDialog } from "@/components/ui/AlertDialog";
+import AgentStats from "./AgentStats";
 
 
 
 
 function MyAgents() {
-    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<"categories" | "active">("categories");
-    const [view, setView] = useState<"categories" | "agents">("categories");
+    const [view, setView] = useState<"categories" | "agents" | "stats">("categories");
     const [selectedCategory, setSelectedCategory] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [categoriesData, setCategoriesData] = useState<any>(null);
@@ -277,6 +276,15 @@ function MyAgents() {
         }
     };
 
+
+    if (view === "stats") {
+        return (
+            <AgentStats
+                agent={selectedActiveAgent}
+                onBack={() => setView("categories")}
+            />
+        )
+    }
 
     return (
         <div>
@@ -717,7 +725,10 @@ function MyAgents() {
 
                                                                     <td className="py-4 px-3 text-right">
                                                                         <button
-                                                                            onClick={() => navigate(`/app/super-admin/agent/${agent.vapiId}`)}
+                                                                            onClick={() => {
+                                                                                setSelectedActiveAgent(agent);
+                                                                                setView("stats");
+                                                                            }}
                                                                             className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
                                                                             title="View Stats"
                                                                         >

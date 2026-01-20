@@ -567,7 +567,7 @@ function AddAdminAgent({ onClose, onSuccess, category }: AddAdminAgentProps) {
                                             </h4>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-[10px] font-bold tracking-wider text-text-muted bg-bg px-1.5 py-0.5 rounded border border-border-subtle">
-                                                    {template.metadata?.agentRole ? template.metadata?.agentRole?.charAt(0).toUpperCase() + template.metadata?.agentRole?.slice(1) : "No Role"}
+                                                    {template.metadata?.agentRole ? template.metadata?.agentRole?.charAt(0).toUpperCase() + template.metadata?.agentRole?.slice(1) : template.metadata?.department?.charAt(0).toUpperCase() + template.metadata?.department?.slice(1)}
                                                 </span>
                                                 <span className="text-[10px] font-medium text-text-muted flex items-center gap-1">
                                                     <Languages className="w-3 h-3" />

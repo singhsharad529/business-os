@@ -1,7 +1,5 @@
-import React from 'react'
 import { Phone, Clock, CheckCircle, Users, Edit2, ChevronLeft } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import {
     Line,
     LineChart,
@@ -10,9 +8,6 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Cell,
 } from "recharts"
 import {
     ChartContainer,
@@ -56,26 +51,37 @@ const chartConfig = {
     }
 }
 
-function AgentStats() {
+interface AgentStatsProps {
+    agent?: any;
+    onBack?: () => void;
+}
+
+function AgentStats({ agent, onBack }: AgentStatsProps) {
 
     const navigate = useNavigate()
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
+        } else {
+            navigate(-1);
+        }
+    };
+
     return (
         <div className="py-6 space-y-8 animate-in fade-in duration-500">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={() => {
-                            navigate(-1)
-                        }}
+                        onClick={handleBack}
                         className="p-1 hover:bg-bg-alt rounded-lg transition-colors text-text-muted hover:text-primary mr-1"
                     >
                         <ChevronLeft className="w-6 h-6 text-primary" />
                     </button>
                     <div className="space-y-1">
-                        <h1 className="text-3xl font-black text-text-main tracking-tight">Sales - Inbound Support</h1>
+                        <h1 className="text-3xl font-black text-text-main tracking-tight">{agent?.name || "Sales - Inbound Support"}</h1>
                         <p className="text-text-muted text-sm font-medium">
-                            Sales
+                            {agent?.metadata?.department.charAt(0).toUpperCase() + agent?.metadata?.department.slice(1) || "Sales"}
                         </p>
                     </div>
                 </div>
