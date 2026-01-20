@@ -44,7 +44,7 @@ export function MyCompanyDashboard() {
                     name: companyData.name || '',
                     description: companyData.description || '',
                     contactInfo: {
-                        email: companyData.contactInfo?.email || '',
+                        email: companyData.contactInfo?.email || response.user?.email || '',
                         phone: companyData.contactInfo?.phone || '',
                         address: companyData.contactInfo?.address || '',
                         website: companyData.contactInfo?.website || ''
@@ -67,13 +67,54 @@ export function MyCompanyDashboard() {
             console.log('Saving company data:', editData);
             let response;
             setLoading(true);
+
+            const cleanValue = (val: any) => (val && typeof val === 'string' && val.trim() !== '' ? val : null);
+
+            const contactInfo = {
+                email: cleanValue(editData.contactInfo.email) || cleanValue(user?.email),
+                phone: cleanValue(editData.contactInfo.phone),
+                address: cleanValue(editData.contactInfo.address),
+                website: cleanValue(editData.contactInfo.website)
+            };
+
+            const payload: any = {
+                email: cleanValue(editData.contactInfo.email),
+                companyName: cleanValue(editData.name),
+                companyDescription: cleanValue(editData.description),
+                contactInfo: contactInfo,
+                documents: editData.documents.map((doc: any) => {
+                    // Extract gcsKey from URL if it's missing
+                    let gcsKey = doc.gcsKey;
+                    if (!gcsKey && doc.documentUrl) {
+                        try {
+                            const url = new URL(doc.documentUrl);
+                            const pathParts = url.pathname.split('/');
+                            // The path is usually /bucket-name/key
+                            // So key is everything after the first two parts
+                            if (pathParts.length > 2) {
+                                gcsKey = pathParts.slice(2).join('/');
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse documentUrl:", e);
+                        }
+                    }
+
+                    return {
+                        documentName: doc.documentName,
+                        gcsKey: gcsKey,
+                        documentType: doc.documentType,
+                        documentUrl: doc.documentUrl
+                    };
+                })
+            };
+
             if (company) {
                 // Update existing company
-                response = await voiceBotService.updateCompany(company.id, editData, {});
+                response = await voiceBotService.updateCompany(payload, {});
                 console.log('Company updated:', response);
             } else {
                 // Create new company
-                response = await voiceBotService.createCompany(editData, {});
+                response = await voiceBotService.createCompany(payload, {});
                 console.log('Company created:', response);
                 if (response) {
                     toast.success('Company created successfully');
@@ -304,7 +345,7 @@ export function MyCompanyDashboard() {
                         {/* Company Name */}
                         <div>
                             <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-                                Company Name {company && '(Read-only)'}
+                                Company Name
                             </label>
                             {/* {company ? (
                                 <div className="input bg-bg-muted flex items-center px-4 h-11 text-text-muted border-dashed font-medium">
@@ -435,8 +476,9 @@ export function MyCompanyDashboard() {
 
                                             const newDocs = response.files.map((f: any) => ({
                                                 documentName: f.fileName,
-                                                documentType: f.fileName.split('.').pop()?.toLowerCase() || 'file',
-                                                gcsKey: f.gcs.gcsKey,
+                                                documentType: f.contentType?.split('/').pop() || f.fileName.split('.').pop()?.toLowerCase() || 'file',
+                                                gcsKey: f.gcsKey,
+                                                documentUrl: f.vapi?.url || '',
                                                 uploadedAt: f.vapi?.createdAt || new Date().toISOString()
                                             }));
 

@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
         if (response?.admin?.role === "ADMIN") {
-          const userWithoutPassword = { ...response, role: "super_admin" };
+          const userWithoutPassword = { ...response, role: "super_admin", name: response.admin?.name || "John Doe" };
           setUser(userWithoutPassword);
           localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));
           return userWithoutPassword;
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           // const userWithoutPassword = { ...response.user, companyId: companyId.length > 0 ? companyId[0].id : null, role: "company_admin" };
           const companyId = response.companies?.[0]?.id || null;
-          const userWithoutPassword = { ...response, companyId, role: "company_admin" };
+          const userWithoutPassword = { ...response, companyId, role: "company_admin", name: response.user?.name || "John Doe" };
 
           setUser(userWithoutPassword);
           localStorage.setItem('businessos_user', JSON.stringify(userWithoutPassword));

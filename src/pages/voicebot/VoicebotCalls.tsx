@@ -480,8 +480,9 @@ export default function VoicebotCalls() {
                                                                     </td>
 
                                                                     <td className="py-2.5 px-3">
-                                                                        <span className={`badge ${statusColors[call.status] || 'badge-primary'}`}>
-                                                                            {call.status}
+                                                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${call.status?.includes('ended') || call.status === 'completed' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                                                                            }`}>
+                                                                            {call.status?.split('-').join(' ')}
                                                                         </span>
                                                                     </td>
 

@@ -161,7 +161,7 @@ export function Navbar({ selectedMenuId }: NavbarProps) {
               <div className="relative">
                 <div className="w-9 h-9 bg-gradient-to-br from-primary-strong via-primary to-accent rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/30 ring-2 ring-white/50">
                   {/* {user?.avatar || user?.name?.charAt(0).toUpperCase()} */}
-                  {"JD"}
+                  {user && user.name ? user.name.charAt(0).toUpperCase() : 'JD'}
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-white shadow-sm"></div>
               </div>

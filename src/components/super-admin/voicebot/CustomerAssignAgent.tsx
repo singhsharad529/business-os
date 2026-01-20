@@ -18,6 +18,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useParams } from 'react-router-dom';
+import Pagination from '@/components/common/Pagination';
 
 interface CustomerAssignAgentProps {
     onClose: () => void;
@@ -29,6 +30,7 @@ function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
 
     // Agent Template State
     const [templates, setTemplates] = useState<any[] | null>(null);
+    const [templatesPagination, setTemplatesPagination] = useState<any>(null);
     const [templatesLoading, setTemplatesLoading] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
 
@@ -48,14 +50,20 @@ function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
             setTemplatesLoading(true);
             const config: AxiosRequestConfig = {
                 params: {
-                    include_inactive: false,
+                    type: "TEMPLATE",
                     page,
                     page_size: pageSize
                 }
             };
             const response = await adminAgentService.getAllAssistants(config);
-            console.log(response.data.assistants);
-            setTemplates(response.data.assistants);
+            // console.log(response.data.assistants);
+            if (response.data && response.data.assistants) {
+                setTemplates(response.data.assistants);
+
+            }
+            if (response.data && response.data.pagination) {
+                setTemplatesPagination(response.data.pagination);
+            }
         } catch (error) {
             // console.log(error);
             toast.danger("Failed to fetch agent templates");
@@ -107,6 +115,10 @@ function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
         } finally {
             setAssignLoading(false);
         }
+    }
+
+    const templatePaginationHandler = (page: number) => {
+        getAgentTemplates(page);
     }
 
     useEffect(() => {
@@ -166,6 +178,15 @@ function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
                                     <div className="text-center py-10 text-text-muted">
                                         No agents available
                                     </div>
+                                )}
+                                {templatesPagination && (
+                                    <Pagination
+                                        currentPage={templatesPagination.page}
+                                        totalPages={templatesPagination.totalPages}
+                                        pageSize={templatesPagination.pageSize}
+                                        totalCount={templatesPagination.total}
+                                        onPageChange={templatePaginationHandler}
+                                    />
                                 )}
                             </div>
                         )}
