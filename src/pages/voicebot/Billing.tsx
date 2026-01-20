@@ -72,9 +72,9 @@ function Billing() {
                 </div>
 
                 {/* Subscription Overview */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="card rounded-xl hover:shadow-glow hover:-translate-y-0.5 transition-all grid grid-cols-1 lg:grid-cols-1 gap-6">
                     {/* Current Plan Card */}
-                    <div className="lg:col-span-2 card p-6 border border-border-subtle relative overflow-hidden">
+                    <div className="lg:col-span-1 p-6 relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4">
                             <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border border-primary/20">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -106,7 +106,7 @@ function Billing() {
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2 text-text-muted text-sm">
                                     <Clock className="w-4 h-4" />
-                                    <span>Renews On</span>
+                                    <span>Ends On</span>
                                 </div>
                                 <p className="text-text-main font-medium">{formatDate(subscriptionData.valid_plan_end)}</p>
                             </div>
@@ -118,57 +118,12 @@ function Billing() {
                                 <p className="text-primary font-medium">{subscriptionData.auto_pay ? 'Enabled' : 'Disabled'}</p>
                             </div>
                         </div>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex gap-4">
-                                <button className="text-sm font-bold text-text-main hover:text-primary transition-colors flex items-center gap-1">
-                                    Change Plan
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                                <button className="text-sm font-bold text-danger hover:underline transition-colors">
-                                    Cancel Subscription
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
-                    {/* Payment Method Card */}
-                    <div className="card p-6 border border-border-subtle flex flex-col">
-                        <h3 className="text-sm font-semibold text-text-main mb-6 flex items-center gap-2">
-                            <CreditCard className="w-4 h-4 text-primary" />
-                            Payment Method
-                        </h3>
 
-                        <div className="bg-bg-alt/50 rounded-2xl p-4 border border-border-subtle mb-6">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="w-10 h-6 bg-text-main/10 rounded flex items-center justify-center">
-                                    <span className="text-[10px] font-bold text-text-main uppercase">{subscriptionData.card_details.brand}</span>
-                                </div>
-                                <button className="text-xs font-bold text-primary hover:underline">Edit</button>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-text-main font-bold tracking-widest text-lg">
-                                    •••• •••• •••• {subscriptionData.card_details.last4}
-                                </p>
-                                <p className="text-xs text-text-muted">
-                                    Expires {subscriptionData.card_details.exp_month}/{subscriptionData.card_details.exp_year}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="mt-auto space-y-3">
-                            <div className="flex items-center gap-3 text-sm text-text-muted">
-                                <ShieldCheck className="w-4 h-4 text-success" />
-                                <span>Secured by Stripe</span>
-                            </div>
-                            <button className="w-full btn btn-outline py-2.5 text-xs">
-                                Add Backup Method
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
-                <div className="card p-4">
+                <div className="card rounded-xl p-4 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                     {/* Billing History */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">

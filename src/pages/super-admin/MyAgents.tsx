@@ -20,7 +20,8 @@ import {
     UserPlus,
     Component,
     Loader2,
-    BarChart3
+    BarChart3,
+    Edit2
 } from "lucide-react";
 import { SideSheet } from "@/components/SideSheet";
 import EditAdminAgent from "../../components/super-admin/voicebot/EditAdminAgent";
@@ -739,7 +740,7 @@ function MyAgents() {
                                                                             className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
                                                                             title="View Details"
                                                                         >
-                                                                            <Eye className="w-4 h-4" />
+                                                                            <Edit2 className="w-4 h-4" />
                                                                         </button>
                                                                     </td>
                                                                 </tr>

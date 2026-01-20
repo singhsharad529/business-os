@@ -221,11 +221,7 @@ function CustomerAgents({
                                                         checked={agent.status === true}
                                                         onCheckedChange={() => handleStatusChange(agent.vapiId)}
                                                     />
-                                                    <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20 py-1.5 px-3" title="Unassign"
-                                                        onClick={() => unAssignUser(agent)}
-                                                    >
-                                                        {unAssignLoader && agentToUnassign?.vapiId === agent.vapiId ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
-                                                    </button>
+
                                                     {/* <button className="btn btn-secondary text-xs"
                                                         onClick={() => handleTestCall(agent)}
                                                     >
@@ -289,13 +285,19 @@ function CustomerAgents({
                                                 {/* <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
                                                     <Copy className="w-3.5 h-3.5" />
                                                 </button> */}
-                                                <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete"
+                                                {/* <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete"
                                                     onClick={() => {
                                                         setAgentToDelete(agent);
                                                         setIsDeleteAlertOpen(true)
                                                     }}
                                                 >
                                                     <Trash className="w-3.5 h-3.5 text-danger" />
+                                                </button> */}
+
+                                                <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20 py-1.5 px-3" title="Unassign"
+                                                    onClick={() => unAssignUser(agent)}
+                                                >
+                                                    {unAssignLoader && agentToUnassign?.vapiId === agent.vapiId ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
                                                 </button>
                                             </div>
                                         </div>
