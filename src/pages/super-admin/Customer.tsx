@@ -36,49 +36,7 @@ import CustomerInboundCalls from "@/components/super-admin/voicebot/CustomerInbo
 import CustomerFeedbacks from "@/components/super-admin/voicebot/CustomerFeedbacks";
 
 
-// Dummy data for a single customer
-const dummyCustomerData = {
-    "1": {
-        id: "1",
-        fullName: "Josh Anderson",
-        email: "josh@techflow.io",
-        username: "josh_tech_24",
-        company: {
-            id: "comp_01",
-            name: "TechFlow Systems",
-            industry: "Software_Development",
-            size: "50-200 employees",
-            website: "https://techflow.io",
-            address: "123 Silicon Valley Way, San Jose, CA",
-            description: "TechFlow Systems is a leading provider of cloud-native infrastructure solutions. We specialize in helping enterprise clients transition to microservices architectures while maintaining high availability and security standards.\n\nOur mission is to simplify complex system orchestrations through intelligent automation and robust monitoring frameworks.",
-            taxId: "TX-9988-7766",
-            foundedDate: "2018-05-20",
-            currency: "USD",
-            timezone: "America/Los_Angeles",
-            createdAt: "2023-10-12T08:30:00Z",
-            documents: [
-                { documentName: "Business_License.pdf", documentType: "PDF", uploadedAt: "2023-10-15T10:00:00Z", documentUrl: "#" },
-                { documentName: "Tax_Certificate.pdf", documentType: "PDF", uploadedAt: "2023-10-15T10:05:00Z", documentUrl: "#" },
-            ]
-        },
-        profile: {
-            phone: "+1 (555) 123-4567",
-            role: "CTO",
-            joinedDate: "October 12, 2023",
-            status: "active",
-            plan: "Enterprise",
-        },
-        leads: [
-            { id: 1, name: "Alice Thompson", email: "alice@example.com", phone: "+1 234 567 890", status: "New" },
-            { id: 2, name: "Bob Richards", email: "bob@example.com", phone: "+1 234 567 891", status: "Contacted" },
-            { id: 3, name: "Charlie Davis", email: "charlie@example.com", phone: "+1 234 567 892", status: "Qualified" },
-        ],
-        agents: [
-            { id: 1, name: "Inbound Support", model: "GPT-4o", voice: "Alloy", status: "active" },
-            { id: 2, name: "Outbound Sales", model: "GPT-4o-mini", voice: "Echo", status: "active" },
-        ]
-    },
-};
+
 
 const Customer = () => {
     const { id } = useParams();

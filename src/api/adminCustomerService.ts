@@ -59,6 +59,8 @@ const adminCustomerService = {
     apiService.post(`admin/assistants/toggle-status`, data, config),
   updateUser: (user_id: string, userData: any, config: AxiosRequestConfig) =>
     apiService.put(`admin/users/${user_id}`, userData, config),
+  getfeedbackbyuser: (config: AxiosRequestConfig) =>
+    apiService.get(`admin/feedback`, config),
 };
 
 export default adminCustomerService;
