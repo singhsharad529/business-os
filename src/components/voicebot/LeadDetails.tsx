@@ -52,14 +52,24 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose, leadFromClien
                 params: {
                     page,
                     page_size: pageSize,
-                    customerNumber: leadFromApi?.leadPhoneNumber,
+                    customerNumber: leadFromApi?.leadPhoneNumber as string,
                 }
             }
 
-            const response = await voiceBotService.getLeadCalls(config);
-            if (response.calls) {
-                setLeadCalls(response.calls);
+            if (leadFromClient) {
+                const response = await voiceBotService.getLeadCalls(config);
+                if (response.calls) {
+                    setLeadCalls(response.calls);
+                }
             }
+            else {
+                const response = await adminCustomerService.getLeadCalls(config);
+                if (response.calls) {
+                    setLeadCalls(response.calls);
+                }
+            }
+
+
         } catch (error) {
             console.error(error);
             toast.danger("Failed to fetch lead calls");

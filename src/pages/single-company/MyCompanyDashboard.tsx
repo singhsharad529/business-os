@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { SideSheet } from '../../components/SideSheet';
-import { Building2, FileText, Edit3, ExternalLink, Globe, Mail, Fingerprint, Upload, X } from 'lucide-react';
+import { Building2, FileText, Edit3, ExternalLink, Globe, Mail, Fingerprint, Upload, X, Phone } from 'lucide-react';
 import { Company, CompanyDocument, User } from '../../types';
 import voiceBotService from '@/api/voicebotService';
 import DashboardLoader from '@/components/common/DashboardLoader';
@@ -308,10 +308,45 @@ export function MyCompanyDashboard() {
                                                             <span className="text-text-muted">Created:</span>
                                                             <span>{new Date(company.createdAt).toLocaleDateString()}</span>
                                                         </div>
-                                                        <div className="flex justify-between items-center text-xs">
+                                                        {/* <div className="flex justify-between items-center text-xs">
                                                             <span className="text-text-muted">Timezone:</span>
                                                             <span>{company.timezone || 'UTC'}</span>
-                                                        </div>
+                                                        </div> */}
+                                                    </div>
+                                                </div>
+
+
+                                                {/* Assigned Numbers */}
+                                                <div className="card rounded-xl overflow-hidden border border-border-subtle">
+                                                    <div className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-b border-border-subtle">
+                                                        <h3 className="text-lg font-bold text-text-main flex items-center gap-2">
+                                                            <Phone className="w-5 h-5 text-primary" />
+                                                            Your Numbers
+                                                        </h3>
+                                                        <p className="text-xs text-text-muted mt-1">Active phone lines for this account</p>
+                                                    </div>
+                                                    <div className="p-4 max-h-[220px] overflow-y-auto space-y-3">
+                                                        {[
+                                                            { number: "+1 (555) 000-1111", label: "Primary Business" },
+                                                            { number: "+44 20 7123 4567", label: "London Office" },
+                                                            { number: "+1 (555) 000-2222", label: "Customer Support" },
+                                                            { number: "+1 (555) 000-3333", label: "Sales Team" },
+                                                            { number: "+1 (555) 000-4444", label: "Emergency Line" },
+                                                            { number: "+1 (555) 000-5555", label: "Technical Support" }
+                                                        ].map((item, idx) => (
+                                                            <div key={idx} className="flex items-center justify-between p-2 bg-bg-alt/30 rounded-xl border border-border-subtle/50 hover:border-primary/30 transition-all group">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-white rounded-lg border border-border-subtle group-hover:text-primary transition-colors">
+                                                                        <Phone className="w-3.5 h-3.5" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-sm font-bold text-text-main">{item.number}</p>
+                                                                        {/* <p className="text-[10px] text-text-muted">{item.label}</p> */}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="w-2 h-2 rounded-full bg-success/80 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
                                             </div>

@@ -34,6 +34,7 @@ import { SideSheet } from "@/components/SideSheet";
 import sampleFile from "@/assets/files/leads_data_sample.xlsx";
 import CustomerInboundCalls from "@/components/super-admin/voicebot/CustomerInboundCalls";
 import CustomerFeedbacks from "@/components/super-admin/voicebot/CustomerFeedbacks";
+import CustomerBilling from "@/components/super-admin/voicebot/CustomerBilling";
 
 
 
@@ -228,6 +229,15 @@ const Customer = () => {
                         Agents
                         {activeTab === "agents" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
                     </button>
+                    <button
+                        onClick={() => setActiveTab("billing")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all relative ${activeTab === "billing" ? "text-primary" : "text-text-muted hover:text-text-main"
+                            }`}
+                    >
+                        <Users className="w-4 h-4" />
+                        Billing
+                        {activeTab === "billing" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
+                    </button>
                 </div>
 
                 {/* Tab Content */}
@@ -262,6 +272,10 @@ const Customer = () => {
                             setIsAddAgentSheetOpen={setIsAddAgentSheetOpen}
                             userid={id as string}
                         />
+                    )}
+
+                    {activeTab === "billing" && (
+                        <CustomerBilling />
                     )}
                 </div>
             </div>

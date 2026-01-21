@@ -24,7 +24,7 @@ import GenericBarChart from '@/components/chart/BarChart'
 
 const stats = [
     { label: "Total Revenue", value: "$124.5k", icon: DollarSign, trend: "+12% this month", trendColor: "text-success", iconColor: "bg-primary/10 text-primary" },
-    { label: "Active Clients", value: "1,284", icon: Users, trend: "+45 new clients", trendColor: "text-success", iconColor: "bg-success/10 text-success" },
+    { label: "Avg Cost/Call", value: "$12", icon: Users, trend: "", trendColor: "text-success", iconColor: "bg-success/10 text-success" },
     { label: "Monthly Recurring", value: "$45.2k", icon: Calendar, trend: "+8.4% growth", trendColor: "text-success", iconColor: "bg-warning/10 text-warning" },
     { label: "Avg. Revenue/Client", value: "$842", icon: Target, trend: "+2.1% improve", trendColor: "text-success", iconColor: "bg-primary/10 text-primary" },
 ]

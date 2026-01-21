@@ -1,6 +1,6 @@
 import GenericBarChart from '@/components/chart/BarChart'
 import { Card, CardContent } from '@/components/ui/card'
-import { Clock, PhoneCall, Target, Users } from 'lucide-react'
+import { Bot, Clock, PhoneCall, Target, Users } from 'lucide-react'
 import React, { useState } from 'react'
 
 const dashboardData = {
@@ -9,7 +9,7 @@ const dashboardData = {
             { label: "Total Calls", value: "1,284", icon: PhoneCall, trend: "+5% vs yesterday", trendColor: "text-success", iconColor: "bg-primary/10 text-primary" },
             { label: "Connected Rate", value: "82.4%", icon: Target, trend: "+1.2% improved", trendColor: "text-success", iconColor: "bg-success/10 text-success" },
             { label: "Avg Duration", value: "3m 45s", icon: Clock, trend: "Consistent", trendColor: "text-text-muted", iconColor: "bg-warning/10 text-warning" },
-            { label: "Leads Captured", value: "42", icon: Users, trend: "+12 since morning", trendColor: "text-success", iconColor: "bg-primary/10 text-primary" },
+            { label: "Active Agents", value: "10", icon: Bot, trend: "", trendColor: "text-success", iconColor: "bg-primary/10 text-primary" },
         ],
         chart: [
             { label: "00:00", inbound: 12 },
