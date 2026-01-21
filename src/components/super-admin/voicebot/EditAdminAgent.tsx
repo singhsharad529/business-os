@@ -17,7 +17,8 @@ import {
     VolumeX,
     Loader2,
     Play,
-    Pause
+    Pause,
+    BrainCog
 } from "lucide-react";
 import {
     Select,
@@ -31,6 +32,7 @@ interface EditAdminAgentProps {
     agent: any;
     onClose: () => void;
     onSuccess?: () => void;
+    isActive?: boolean;
 }
 
 
@@ -77,7 +79,7 @@ const DEFAULT_FORM_DATA = {
     }
 };
 
-function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
+function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentProps) {
     const [activeTab, setActiveTab] = useState<"model" | "voice" | "transcriber" | "advanced">("model");
     const [formData, setFormData] = useState<any>(DEFAULT_FORM_DATA);
     const [modelsData, setModelsData] = useState<any>(null);
@@ -86,6 +88,9 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
     const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+    const [selectedPhoneNumber, setSelectedPhoneNumber] = useState<any>(null);
+    const [phoneNumbersLoading, setPhoneNumbersLoading] = useState<boolean>(false);
+    const [phoneNumbers, setPhoneNumbers] = useState<any>(null);
 
     const handleTogglePlay = (voice: any, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -121,6 +126,22 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
 
 
 
+    const fetchPhoneNumbers = async () => {
+        try {
+            setPhoneNumbersLoading(true);
+            const response = await adminAgentService.getAllPhoneNumbers({});
+            // console.log('response', response);
+            if (response && response.phoneNumbers) {
+                setPhoneNumbers(response.phoneNumbers);
+                setSelectedPhoneNumber(response.phoneNumbers[0].id);
+            }
+        } catch (error) {
+            toast.danger("Failed to load phone numbers")
+        }
+        finally {
+            setPhoneNumbersLoading(false);
+        }
+    };
 
 
     useEffect(() => {
@@ -145,6 +166,8 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
             }
         };
         fetchInitialData();
+        if (isActive)
+            fetchPhoneNumbers();
     }, []);
 
     useEffect(() => {
@@ -749,6 +772,44 @@ function EditAdminAgent({ agent, onClose, onSuccess }: EditAdminAgentProps) {
                                 ))}
                             </div>
                         </section>
+
+                        {
+                            isActive && (
+                                <section className="space-y-4 pb-2">
+                                    <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                                        <BrainCog className="w-3.5 h-3.5" />
+                                        Connectivity & Knowledge Base
+                                    </h3>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-text-main">Phone Number</label>
+
+                                        <Select
+                                            onValueChange={(value) => setSelectedPhoneNumber(value)}
+                                            value={selectedPhoneNumber}
+                                        >
+                                            <SelectTrigger className="w-full bg-background border-border-subtle">
+                                                <SelectValue placeholder="Select a number to link..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {phoneNumbers && phoneNumbers.length > 0 ? (
+                                                    phoneNumbers.map((number: any) => (
+                                                        <SelectItem key={number.id} value={number.id}>
+                                                            {number.number}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <div className="p-2 text-xs text-center text-text-muted">
+                                                        No unassigned numbers available
+                                                    </div>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                </section>
+                            )
+                        }
                     </div>
                 )}
             </div>
