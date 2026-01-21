@@ -23,6 +23,8 @@ const adminCustomerService = {
     apiService.get(`admin/users/${user_id}/leads`, config),
   addLead: (user_id: string, leadData: any, config: AxiosRequestConfig) =>
     apiService.post(`admin/users/${user_id}/leads`, leadData, config),
+  deleteLead: (user_id: string, lead_id: string, config: AxiosRequestConfig) =>
+    apiService.delete(`admin/users/${user_id}/leads/${lead_id}`, config),
   addCustomer: (customerData: any, config: AxiosRequestConfig) =>
     apiService.post(`admin/users`, customerData, config),
   importLeadDatabaseData: (

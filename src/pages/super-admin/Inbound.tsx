@@ -48,7 +48,7 @@ function Inbound() {
         if (!searchTerm) {
             return inboundCalls;
         }
-        return call?.customerNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+        return call?.customerNumber?.toLowerCase().includes(searchTerm.toLowerCase()) || call?.userName?.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
     const inboundPageSize: number = 10;
@@ -152,7 +152,9 @@ function Inbound() {
                                 <thead>
                                     <tr className="border-b border-border-subtle">
                                         <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">User Name</th>
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Customer Number</th>
+
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assistant</th>
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Duration</th>
@@ -167,6 +169,7 @@ function Inbound() {
                                             <td className="py-4 px-3 text-center text-xs text-text-muted">
                                                 {(pagination?.page - 1) * (pagination?.pageSize || inboundPageSize) + i + 1}
                                             </td>
+                                            <td className="py-4 px-3 text-sm text-text-main font-medium">{call.userName}</td>
                                             <td className="py-4 px-3 text-sm text-text-main font-medium">{call.customerNumber}</td>
                                             <td className="py-4 px-3 text-sm text-text-muted">{call.assistantName || 'N/A'}</td>
                                             <td className="py-4 px-3">
