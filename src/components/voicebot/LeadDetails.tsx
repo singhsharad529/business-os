@@ -167,8 +167,13 @@ export function LeadDetails({ leadId, onUpdate, onDelete, onClose, leadFromClien
     const handleDelete = async () => {
         if (!leadToDelete) return;
         try {
+
             setDeleteLoading(true);
-            await voiceBotService.deleteLead(leadToDelete, {});
+            if (leadFromClient) {
+                await voiceBotService.deleteLead(leadToDelete, {});
+            } else {
+                await adminCustomerService.deleteLead(id as string, leadToDelete, {});
+            }
             toast.success("lead deleted successfully");
             if (onUpdate) onUpdate();
             onClose();
