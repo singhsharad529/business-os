@@ -885,6 +885,7 @@ function MyAgents() {
                             <EditAdminAgent
                                 agent={selectedActiveAgent}
                                 onClose={() => setIsActiveDetailsOpen(false)}
+                                isActive={true}
                                 onSuccess={() => {
                                     setIsEditSheetOpen(false);
                                     fetchAllActiveAgents();
