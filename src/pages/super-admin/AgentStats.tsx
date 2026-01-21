@@ -40,8 +40,6 @@ const callVolumeData = [
 
 const callOutcomesData = [
     { outcome: "Resolved", count: 850 },
-    { outcome: "Transferred", count: 240 },
-    { outcome: "Callback", count: 120 },
     { outcome: "Missed", count: 38 },
 ]
 
@@ -529,7 +527,7 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
                                     <ChartContainer config={chartConfig} className="h-[320px] w-full">
                                         <LineChart
                                             data={callVolumeData}
-                                            margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+
                                         >
                                             <CartesianGrid vertical={false} stroke="#D9E1EC" strokeDasharray="3 3" />
                                             <XAxis
@@ -537,7 +535,7 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
                                                 axisLine={false}
                                                 tickLine={false}
                                                 tick={{ fill: '#475467', fontSize: 12, fontWeight: 600 }}
-                                                dy={10}
+                                                dy={5}
                                             />
                                             <YAxis
                                                 axisLine={false}
@@ -565,12 +563,13 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
                                     <CardTitle className="text-xl font-black text-text-main">Call outcomes</CardTitle>
                                 </CardHeader>
                                 <CardContent className="pt-4">
-                                    <ChartContainer config={chartConfig} className="h-[320px] w-full">
+                                    <ChartContainer config={chartConfig} className="h-[200px] w-full">
                                         <BarChart
                                             layout="vertical"
                                             data={callOutcomesData}
                                             margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
-                                            barSize={40}
+                                            barSize={45}
+                                            barCategoryGap="40%"
                                         >
                                             <defs>
                                                 <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">

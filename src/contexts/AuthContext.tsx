@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       let apiRole: string = role === "company_admin" ? "users" : "admin";
 
-      console.log('apiRole', apiRole);
+      // console.log('apiRole', apiRole);
       const response = await userService.login({ email, password, role: apiRole }, {});
 
 
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('businessos_access_token', response.access_token);
 
         // console.log('company id', companyId);
-        console.log('respons', response);
+        // console.log('respons', response);
 
 
         if (response?.admin?.role === "ADMIN") {
