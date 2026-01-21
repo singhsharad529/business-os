@@ -141,7 +141,8 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                 });
 
                 setCompanyName(comp.name || '');
-            } else if (response.user) {
+            }
+            if (response.user) {
                 setEditData((prev: any) => ({
                     ...prev,
                     contactInfo: {
