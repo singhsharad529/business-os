@@ -4,6 +4,8 @@ import { AxiosRequestConfig } from "axios";
 const adminAgentService = {
   getRevenueDashboardData: (config: AxiosRequestConfig) =>
     apiService.get("dashboard/revenue", config),
+  getCallsDashboardData: (config: AxiosRequestConfig) =>
+    apiService.get("dashboard/calls", config),
   getAgentCategories: (config: AxiosRequestConfig) =>
     apiService.get("admin/templates/categories", config),
   getAgentsByCategory: (config: AxiosRequestConfig) =>

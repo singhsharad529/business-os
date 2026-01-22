@@ -13,6 +13,7 @@ export function SuperAdminDashboard() {
   const [view, setView] = useState<"calls" | "revenue">("calls");
 
   const [revenueDashboardData, setRevenueDashboardData] = useState<any>(null);
+  const [callsDashboardData, setCallsDashboardData] = useState<any>(null);
 
 
 
@@ -59,7 +60,10 @@ export function SuperAdminDashboard() {
       </div>
 
       {activeTab === 'calls' && (
-        <CallsDashboard />
+        <CallsDashboard
+          callsDashboardData={callsDashboardData}
+          setCallsDashboardData={setCallsDashboardData}
+        />
       )}
       {activeTab === 'revenue' && (
         <RevenueDashboard
