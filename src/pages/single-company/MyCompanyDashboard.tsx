@@ -269,7 +269,7 @@ export function MyCompanyDashboard() {
                                                         </h3>
                                                         <p className="text-xs text-text-muted mt-1">Official company records</p>
                                                     </div>
-                                                    <div className="p-6 space-y-4">
+                                                    <div className="p-4 max-h-[210px] overflow-y-auto space-y-3">
                                                         {company.documents && company.documents.length > 0 ? (
                                                             company.documents.map((doc: CompanyDocument, index: number) => (
                                                                 <div key={index} className="group flex gap-2 items-center justify-between p-4 bg-bg rounded-2xl border border-border-subtle hover:border-primary/40 hover:shadow-soft transition-all cursor-default">
@@ -297,7 +297,7 @@ export function MyCompanyDashboard() {
                                                 </div>
 
                                                 {/* System Info */}
-                                                <div className="card p-6 bg-bg-muted/50 border-dashed">
+                                                {/* <div className="card p-6 bg-bg-muted/50 border-dashed">
                                                     <h3 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">Platform Info</h3>
                                                     <div className="space-y-3">
                                                         <div className="flex justify-between items-center text-xs">
@@ -308,12 +308,12 @@ export function MyCompanyDashboard() {
                                                             <span className="text-text-muted">Created:</span>
                                                             <span>{new Date(company.createdAt).toLocaleDateString()}</span>
                                                         </div>
-                                                        {/* <div className="flex justify-between items-center text-xs">
+                                                        <div className="flex justify-between items-center text-xs">
                                                             <span className="text-text-muted">Timezone:</span>
                                                             <span>{company.timezone || 'UTC'}</span>
-                                                        </div> */}
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                </div> */}
 
 
                                                 {/* Assigned Numbers */}
@@ -325,7 +325,7 @@ export function MyCompanyDashboard() {
                                                         </h3>
                                                         <p className="text-xs text-text-muted mt-1">Active phone lines for this account</p>
                                                     </div>
-                                                    <div className="p-4 max-h-[220px] overflow-y-auto space-y-3">
+                                                    <div className="p-4 max-h-[210px] overflow-y-auto space-y-3">
                                                         {[
                                                             { number: "+1 (555) 000-1111", label: "Primary Business" },
                                                             { number: "+44 20 7123 4567", label: "London Office" },

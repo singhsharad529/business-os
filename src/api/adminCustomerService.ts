@@ -30,7 +30,7 @@ const adminCustomerService = {
   importLeadDatabaseData: (
     user_id: string,
     config: AxiosRequestConfig,
-    file: File,
+    file: File
   ) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -43,7 +43,7 @@ const adminCustomerService = {
           ...config.headers,
           "Content-Type": "multipart/form-data",
         },
-      },
+      }
     );
   },
   getLeadById: (user_id: string, lead_id: string, config: AxiosRequestConfig) =>
@@ -52,7 +52,7 @@ const adminCustomerService = {
     user_id: string,
     lead_id: string,
     leadData: any,
-    config: AxiosRequestConfig,
+    config: AxiosRequestConfig
   ) =>
     apiService.put(`admin/users/${user_id}/leads/${lead_id}`, leadData, config),
   getLeadCalls: (config: AxiosRequestConfig) =>
@@ -63,6 +63,40 @@ const adminCustomerService = {
     apiService.put(`admin/users/${user_id}`, userData, config),
   getfeedbackbyuser: (config: AxiosRequestConfig) =>
     apiService.get(`admin/feedback`, config),
+  getCustomerInvoices: (userId: string, config: AxiosRequestConfig) =>
+    apiService.get(`admin/users/${userId}/invoices`, config),
+  getCustomerPlanDetails: (userId: string, config: AxiosRequestConfig) =>
+    apiService.get(`admin/users/${userId}/plan`, config),
+  addInvoice: (
+    user_id: string,
+    formData: FormData,
+    config: AxiosRequestConfig
+  ) => {
+    return apiService.post(`admin/users/${user_id}/invoices`, formData, {
+      ...config,
+      headers: {
+        ...config.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  deleteInvoice: (invoice_id: string, config: AxiosRequestConfig) =>
+    apiService.delete(`admin/invoices/${invoice_id}`, config),
+  updateInvoice: (
+    invoice_id: string,
+    formData: FormData,
+    config: AxiosRequestConfig
+  ) => {
+    return apiService.put(`admin/invoices/${invoice_id}`, formData, {
+      ...config,
+      headers: {
+        ...config.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  updatePlan: (user_id: string, planData: any, config: AxiosRequestConfig) =>
+    apiService.put(`admin/users/${user_id}/plan`, planData, config),
 };
 
 export default adminCustomerService;
