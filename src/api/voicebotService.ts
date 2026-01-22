@@ -4,7 +4,7 @@ import { AxiosRequestConfig } from "axios";
 
 const voiceBotService = {
   getDashboardData: (config: AxiosRequestConfig) =>
-    apiService.get("dashboard/voicebot", config),
+    apiService.get("users/dashboard/voicebot", config),
   getAllAgents: (config: AxiosRequestConfig) =>
     apiService.get("users/assistants", config),
   getProfile: (config: AxiosRequestConfig) =>

@@ -77,17 +77,17 @@ export function VoicebotDashboard() {
               <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                 <div className="text-sm text-text-muted mb-2">Total Conversations</div>
                 <div className="text-3xl font-bold text-text-main">
-                  {voiceBotDashboardData?.kpis?.totalConversations?.change || 0}
+                  {voiceBotDashboardData?.kpis?.totalConversations?.value || 0}
                 </div>
-                <div className="text-xs text-success mt-2">
-                  {voiceBotDashboardData?.kpis?.totalConversations?.changeType}
+                <div className={`text-xs mt-2 ${voiceBotDashboardData?.kpis?.totalConversations?.change === 'positive' ? 'text-success' : 'text-danger'}`}>
+                  {voiceBotDashboardData?.kpis?.totalConversations?.change}
                 </div>
               </div>
 
               <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                 <div className="text-sm text-text-muted mb-2">Active Sessions</div>
                 <div className="text-3xl font-bold text-text-main">
-                  {voiceBotDashboardData?.kpis?.activeSessions?.change || 0}
+                  {voiceBotDashboardData?.kpis?.activeSessions?.value || 0}
                 </div>
                 <div className="text-xs text-text-muted mt-2">
                   {voiceBotDashboardData?.kpis?.activeSessions?.status}
@@ -97,10 +97,11 @@ export function VoicebotDashboard() {
               <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                 <div className="text-sm text-text-muted mb-2">Success Rate</div>
                 <div className="text-3xl font-bold text-text-main">
-                  {voiceBotDashboardData?.kpis?.successRate?.change || 0}
+                  {voiceBotDashboardData?.kpis?.successRate?.value || 0}
+                  {voiceBotDashboardData?.kpis?.successRate?.unit}
                 </div>
-                <div className="text-xs text-success mt-2">
-                  {voiceBotDashboardData?.kpis?.successRate?.changeType}
+                <div className={`text-xs mt-2 ${voiceBotDashboardData?.kpis?.successRate?.change === 'positive' ? 'text-success' : 'text-danger'}`}>
+                  {voiceBotDashboardData?.kpis?.successRate?.label}
                 </div>
               </div>
 
@@ -108,7 +109,6 @@ export function VoicebotDashboard() {
                 <div className="text-sm text-text-muted mb-2">Avg Response Time</div>
                 <div className="text-3xl font-bold text-text-main">
                   {voiceBotDashboardData?.kpis?.avgResponseTime?.value || 0}
-                  {voiceBotDashboardData?.kpis?.avgResponseTime?.unit}
                 </div>
                 <div className="text-xs text-text-muted mt-2">
                   {voiceBotDashboardData?.kpis?.avgResponseTime?.status}
