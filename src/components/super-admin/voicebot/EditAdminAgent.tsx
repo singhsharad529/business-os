@@ -18,7 +18,8 @@ import {
     Loader2,
     Play,
     Pause,
-    BrainCog
+    BrainCog,
+    Upload
 } from "lucide-react";
 import {
     Select,
@@ -782,7 +783,7 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
                                     </h3>
 
                                     <div className="space-y-2">
-                                        <label className="text-xs font-semibold text-text-main">Phone Number</label>
+                                        <label className="text-xs font-semibold text-text-main">Change Phone Number</label>
 
                                         <Select
                                             onValueChange={(value) => setSelectedPhoneNumber(value)}
@@ -805,6 +806,31 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
                                                 )}
                                             </SelectContent>
                                         </Select>
+                                    </div>
+
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-text-main">Upload Knowledge Base</label>
+
+                                        <div className="flex flex-col items-center justify-center border-2 border-dashed border-border-subtle rounded-2xl p-4 bg-bg-alt/20 hover:bg-bg-alt/40 transition-all group cursor-pointer relative">
+
+                                            <input
+                                                type="file"
+                                                accept=".pdf"
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        // setInvoiceFile(e.target.files[0]);
+                                                    }
+                                                }}
+                                                required
+                                            />
+                                            <div className="w-12 h-12 bg-primary-soft rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform mb-4">
+                                                <Upload className="w-5 h-5" />
+                                            </div>
+                                            <div className="text-sm font-bold text-text-main">Click to upload or drag & drop</div>
+                                            <div className="text-xs text-text-muted mt-1">PDF (max. 5MB)</div>
+                                        </div>
                                     </div>
 
                                 </section>
