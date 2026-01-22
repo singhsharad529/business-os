@@ -20,6 +20,7 @@ import TableLoader from '@/components/common/TableLoader'
 import { SideSheet } from '@/components/SideSheet'
 import { CallDetails } from '@/components/voicebot/CallDetails'
 import Pagination from '@/components/common/Pagination'
+import EditAdminAgent from '@/components/super-admin/voicebot/EditAdminAgent'
 
 const stats = [
     { label: "Total Calls", value: "1,248", icon: Phone, trend: "+12.5%", trendColor: "text-success", iconColor: "bg-primary/10 text-primary" },
@@ -437,265 +438,267 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
     };
 
     return (
-        <div className="py-6 space-y-8 animate-in fade-in duration-500">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleBack}
-                        className="p-1 hover:bg-bg-alt rounded-lg transition-colors text-text-muted hover:text-primary mr-1"
+        <div>
+            <div className="py-6 space-y-8 animate-in fade-in duration-500">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleBack}
+                            className="p-1 hover:bg-bg-alt rounded-lg transition-colors text-text-muted hover:text-primary mr-1"
+                        >
+                            <ChevronLeft className="w-6 h-6 text-primary" />
+                        </button>
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-black text-text-main tracking-tight">{agent?.name || "Sales - Inbound Support"}</h1>
+                            <p className="text-text-muted text-sm font-medium">
+                                {agent?.metadata?.department?.charAt(0).toUpperCase() + agent?.metadata?.department?.slice(1) || "Sales"}
+                            </p>
+                        </div>
+                    </div>
+                    {/* <button
+                        className="btn btn-primary flex items-center gap-2"
                     >
-                        <ChevronLeft className="w-6 h-6 text-primary" />
-                    </button>
-                    <div className="space-y-1">
-                        <h1 className="text-3xl font-black text-text-main tracking-tight">{agent?.name || "Sales - Inbound Support"}</h1>
-                        <p className="text-text-muted text-sm font-medium">
-                            {agent?.metadata?.department?.charAt(0).toUpperCase() + agent?.metadata?.department?.slice(1) || "Sales"}
-                        </p>
+                        <Edit2 className="w-4 h-4" />
+                        Edit Agent
+                    </button> */}
+                </div>
+
+                {/* Tabs Switcher */}
+                <div className="flex items-center justify-between border-b border-border-subtle">
+                    <div className="flex gap-8">
+                        <button
+                            onClick={() => {
+                                setAgentStatsTab("dashboard");
+                            }}
+                            className={`pb-2 text-sm font-bold transition-all relative ${agentStatsTab === 'dashboard' ? 'text-primary' : 'text-text-muted hover:text-text-main'}`}
+                        >
+                            Dashboard
+                            {agentStatsTab === 'dashboard' && (
+                                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
+                            )}
+                        </button>
+                        <button
+                            onClick={() => {
+                                setAgentStatsTab("calls");
+                            }}
+                            className={`pb-2 text-sm font-bold transition-all relative ${agentStatsTab === 'calls' ? 'text-primary' : 'text-text-muted hover:text-text-main'}`}
+                        >
+                            Inbound Calls
+                            {agentStatsTab === 'calls' && (
+                                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
+                            )}
+                        </button>
                     </div>
                 </div>
-                <button
-                    className="btn btn-primary flex items-center gap-2"
-                >
-                    <Edit2 className="w-4 h-4" />
-                    Edit Agent
-                </button>
-            </div>
 
-            {/* Tabs Switcher */}
-            <div className="flex items-center justify-between border-b border-border-subtle">
-                <div className="flex gap-8">
-                    <button
-                        onClick={() => {
-                            setAgentStatsTab("dashboard");
-                        }}
-                        className={`pb-2 text-sm font-bold transition-all relative ${agentStatsTab === 'dashboard' ? 'text-primary' : 'text-text-muted hover:text-text-main'}`}
-                    >
-                        Dashboard
-                        {agentStatsTab === 'dashboard' && (
-                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
-                        )}
-                    </button>
-                    <button
-                        onClick={() => {
-                            setAgentStatsTab("calls");
-                        }}
-                        className={`pb-2 text-sm font-bold transition-all relative ${agentStatsTab === 'calls' ? 'text-primary' : 'text-text-muted hover:text-text-main'}`}
-                    >
-                        Inbound Calls
-                        {agentStatsTab === 'calls' && (
-                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
-                        )}
-                    </button>
-                </div>
-            </div>
-
-            {
-                agentStatsTab === "dashboard" && (
-                    <div className='space-y-6'>
-                        {/* Stats Cards Row */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {stats.map((stat, index) => (
-                                <div key={index} className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="text-sm text-text-muted">{stat.label}</div>
-                                        <div className={`p-2 rounded-lg ${stat.iconColor}`}>
-                                            <stat.icon className="w-4 h-4" />
+                {
+                    agentStatsTab === "dashboard" && (
+                        <div className='space-y-6'>
+                            {/* Stats Cards Row */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {stats.map((stat, index) => (
+                                    <div key={index} className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="text-sm text-text-muted">{stat.label}</div>
+                                            <div className={`p-2 rounded-lg ${stat.iconColor}`}>
+                                                <stat.icon className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                        <div className="text-3xl font-bold text-text-main">
+                                            {stat.value}
+                                        </div>
+                                        <div className={`text-xs mt-2 font-medium ${stat.trendColor}`}>
+                                            {stat.trend}
                                         </div>
                                     </div>
-                                    <div className="text-3xl font-bold text-text-main">
-                                        {stat.value}
-                                    </div>
-                                    <div className={`text-xs mt-2 font-medium ${stat.trendColor}`}>
-                                        {stat.trend}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Charts Row */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Call Volume - Line Chart */}
-                            <Card className="glass-morphism border-border-subtle rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                                <CardHeader className="pb-2">
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="text-xl font-black text-text-main">Call volume</CardTitle>
-                                        <span className="text-xs font-bold text-text-muted px-3 py-1 bg-bg-muted rounded-full">Last 7 days</span>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="pt-4">
-                                    <ChartContainer config={chartConfig} className="h-[320px] w-full">
-                                        <LineChart
-                                            data={callVolumeData}
-
-                                        >
-                                            <CartesianGrid vertical={false} stroke="#D9E1EC" strokeDasharray="3 3" />
-                                            <XAxis
-                                                dataKey="day"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fill: '#475467', fontSize: 12, fontWeight: 600 }}
-                                                dy={5}
-                                            />
-                                            <YAxis
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fill: '#475467', fontSize: 12, fontWeight: 600 }}
-                                            />
-                                            <ChartTooltip content={<ChartTooltipContent />} />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="calls"
-                                                stroke="#7132CA"
-                                                strokeWidth={4}
-                                                dot={{ fill: '#7132CA', strokeWidth: 2, r: 4, stroke: '#fff' }}
-                                                activeDot={{ r: 8, strokeWidth: 0 }}
-                                                animationDuration={2000}
-                                            />
-                                        </LineChart>
-                                    </ChartContainer>
-                                </CardContent>
-                            </Card>
-
-                            {/* Call Outcomes - Horizontal Bar Chart */}
-                            <Card className="glass-morphism border-border-subtle rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-xl font-black text-text-main">Call outcomes</CardTitle>
-                                </CardHeader>
-                                <CardContent className="pt-4">
-                                    <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                                        <BarChart
-                                            layout="vertical"
-                                            data={callOutcomesData}
-                                            margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
-                                            barSize={45}
-                                            barCategoryGap="40%"
-                                        >
-                                            <defs>
-                                                <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
-                                                    <stop offset="0%" stopColor="var(--chart-gradient-end)" />
-                                                    <stop offset="100%" stopColor="var(--chart-gradient-start)" />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid horizontal={false} stroke="#D9E1EC" strokeDasharray="3 3" />
-                                            <XAxis type="number" hide />
-                                            <YAxis
-                                                dataKey="outcome"
-                                                type="category"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fill: '#475467', fontSize: 13, fontWeight: 700 }}
-                                                width={90}
-                                            />
-                                            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                                            <Bar
-                                                dataKey="count"
-                                                fill="url(#barGradient)"
-                                                radius={[0, 8, 8, 0]}
-                                                animationDuration={1500}
-                                            />
-                                        </BarChart>
-                                    </ChartContainer>
-                                    <div className="mt-6 grid grid-cols-2 gap-4">
-                                        {callOutcomesData.map((item) => (
-                                            <div key={item.outcome} className="flex flex-col p-3 rounded-2xl bg-bg border border-border-subtle/50 group hover:border-primary/20 transition-colors duration-300">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                                                    <span className="text-xs font-bold text-text-muted">{item.outcome}</span>
-                                                </div>
-                                                <span className="text-lg font-black text-text-main font-mono">{item.count}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </div>
-                )
-            }
-            {
-                agentStatsTab === "calls" && (
-                    <div>
-                        {loading ? (
-                            <TableLoader rows={10} columns={8} />
-                        ) : (
-                            <div className="card p-4">
-                                <div className="flex flex-col sm:flex-row gap-2 mb-4">
-                                    <div className="flex-1 relative">
-                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search by number or assistant..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="input pl-8 w-full"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr className="border-b border-border-subtle">
-                                                <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Customer Number</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assistant</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Duration</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Cost</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Call Time</th>
-                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-border-subtle/50">
-                                            {filteredInboundCalls && filteredInboundCalls?.map((call: any, i: number) => (
-                                                <tr key={call.id} className="hover:bg-bg-alt/30 transition-colors">
-                                                    <td className="py-4 px-3 text-center text-xs text-text-muted">
-                                                        {(pagination?.page - 1) * (pagination?.pageSize || inboundPageSize) + i + 1}
-                                                    </td>
-                                                    <td className="py-4 px-3 text-sm text-text-main font-medium">{call.customerNumber || 'Web Call'}</td>
-                                                    <td className="py-4 px-3 text-sm text-text-muted">{call.assistantName || 'N/A'}</td>
-                                                    <td className="py-4 px-3">
-                                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${call.status?.includes('ended') || call.status === 'completed' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
-                                                            }`}>
-                                                            {call.status?.split('.').pop()?.split('-').join(' ')}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-4 px-3 text-sm text-text-muted">
-                                                        {call.durationMinutes ? `${call.durationMinutes.toFixed(2)}m` : call.durationSeconds ? `${call.durationSeconds}s` : '0s'}
-                                                    </td>
-                                                    <td className="py-4 px-3 text-sm text-text-muted">${call.cost?.total?.toFixed(3) || '0.000'}</td>
-                                                    <td className="py-4 px-3 text-sm text-text-muted">
-                                                        {call.createdAt ? new Date(call.createdAt).toLocaleString() : 'N/A'}
-                                                    </td>
-                                                    <td className="py-4 px-3 text-sm text-text-muted">
-                                                        <button
-                                                            onClick={() => handleViewDetails(call)}
-                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
-                                                        >
-                                                            <Eye className="w-4 h-4" />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                {pagination && (
-                                    <Pagination
-                                        currentPage={pagination.page}
-                                        totalPages={pagination.totalPages}
-                                        pageSize={pagination.pageSize}
-                                        totalCount={pagination.total}
-                                        onPageChange={handlePageChange}
-                                    />
-                                )}
+                                ))}
                             </div>
-                        )}
-                    </div>
-                )
-            }
 
+                            {/* Charts Row */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Call Volume - Line Chart */}
+                                <Card className="glass-morphism border-border-subtle rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+                                    <CardHeader className="pb-2">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-xl font-black text-text-main">Call volume</CardTitle>
+                                            <span className="text-xs font-bold text-text-muted px-3 py-1 bg-bg-muted rounded-full">Last 7 days</span>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pt-4">
+                                        <ChartContainer config={chartConfig} className="h-[320px] w-full">
+                                            <LineChart
+                                                data={callVolumeData}
+
+                                            >
+                                                <CartesianGrid vertical={false} stroke="#D9E1EC" strokeDasharray="3 3" />
+                                                <XAxis
+                                                    dataKey="day"
+                                                    axisLine={false}
+                                                    tickLine={false}
+                                                    tick={{ fill: '#475467', fontSize: 12, fontWeight: 600 }}
+                                                    dy={5}
+                                                />
+                                                <YAxis
+                                                    axisLine={false}
+                                                    tickLine={false}
+                                                    tick={{ fill: '#475467', fontSize: 12, fontWeight: 600 }}
+                                                />
+                                                <ChartTooltip content={<ChartTooltipContent />} />
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="calls"
+                                                    stroke="#7132CA"
+                                                    strokeWidth={4}
+                                                    dot={{ fill: '#7132CA', strokeWidth: 2, r: 4, stroke: '#fff' }}
+                                                    activeDot={{ r: 8, strokeWidth: 0 }}
+                                                    animationDuration={2000}
+                                                />
+                                            </LineChart>
+                                        </ChartContainer>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Call Outcomes - Horizontal Bar Chart */}
+                                <Card className="glass-morphism border-border-subtle rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-xl font-black text-text-main">Call outcomes</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="pt-4">
+                                        <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                                            <BarChart
+                                                layout="vertical"
+                                                data={callOutcomesData}
+                                                margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                                                barSize={45}
+                                                barCategoryGap="40%"
+                                            >
+                                                <defs>
+                                                    <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
+                                                        <stop offset="0%" stopColor="var(--chart-gradient-end)" />
+                                                        <stop offset="100%" stopColor="var(--chart-gradient-start)" />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid horizontal={false} stroke="#D9E1EC" strokeDasharray="3 3" />
+                                                <XAxis type="number" hide />
+                                                <YAxis
+                                                    dataKey="outcome"
+                                                    type="category"
+                                                    axisLine={false}
+                                                    tickLine={false}
+                                                    tick={{ fill: '#475467', fontSize: 13, fontWeight: 700 }}
+                                                    width={90}
+                                                />
+                                                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                                                <Bar
+                                                    dataKey="count"
+                                                    fill="url(#barGradient)"
+                                                    radius={[0, 8, 8, 0]}
+                                                    animationDuration={1500}
+                                                />
+                                            </BarChart>
+                                        </ChartContainer>
+                                        <div className="mt-6 grid grid-cols-2 gap-4">
+                                            {callOutcomesData.map((item) => (
+                                                <div key={item.outcome} className="flex flex-col p-3 rounded-2xl bg-bg border border-border-subtle/50 group hover:border-primary/20 transition-colors duration-300">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                                                        <span className="text-xs font-bold text-text-muted">{item.outcome}</span>
+                                                    </div>
+                                                    <span className="text-lg font-black text-text-main font-mono">{item.count}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    )
+                }
+                {
+                    agentStatsTab === "calls" && (
+                        <div>
+                            {loading ? (
+                                <TableLoader rows={10} columns={8} />
+                            ) : (
+                                <div className="card p-4">
+                                    <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                                        <div className="flex-1 relative">
+                                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search by number or assistant..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                className="input pl-8 w-full"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-border-subtle">
+                                                    <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
+                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Customer Number</th>
+                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assistant</th>
+                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
+                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Duration</th>
+                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Cost</th>
+                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Call Time</th>
+                                                    <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border-subtle/50">
+                                                {filteredInboundCalls && filteredInboundCalls?.map((call: any, i: number) => (
+                                                    <tr key={call.id} className="hover:bg-bg-alt/30 transition-colors">
+                                                        <td className="py-4 px-3 text-center text-xs text-text-muted">
+                                                            {(pagination?.page - 1) * (pagination?.pageSize || inboundPageSize) + i + 1}
+                                                        </td>
+                                                        <td className="py-4 px-3 text-sm text-text-main font-medium">{call.customerNumber || 'Web Call'}</td>
+                                                        <td className="py-4 px-3 text-sm text-text-muted">{call.assistantName || 'N/A'}</td>
+                                                        <td className="py-4 px-3">
+                                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${call.status?.includes('ended') || call.status === 'completed' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                                                                }`}>
+                                                                {call.status?.split('.').pop()?.split('-').join(' ')}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                            {call.durationMinutes ? `${call.durationMinutes.toFixed(2)}m` : call.durationSeconds ? `${call.durationSeconds}s` : '0s'}
+                                                        </td>
+                                                        <td className="py-4 px-3 text-sm text-text-muted">${call.cost?.total?.toFixed(3) || '0.000'}</td>
+                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                            {call.createdAt ? new Date(call.createdAt).toLocaleString() : 'N/A'}
+                                                        </td>
+                                                        <td className="py-4 px-3 text-sm text-text-muted">
+                                                            <button
+                                                                onClick={() => handleViewDetails(call)}
+                                                                className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {pagination && (
+                                        <Pagination
+                                            currentPage={pagination.page}
+                                            totalPages={pagination.totalPages}
+                                            pageSize={pagination.pageSize}
+                                            totalCount={pagination.total}
+                                            onPageChange={handlePageChange}
+                                        />
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
+
+            </div>
             {/* Call Details SideSheet */}
             <SideSheet
                 isOpen={isCallDetailSheetOpen}
@@ -705,6 +708,26 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
             >
                 {selectedCallForDetail && <CallDetails call={selectedCallForDetail} />}
             </SideSheet>
+
+
+            {/* SideSheets */}
+            {/* <SideSheet
+                isOpen={isEditSheetOpen}
+                onClose={() => setIsEditSheetOpen(false)}
+                title="Edit AI Agent"
+                size="md"
+            >
+                {agent && (
+                    <EditAdminAgent
+                        agent={agent}
+                        onClose={() => setIsEditSheetOpen(false)}
+                        onSuccess={() => {
+                            setIsEditSheetOpen(false);
+                            fetchAgents(selectedCategory, 1);
+                        }}
+                    />
+                )}
+            </SideSheet> */}
         </div>
     )
 }

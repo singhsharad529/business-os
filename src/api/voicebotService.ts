@@ -141,6 +141,10 @@ const voiceBotService = {
       },
     });
   },
+  getInvoices: (config: AxiosRequestConfig) =>
+    apiService.get("users/invoices", config),
+  getPlanDetails: (config: AxiosRequestConfig) =>
+    apiService.get("users/plan", config),
 };
 
 export default voiceBotService;
