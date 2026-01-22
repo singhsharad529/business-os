@@ -326,6 +326,7 @@ function CustomerAgents({
                             setIsEditSheetOpen(false);
 
                         }}
+                        isActive={true}
 
                         onSuccess={() => {
                             fetchAgents();
