@@ -259,7 +259,7 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
                                             {phoneNumbers && phoneNumbers.length > 0 ? (
                                                 phoneNumbers.map((number: any) => (
                                                     <SelectItem key={number.id} value={number.vapiId}>
-                                                        {number.number}
+                                                        {number.formattedNumber}
                                                     </SelectItem>
                                                 ))
                                             ) : (

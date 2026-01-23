@@ -237,7 +237,7 @@ function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
                                             {phoneNumbers && phoneNumbers.length > 0 ? (
                                                 phoneNumbers.map((number: any) => (
                                                     <SelectItem key={number.id} value={number.vapiId}>
-                                                        {number.number}
+                                                        {number.formattedNumber}
                                                     </SelectItem>
                                                 ))
                                             ) : (
