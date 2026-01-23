@@ -134,7 +134,9 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
             // console.log('response', response);
             if (response && response.phoneNumbers) {
                 setPhoneNumbers(response.phoneNumbers);
-                setSelectedPhoneNumber(response.phoneNumbers[0].id);
+                if (response.phoneNumbers.length > 0) {
+                    setSelectedPhoneNumber(response.phoneNumbers[0].vapiId);
+                }
             }
         } catch (error) {
             toast.danger("Failed to load phone numbers")
@@ -795,8 +797,8 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
                                             <SelectContent>
                                                 {phoneNumbers && phoneNumbers.length > 0 ? (
                                                     phoneNumbers.map((number: any) => (
-                                                        <SelectItem key={number.id} value={number.id}>
-                                                            {number.number}
+                                                        <SelectItem key={number.id} value={number.vapiId}>
+                                                            {number.formattedNumber}
                                                         </SelectItem>
                                                     ))
                                                 ) : (
