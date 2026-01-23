@@ -218,7 +218,7 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                         </div>
 
                         {/* About Section */}
-                        <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                        <div className="card min-h-[200px] rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                             <h3 className="text-xl font-bold text-text-main mb-4 flex items-center gap-2">
                                 About {currentCompany?.name}
                             </h3>
@@ -228,72 +228,65 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                         </div>
 
                         {/* Profile Information & Status */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="card rounded-xl p-8 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                                <h3 className="text-lg font-semibold text-text-main flex items-center gap-2 mb-2">
-                                    <User className="w-5 h-5 text-primary" />
-                                    Personal Information
-                                </h3>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between py-2 border-b border-border-subtle/50">
-                                        <span className="text-text-muted flex items-center gap-2"><Mail className="w-4 h-4" /> Email</span>
-                                        <span className="text-text-main">{currentEmail}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                                <h3 className="text-lg font-semibold text-text-main mb-2">Account Status</h3>
-                                <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-text-muted">Account Status</span>
-                                        <span className="flex items-center gap-1.5 text-success font-medium">
-                                            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                                            Active
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Company Details Grid */}
+                        {/* Quick Stats/Details Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4 card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
                                 <h4 className="text-sm font-bold text-text-muted uppercase tracking-wider flex items-center gap-2">
-                                    <Building2 className="w-4 h-4" /> Company Contact
+                                    <Mail className="w-4 h-4" /> Contact Information
                                 </h4>
                                 <div className="space-y-3">
-                                    <div className='w-full text-left px-4 py-3 bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors text-sm font-medium text-text-main'>
+                                    <div className='w-full text-left px-4 py-3 bg-primary-soft/30 hover:bg-primary-soft/50 rounded-lg transition-colors text-sm font-medium text-text-main'>
+                                        <p className="text-xs text-text-muted">Email Address</p>
+                                        <p className="text-sm font-medium">{currentEmail}</p>
+                                    </div>
+                                    <div className='w-full text-left px-4 py-3 bg-primary-soft/30 hover:bg-primary-soft/50 rounded-lg transition-colors text-sm font-medium text-text-main'>
                                         <p className="text-xs text-text-muted">Phone Number</p>
-                                        <p className="text-sm font-medium">{currentPhone}</p>
+                                        <p className="text-sm font-medium">{currentCompany?.contactInfo?.phone}</p>
                                     </div>
-                                    <div className='w-full text-left px-4 py-3 bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors text-sm font-medium text-text-main'>
-                                        <p className="text-xs text-text-muted">Physical Address</p>
-                                        <p className="text-sm font-medium">{currentCompany?.contactInfo?.address || currentCompany?.address}</p>
-                                    </div>
+                                    {/* <div className='w-full text-left px-4 py-3 bg-primary-soft/30 hover:bg-primary-soft/50 rounded-lg transition-colors text-sm font-medium text-text-main'>
+                                                                <p className="text-xs text-text-muted">Physical Address</p>
+                                                                <p className="text-sm font-medium">{company.contactInfo?.address || 'Not specified'}</p>
+                                                            </div> */}
                                 </div>
                             </div>
 
-                            <div className="space-y-4 card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                                <h4 className="text-sm font-bold text-text-muted uppercase tracking-wider flex items-center gap-2">
-                                    <Fingerprint className="w-4 h-4" /> Legal & Compliance
-                                </h4>
-                                <div className="space-y-3">
-                                    <div className='p-3 bg-bg/50 rounded-lg'>
-                                        <p className="text-xs text-text-muted">Tax Identification (Tax ID)</p>
-                                        <p className="text-sm font-medium">{currentCompany?.taxId}</p>
-                                    </div>
-                                    <div className='p-3 bg-bg/50 rounded-lg'>
-                                        <p className="text-xs text-text-muted">Founded Year</p>
-                                        <p className="text-sm font-medium">{currentCompany?.foundedDate ? new Date(currentCompany.foundedDate).getFullYear() : 'N/A'}</p>
-                                    </div>
-                                    <div className='p-3 bg-bg/50 rounded-lg'>
-                                        <p className="text-xs text-text-muted">Currency</p>
-                                        <p className="text-sm font-medium">{currentCompany?.currency}</p>
-                                    </div>
+                            {/* Assigned Numbers */}
+                            <div className="card rounded-xl overflow-hidden border border-border-subtle">
+                                <div className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-b border-border-subtle">
+                                    <h3 className="text-lg font-bold text-text-main flex items-center gap-2">
+                                        <Phone className="w-5 h-5 text-primary" />
+                                        Your Numbers
+                                    </h3>
+                                    <p className="text-xs text-text-muted mt-1">Active phone lines for this account</p>
+                                </div>
+                                <div className="p-4 max-h-[200px] overflow-y-auto space-y-3">
+                                    {[
+                                        { number: "+1 (555) 000-1111", label: "Primary Business" },
+                                        { number: "+44 20 7123 4567", label: "London Office" },
+                                        { number: "+1 (555) 000-2222", label: "Customer Support" },
+                                        { number: "+1 (555) 000-3333", label: "Sales Team" },
+                                        { number: "+1 (555) 000-4444", label: "Emergency Line" },
+                                        { number: "+1 (555) 000-5555", label: "Technical Support" }
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-2 bg-bg-alt/30 rounded-xl border border-border-subtle/50 hover:border-primary/30 transition-all group">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-white rounded-lg border border-border-subtle group-hover:text-primary transition-colors">
+                                                    <Phone className="w-3.5 h-3.5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-text-main">{item.number}</p>
+                                                    {/* <p className="text-[10px] text-text-muted">{item.label}</p> */}
+                                                </div>
+                                            </div>
+                                            <div className="w-2 h-2 rounded-full bg-success/80 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
+
                         </div>
+
+
                     </div>
 
                     {/* Sidebar (Right) */}
@@ -307,7 +300,7 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                                 </h3>
                                 <p className="text-xs text-text-muted mt-1">Official company records</p>
                             </div>
-                            <div className="p-4 max-h-[260px] overflow-y-auto space-y-3">
+                            <div className="p-4 max-h-[400px] overflow-y-auto space-y-3">
                                 {currentCompany?.documents?.map((doc: any, index: number) => (
                                     <div key={index} className="group flex gap-2 items-center justify-between p-4 bg-bg rounded-2xl border border-border-subtle hover:border-primary/40 hover:shadow-soft transition-all cursor-default">
                                         <div className="flex items-center gap-2">
@@ -316,7 +309,7 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                                             </div>
                                             <div>
                                                 <p className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">{doc.documentName}</p>
-                                                <p className="text-[10px] text-text-muted">Uploaded {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'N/A'}</p>
+                                                {/* <p className="text-[10px] text-text-muted">Uploaded {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'N/A'}</p> */}
                                             </div>
                                         </div>
                                         <a href={doc.documentUrl} className="p-2 bg-white hover:bg-primary/10 rounded-xl border border-border-subtle text-text-muted hover:text-primary transition-all">
@@ -347,38 +340,7 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                         </div> */}
 
                         {/* Assigned Numbers */}
-                        <div className="card rounded-xl overflow-hidden border border-border-subtle">
-                            <div className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 border-b border-border-subtle">
-                                <h3 className="text-lg font-bold text-text-main flex items-center gap-2">
-                                    <Phone className="w-5 h-5 text-primary" />
-                                    Your Numbers
-                                </h3>
-                                <p className="text-xs text-text-muted mt-1">Active phone lines for this account</p>
-                            </div>
-                            <div className="p-4 max-h-[260px] overflow-y-auto space-y-3">
-                                {[
-                                    { number: "+1 (555) 000-1111", label: "Primary Business" },
-                                    { number: "+44 20 7123 4567", label: "London Office" },
-                                    { number: "+1 (555) 000-2222", label: "Customer Support" },
-                                    { number: "+1 (555) 000-3333", label: "Sales Team" },
-                                    { number: "+1 (555) 000-4444", label: "Emergency Line" },
-                                    { number: "+1 (555) 000-5555", label: "Technical Support" }
-                                ].map((item, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-2 bg-bg-alt/30 rounded-xl border border-border-subtle/50 hover:border-primary/30 transition-all group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-white rounded-lg border border-border-subtle group-hover:text-primary transition-colors">
-                                                <Phone className="w-3.5 h-3.5" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-text-main">{item.number}</p>
-                                                {/* <p className="text-[10px] text-text-muted">{item.label}</p> */}
-                                            </div>
-                                        </div>
-                                        <div className="w-2 h-2 rounded-full bg-success/80 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+
                     </div>
                 </div>
                 )
