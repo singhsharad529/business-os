@@ -48,6 +48,7 @@ const Customer = () => {
     const [isAddFeedbackSheetOpen, setIsAddFeedbackSheetOpen] = useState(false);
     const [customerName, setCustomerName] = useState("");
     const [companyName, setCompanyName] = useState("");
+    const [clientDashboardStats, setClientDashboardStats] = useState<any>(null)
 
     const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -142,7 +143,7 @@ const Customer = () => {
                                 <PhoneCall className="w-4 h-4" />
                             </div>
                         </div>
-                        <div className="text-3xl font-bold text-text-main">{0}</div>
+                        <div className="text-3xl font-bold text-text-main">{clientDashboardStats?.totalCalls}</div>
                         {/* <div className="text-xs text-success mt-2 font-medium">Active organizations</div> */}
                     </div>
 
@@ -153,7 +154,7 @@ const Customer = () => {
                                 <TrendingUp className="w-4 h-4" />
                             </div>
                         </div>
-                        <div className="text-3xl font-bold text-text-main">14</div>
+                        <div className="text-3xl font-bold text-text-main">{clientDashboardStats?.connectedCalls}</div>
                         {/* <div className="text-xs text-success mt-2 font-medium">~3.4 agents per client</div> */}
                     </div>
 
@@ -164,7 +165,7 @@ const Customer = () => {
                                 <Clock className="w-4 h-4" />
                             </div>
                         </div>
-                        <div className="text-3xl font-bold text-text-main">12:34</div>
+                        <div className="text-3xl font-bold text-text-main">{clientDashboardStats?.avgDurationSeconds}</div>
                         {/* <div className="text-xs text-success mt-2 font-medium">Successful password changes</div> */}
                     </div>
 
@@ -175,7 +176,7 @@ const Customer = () => {
                                 <DollarSign className="w-4 h-4" />
                             </div>
                         </div>
-                        <div className="text-3xl font-bold text-text-main">$12,345</div>
+                        <div className="text-3xl font-bold text-text-main">${clientDashboardStats?.totalRevenue}</div>
                         {/* <div className="text-xs text-text-muted mt-2 font-medium">Daily active agents</div> */}
                     </div>
 
@@ -186,7 +187,7 @@ const Customer = () => {
                                 <DollarSign className="w-4 h-4" />
                             </div>
                         </div>
-                        <div className="text-3xl font-bold text-text-main">$0</div>
+                        <div className="text-3xl font-bold text-text-main">{clientDashboardStats?.mrr}</div>
                         {/* <div className="text-xs text-text-muted mt-2 font-medium">Daily active agents</div> */}
                     </div>
                 </div>
@@ -249,6 +250,7 @@ const Customer = () => {
                             userid={id as string}
                             setCustomerName={setCustomerName}
                             setCompanyName={setCompanyName}
+                            setClientDashboardStats={setClientDashboardStats}
                         />
                     )}
 

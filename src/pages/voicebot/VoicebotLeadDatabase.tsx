@@ -16,6 +16,7 @@ import Modal from "@/components/common/Modal"
 import { LeadDetails } from "@/components/voicebot/LeadDetails"
 import AddLead from "@/components/voicebot/AddLead"
 import { AxiosRequestConfig } from "axios"
+import { Skeleton } from "@/components/ui/skeleton"
 
 function VoicebotLeadDatabase() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -38,6 +39,7 @@ function VoicebotLeadDatabase() {
     const [actionsPage, setActionsPage] = useState(1);
     const [leaddbfile, setLeaddbfile] = useState<File | null>(null);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [leadStats, setLeadStats] = useState<any>(null);
 
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
@@ -92,6 +94,8 @@ function VoicebotLeadDatabase() {
                 setLeads(response.leads);
             if (response.pagination)
                 setPagination(response.pagination);
+            if (response.stats)
+                setLeadStats(response.stats);
         } catch (error) {
             console.log(error);
         }
@@ -160,40 +164,52 @@ function VoicebotLeadDatabase() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div>
-                            <div className="text-3xl font-bold text-text-main">152</div>
-                            <div className="text-xs text-text-muted mt-2">Users</div>
+                {
+                    userdataLoading && !leadStats ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <Skeleton className="w-full h-32 rounded-xl" />
+                            <Skeleton className="w-full h-32 rounded-xl" />
+                            <Skeleton className="w-full h-32 rounded-xl" />
+                            <Skeleton className="w-full h-32 rounded-xl" />
                         </div>
-                        <div className="text-sm mb-2"><User className="w-6 h-6 text-primary opacity-80" /></div>
+                    ) :
+                        (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                    <div>
+                                        <div className="text-3xl font-bold text-text-main">{leadStats?.totalLeads}</div>
+                                        <div className="text-xs text-text-muted mt-2">Total Leads</div>
+                                    </div>
+                                    <div className="text-sm mb-2"><User className="w-6 h-6 text-primary opacity-80" /></div>
 
-                    </div>
-                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div>
-                            <div className="text-3xl font-bold text-text-main">10</div>
-                            <div className="text-xs text-text-muted mt-2">Called</div>
-                        </div>
-                        <div className="text-sm mb-2"><Phone className="w-6 h-6 text-primary opacity-80" /></div>
-                    </div>
+                                </div>
+                                <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                    <div>
+                                        <div className="text-3xl font-bold text-text-main">{leadStats?.called}</div>
+                                        <div className="text-xs text-text-muted mt-2">Called</div>
+                                    </div>
+                                    <div className="text-sm mb-2"><Phone className="w-6 h-6 text-primary opacity-80" /></div>
+                                </div>
 
-                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div>
-                            <div className="text-3xl font-bold text-text-main">0</div>
-                            <div className="text-xs text-text-muted mt-2">This Month</div>
-                        </div>
-                        <div className="text-sm mb-2"><Calendar className="w-6 h-6 text-primary opacity-80" /></div>
-                    </div>
+                                <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                    <div>
+                                        <div className="text-3xl font-bold text-text-main">{leadStats?.thisMonth}</div>
+                                        <div className="text-xs text-text-muted mt-2">This Month</div>
+                                    </div>
+                                    <div className="text-sm mb-2"><Calendar className="w-6 h-6 text-primary opacity-80" /></div>
+                                </div>
 
-                    <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div>
-                            <div className="text-3xl font-bold text-text-main">0</div>
-                            <div className="text-xs text-text-muted mt-2">New Leads</div>
-                        </div>
-                        <div className="text-sm mb-2"><Star className="w-6 h-6 text-primary opacity-80" /></div>
-                    </div>
+                                <div className="card flex items-center justify-between rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                    <div>
+                                        <div className="text-3xl font-bold text-text-main">{leadStats?.newLeads}</div>
+                                        <div className="text-xs text-text-muted mt-2">New Leads</div>
+                                    </div>
+                                    <div className="text-sm mb-2"><Star className="w-6 h-6 text-primary opacity-80" /></div>
+                                </div>
 
-                </div>
+                            </div>
+                        )
+                }
 
                 <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow transition-all" >
                     <Tabs defaultValue="users" className="w-full">

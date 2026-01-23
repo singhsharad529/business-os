@@ -79,11 +79,9 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
             toast.danger("Please select both a user and a phone number");
             return;
         }
-
-
-        console.log("agent", agent);
-        console.log("selectedUser", selectedUser);
-        console.log("selectedPhoneNumber", selectedPhoneNumber);
+        // console.log("agent", agent);
+        // console.log("selectedUser", selectedUser);
+        // console.log("selectedPhoneNumber", selectedPhoneNumber);
 
 
         try {

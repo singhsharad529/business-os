@@ -25,9 +25,10 @@ interface CustomerCompanyProps {
     userid: string;
     setCustomerName: React.Dispatch<React.SetStateAction<string>>;
     setCompanyName: React.Dispatch<React.SetStateAction<string>>;
+    setClientDashboardStats: React.Dispatch<React.SetStateAction<any>>;
 }
 
-const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditSheetOpen, userid, setCustomerName, setCompanyName }) => {
+const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditSheetOpen, userid, setCustomerName, setCompanyName, setClientDashboardStats }) => {
 
     const [profileData, setProfileData] = useState<any>(null);
     const [editData, setEditData] = useState<any>({
@@ -151,6 +152,9 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                     }
                 }));
                 setCustomerName(response.user.name || '');
+            }
+            if (response.stats) {
+                setClientDashboardStats(response.stats)
             }
         } catch (error) {
             console.log('error', error);

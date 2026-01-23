@@ -15,34 +15,17 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useNavigate } from 'react-router-dom'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import TableLoader from '@/components/common/TableLoader'
 import { SideSheet } from '@/components/SideSheet'
 import { CallDetails } from '@/components/voicebot/CallDetails'
 import Pagination from '@/components/common/Pagination'
 import EditAdminAgent from '@/components/super-admin/voicebot/EditAdminAgent'
+import adminAgentService from '@/api/adminAgentService'
+import { toast } from '@/hooks/useToast'
+import DashboardLoader from '@/components/common/DashboardLoader'
 
-const stats = [
-    { label: "Total Calls", value: "1,248", icon: Phone, trend: "+12.5%", trendColor: "text-success", iconColor: "bg-primary/10 text-primary" },
-    { label: "Avg Duration", value: "4m 32s", icon: Clock, trend: "-2.4%", trendColor: "text-success", iconColor: "bg-success/10 text-success" },
-    { label: "Success Rate", value: "94.2%", icon: CheckCircle, trend: "+1.2%", trendColor: "text-success", iconColor: "bg-warning/10 text-warning" },
-    { label: "Unique Callers", value: "852", icon: Users, trend: "+15.8%", trendColor: "text-success", iconColor: "bg-primary/10 text-primary" },
-]
 
-const callVolumeData = [
-    { day: "Mon", calls: 145 },
-    { day: "Tue", calls: 152 },
-    { day: "Wed", calls: 168 },
-    { day: "Thu", calls: 141 },
-    { day: "Fri", calls: 185 },
-    { day: "Sat", calls: 112 },
-    { day: "Sun", calls: 98 },
-]
-
-const callOutcomesData = [
-    { outcome: "Resolved", count: 850 },
-    { outcome: "Missed", count: 38 },
-]
 
 const dummyCalls = [
     {
@@ -398,12 +381,68 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(false)
 
+    const [dashboardData, setDashboardData] = useState<any>(null);
+    const [dashboardLoader, setDashboardLoader] = useState(false)
     const [isCallDetailSheetOpen, setIsCallDetailSheetOpen] = useState(false);
     const [selectedCallForDetail, setSelectedCallForDetail] = useState<any>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const inboundPageSize = 10;
 
     const navigate = useNavigate()
+
+    const formatDuration = (seconds: number) => {
+        if (!seconds) return "0m 0s";
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.round(seconds % 60);
+        return `${mins}m ${secs}s`;
+    };
+
+    const stats = useMemo(() => [
+        {
+            label: "Total Calls",
+            value: dashboardData?.totalCalls?.toLocaleString() || "0",
+            icon: Phone,
+            trend: "+0%",
+            trendColor: "text-success",
+            iconColor: "bg-primary/10 text-primary"
+        },
+        {
+            label: "Avg Duration",
+            value: formatDuration(dashboardData?.avgDurationSeconds || 0),
+            icon: Clock,
+            trend: "0.0%",
+            trendColor: "text-success",
+            iconColor: "bg-success/10 text-success"
+        },
+        {
+            label: "Success Rate",
+            value: `${(dashboardData?.successRate || 0).toFixed(1)}%`,
+            icon: CheckCircle,
+            trend: "0.0%",
+            trendColor: "text-success",
+            iconColor: "bg-warning/10 text-warning"
+        },
+        {
+            label: "Unique Callers",
+            value: dashboardData?.uniqueCallers?.toLocaleString() || "0",
+            icon: Users,
+            trend: "0.0%",
+            trendColor: "text-success",
+            iconColor: "bg-primary/10 text-primary"
+        },
+    ], [dashboardData]);
+
+    const callVolumeData = useMemo(() => {
+        return dashboardData?.callVolume?.points?.map((p: any) => ({
+            day: p.day,
+            calls: p.count
+        })) || [];
+    }, [dashboardData]);
+
+    const callOutcomesData = useMemo(() => [
+        { outcome: "Resolved", count: dashboardData?.callOutcomes?.resolved || 0 },
+        { outcome: "Missed", count: dashboardData?.callOutcomes?.missed || 0 },
+    ], [dashboardData]);
 
     const filteredInboundCalls = useMemo(() => {
         if (!searchTerm) return dummyCalls;
@@ -436,6 +475,25 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
+
+    const fetchAgentStats = async () => {
+        try {
+            setDashboardLoader(true);
+            const response = await adminAgentService.getActiveAgentDashboard(agent?.id as string, {});
+            if (response) {
+                setDashboardData(response)
+            }
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to fetch agent stats")
+        } finally {
+            setDashboardLoader(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchAgentStats()
+    }, [])
 
     return (
         <div>
@@ -494,124 +552,130 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
 
                 {
                     agentStatsTab === "dashboard" && (
-                        <div className='space-y-6'>
-                            {/* Stats Cards Row */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {stats.map((stat, index) => (
-                                    <div key={index} className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="text-sm text-text-muted">{stat.label}</div>
-                                            <div className={`p-2 rounded-lg ${stat.iconColor}`}>
-                                                <stat.icon className="w-4 h-4" />
-                                            </div>
-                                        </div>
-                                        <div className="text-3xl font-bold text-text-main">
-                                            {stat.value}
-                                        </div>
-                                        <div className={`text-xs mt-2 font-medium ${stat.trendColor}`}>
-                                            {stat.trend}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Charts Row */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {/* Call Volume - Line Chart */}
-                                <Card className="glass-morphism border-border-subtle rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                                    <CardHeader className="pb-2">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className="text-xl font-black text-text-main">Call volume</CardTitle>
-                                            <span className="text-xs font-bold text-text-muted px-3 py-1 bg-bg-muted rounded-full">Last 7 days</span>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="pt-4">
-                                        <ChartContainer config={chartConfig} className="h-[320px] w-full">
-                                            <LineChart
-                                                data={callVolumeData}
-
-                                            >
-                                                <CartesianGrid vertical={false} stroke="#D9E1EC" strokeDasharray="3 3" />
-                                                <XAxis
-                                                    dataKey="day"
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fill: '#475467', fontSize: 12, fontWeight: 600 }}
-                                                    dy={5}
-                                                />
-                                                <YAxis
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fill: '#475467', fontSize: 12, fontWeight: 600 }}
-                                                />
-                                                <ChartTooltip content={<ChartTooltipContent />} />
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="calls"
-                                                    stroke="#7132CA"
-                                                    strokeWidth={4}
-                                                    dot={{ fill: '#7132CA', strokeWidth: 2, r: 4, stroke: '#fff' }}
-                                                    activeDot={{ r: 8, strokeWidth: 0 }}
-                                                    animationDuration={2000}
-                                                />
-                                            </LineChart>
-                                        </ChartContainer>
-                                    </CardContent>
-                                </Card>
-
-                                {/* Call Outcomes - Horizontal Bar Chart */}
-                                <Card className="glass-morphism border-border-subtle rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                                    <CardHeader className="pb-2">
-                                        <CardTitle className="text-xl font-black text-text-main">Call outcomes</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="pt-4">
-                                        <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                                            <BarChart
-                                                layout="vertical"
-                                                data={callOutcomesData}
-                                                margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
-                                                barSize={45}
-                                                barCategoryGap="40%"
-                                            >
-                                                <defs>
-                                                    <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
-                                                        <stop offset="0%" stopColor="var(--chart-gradient-end)" />
-                                                        <stop offset="100%" stopColor="var(--chart-gradient-start)" />
-                                                    </linearGradient>
-                                                </defs>
-                                                <CartesianGrid horizontal={false} stroke="#D9E1EC" strokeDasharray="3 3" />
-                                                <XAxis type="number" hide />
-                                                <YAxis
-                                                    dataKey="outcome"
-                                                    type="category"
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fill: '#475467', fontSize: 13, fontWeight: 700 }}
-                                                    width={90}
-                                                />
-                                                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                                                <Bar
-                                                    dataKey="count"
-                                                    fill="url(#barGradient)"
-                                                    radius={[0, 8, 8, 0]}
-                                                    animationDuration={1500}
-                                                />
-                                            </BarChart>
-                                        </ChartContainer>
-                                        <div className="mt-6 grid grid-cols-2 gap-4">
-                                            {callOutcomesData.map((item) => (
-                                                <div key={item.outcome} className="flex flex-col p-3 rounded-2xl bg-bg border border-border-subtle/50 group hover:border-primary/20 transition-colors duration-300">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                                                        <span className="text-xs font-bold text-text-muted">{item.outcome}</span>
+                        <div>
+                            {dashboardLoader ? (
+                                <DashboardLoader />
+                            ) : (
+                                <div className='space-y-6'>
+                                    {/* Stats Cards Row */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        {stats.map((stat, index) => (
+                                            <div key={index} className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="text-sm text-text-muted">{stat.label}</div>
+                                                    <div className={`p-2 rounded-lg ${stat.iconColor}`}>
+                                                        <stat.icon className="w-4 h-4" />
                                                     </div>
-                                                    <span className="text-lg font-black text-text-main font-mono">{item.count}</span>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
+                                                <div className="text-3xl font-bold text-text-main">
+                                                    {stat.value}
+                                                </div>
+                                                {/* <div className={`text-xs mt-2 font-medium ${stat.trendColor}`}>
+                                                    {stat.trend}
+                                                </div> */}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Charts Row */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Call Volume - Line Chart */}
+                                        <Card className="glass-morphism border-border-subtle rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+                                            <CardHeader className="pb-2">
+                                                <div className="flex items-center justify-between">
+                                                    <CardTitle className="text-xl font-black text-text-main">Call volume</CardTitle>
+                                                    <span className="text-xs font-bold text-text-muted px-3 py-1 bg-bg-muted rounded-full">Last 7 days</span>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="pt-4">
+                                                <ChartContainer config={chartConfig} className="h-[320px] w-full">
+                                                    <LineChart
+                                                        data={callVolumeData}
+
+                                                    >
+                                                        <CartesianGrid vertical={false} stroke="#D9E1EC" strokeDasharray="3 3" />
+                                                        <XAxis
+                                                            dataKey="day"
+                                                            axisLine={false}
+                                                            tickLine={false}
+                                                            tick={{ fill: '#475467', fontSize: 12, fontWeight: 600 }}
+                                                            dy={5}
+                                                        />
+                                                        <YAxis
+                                                            axisLine={false}
+                                                            tickLine={false}
+                                                            tick={{ fill: '#475467', fontSize: 12, fontWeight: 600 }}
+                                                        />
+                                                        <ChartTooltip content={<ChartTooltipContent />} />
+                                                        <Line
+                                                            type="monotone"
+                                                            dataKey="calls"
+                                                            stroke="#7132CA"
+                                                            strokeWidth={4}
+                                                            dot={{ fill: '#7132CA', strokeWidth: 2, r: 4, stroke: '#fff' }}
+                                                            activeDot={{ r: 8, strokeWidth: 0 }}
+                                                            animationDuration={2000}
+                                                        />
+                                                    </LineChart>
+                                                </ChartContainer>
+                                            </CardContent>
+                                        </Card>
+
+                                        {/* Call Outcomes - Horizontal Bar Chart */}
+                                        <Card className="glass-morphism border-border-subtle rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-xl font-black text-text-main">Call outcomes</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="pt-4">
+                                                <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                                                    <BarChart
+                                                        layout="vertical"
+                                                        data={callOutcomesData}
+                                                        margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                                                        barSize={45}
+                                                        barCategoryGap="40%"
+                                                    >
+                                                        <defs>
+                                                            <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
+                                                                <stop offset="0%" stopColor="var(--chart-gradient-end)" />
+                                                                <stop offset="100%" stopColor="var(--chart-gradient-start)" />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <CartesianGrid horizontal={false} stroke="#D9E1EC" strokeDasharray="3 3" />
+                                                        <XAxis type="number" hide />
+                                                        <YAxis
+                                                            dataKey="outcome"
+                                                            type="category"
+                                                            axisLine={false}
+                                                            tickLine={false}
+                                                            tick={{ fill: '#475467', fontSize: 13, fontWeight: 700 }}
+                                                            width={90}
+                                                        />
+                                                        <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                                                        <Bar
+                                                            dataKey="count"
+                                                            fill="url(#barGradient)"
+                                                            radius={[0, 8, 8, 0]}
+                                                            animationDuration={1500}
+                                                        />
+                                                    </BarChart>
+                                                </ChartContainer>
+                                                <div className="mt-6 grid grid-cols-2 gap-4">
+                                                    {callOutcomesData.map((item) => (
+                                                        <div key={item.outcome} className="flex flex-col p-3 rounded-2xl bg-bg border border-border-subtle/50 group hover:border-primary/20 transition-colors duration-300">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                                                                <span className="text-xs font-bold text-text-muted">{item.outcome}</span>
+                                                            </div>
+                                                            <span className="text-lg font-black text-text-main font-mono">{item.count}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )
                 }

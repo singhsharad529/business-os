@@ -19,6 +19,7 @@ import { toast } from "@/hooks/useToast";
 import TableLoader from "@/components/common/TableLoader";
 import { AxiosRequestConfig } from "axios";
 import Pagination from "@/components/common/Pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 function Customers() {
@@ -28,11 +29,9 @@ function Customers() {
     const [usersList, setUsersList] = useState<any>(null);
     const [usersPagination, setUsersPagination] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [clientStats, setClientStats] = useState<any>(null);
 
     const [isCreateUserSheetOpen, setIsCreateUserSheetOpen] = useState(false);
-
-
-
 
 
     const filteredUsers = (usersList?.users || []).filter((user: any) => {
@@ -53,13 +52,16 @@ function Customers() {
                 }
             }
             const response = await adminCustomerService.getUsersList(config);
-            console.log('user list', response);
+            // console.log('user list', response);
             if (response.users) {
                 setUsersList(response);
 
             }
             if (response.pagination) {
                 setUsersPagination(response.pagination);
+            }
+            if (response.status) {
+                setClientStats(response.status);
             }
         } catch (error) {
             // console.log(error);
@@ -99,51 +101,66 @@ function Customers() {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="text-sm text-text-muted">Total Clients</div>
-                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                                <Briefcase className="w-4 h-4" />
-                            </div>
+                {
+                    loading && !clientStats ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <Skeleton className="w-full h-32 rounded-xl" />
+                            <Skeleton className="w-full h-32 rounded-xl" />
+                            <Skeleton className="w-full h-32 rounded-xl" />
+                            <Skeleton className="w-full h-32 rounded-xl" />
                         </div>
-                        <div className="text-3xl font-bold text-text-main">{usersList?.count || 0}</div>
-                        <div className="text-xs text-success mt-2 font-medium">Active organizations</div>
-                    </div>
+                    ) :
+                        (
 
-                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="text-sm text-text-muted">Agents Distributed</div>
-                            <div className="p-2 bg-success/10 rounded-lg text-success">
-                                <Users className="w-4 h-4" />
-                            </div>
-                        </div>
-                        <div className="text-3xl font-bold text-text-main">142</div>
-                        <div className="text-xs text-success mt-2 font-medium">~3.4 agents per client</div>
-                    </div>
+                            <div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="text-sm text-text-muted">Total Clients</div>
+                                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                                <Briefcase className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                        <div className="text-3xl font-bold text-text-main">{clientStats?.totalClients}</div>
+                                        {/* <div className="text-xs text-success mt-2 font-medium">Active organizations</div> */}
+                                    </div >
 
-                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="text-sm text-text-muted">Setup Completion</div>
-                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                                <UserCheck className="w-4 h-4" />
-                            </div>
-                        </div>
-                        <div className="text-3xl font-bold text-text-main">92%</div>
-                        <div className="text-xs text-success mt-2 font-medium">Successful password changes</div>
-                    </div>
+                                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="text-sm text-text-muted">Agents Distributed</div>
+                                            <div className="p-2 bg-success/10 rounded-lg text-success">
+                                                <Users className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                        <div className="text-3xl font-bold text-text-main">{clientStats?.agentsDistributed}</div>
+                                        {/* <div className="text-xs text-success mt-2 font-medium">~3.4 agents per client</div> */}
+                                    </div>
 
-                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="text-sm text-text-muted">Avg. Engagement</div>
-                            <div className="p-2 bg-warning/10 rounded-lg text-warning">
-                                <Activity className="w-4 h-4" />
+                                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="text-sm text-text-muted">Setup Completion</div>
+                                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                                <UserCheck className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                        <div className="text-3xl font-bold text-text-main">{clientStats?.setupCompletion}</div>
+                                        {/* <div className="text-xs text-success mt-2 font-medium">Successful password changes</div> */}
+                                    </div>
+
+                                    <div className="card rounded-xl p-6 border border-border-subtle hover:shadow-glow hover:-translate-y-0.5 transition-all">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="text-sm text-text-muted">Avg. Engagement</div>
+                                            <div className="p-2 bg-warning/10 rounded-lg text-warning">
+                                                <Activity className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                        <div className="text-3xl font-bold text-text-main">{clientStats?.avgEngagement}</div>
+                                        {/* <div className="text-xs text-text-muted mt-2 font-medium">Daily active agents</div> */}
+                                    </div>
+                                </div >
                             </div>
-                        </div>
-                        <div className="text-3xl font-bold text-text-main">74%</div>
-                        <div className="text-xs text-text-muted mt-2 font-medium">Daily active agents</div>
-                    </div>
-                </div>
+                        )
+                }
 
                 {/* Table Section */}
                 {loading ? (<TableLoader rows={5} columns={6} />) : (
@@ -161,7 +178,7 @@ function Customers() {
                             </div>
 
                             <div className="flex gap-2">
-                                <select
+                                {/* <select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
                                     className="input min-w-[120px]"
@@ -170,12 +187,12 @@ function Customers() {
                                     <option value="active">Active</option>
                                     <option value="pending">Pending</option>
                                     <option value="inactive">Inactive</option>
-                                </select>
+                                </select> */}
 
-                                <button className="btn btn-secondary flex items-center gap-1.5">
+                                {/* <button className="btn btn-secondary flex items-center gap-1.5">
                                     <Filter className="w-3.5 h-3.5" />
                                     <span className="hidden sm:inline">Filter</span>
-                                </button>
+                                </button> */}
                             </div>
                         </div>
 
