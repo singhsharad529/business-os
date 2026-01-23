@@ -87,7 +87,13 @@ export default function TestCall({ onCancel, agent }: TestCallProps) {
     const [isWebCallActive, setIsWebCallActive] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [webCallStatus, setWebCallStatus] = useState<"idle" | "connecting" | "connected">("idle");
-    const [transcripts, setTranscripts] = useState<{ role: string; text: string }[]>([]);
+    const [transcripts, setTranscripts] = useState<{
+        role: string;
+        text: string;
+        isFinal?: boolean;
+        finalizedText?: string;
+        lastFinalizedSegment?: string;
+    }[]>([]);
     const transcriptEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -256,22 +262,48 @@ export default function TestCall({ onCancel, agent }: TestCallProps) {
                 if (message.type === 'transcript') {
                     const role = message.role;
                     const text = message.transcript;
+                    const isFinal = message.transcriptType === 'final';
 
                     setTranscripts(prev => {
-                        // If the move is final, it should stay. 
-                        // If same role and previous was not final, we might want to update.
-                        // However, simpler for now: just append if it's a new "shot" or handle growth.
-                        // Actually, Vapi sends many partials. 
-                        // To keep it clean in UI, let's just show the latest message per role switch or just append final ones.
-                        // Based on user log, they see it growing.
+                        if (prev.length > 0) {
+                            const lastIndex = prev.length - 1;
+                            const last = prev[lastIndex];
 
-                        // Simple approach: if the last message is same role, replace it. Otherwise append.
-                        if (prev.length > 0 && prev[prev.length - 1].role === role) {
-                            const newTranscripts = [...prev];
-                            newTranscripts[newTranscripts.length - 1] = { role, text };
-                            return newTranscripts;
+                            if (last.role === role) {
+                                // Same person speaking, update the current bubble
+                                const newTranscripts = [...prev];
+                                const updatedMsg = {
+                                    ...last,
+                                    finalizedText: last.finalizedText || "",
+                                    lastFinalizedSegment: last.lastFinalizedSegment || ""
+                                };
+
+                                if (isFinal) {
+                                    // Append this segment to the finalized portion if it's new
+                                    if (updatedMsg.lastFinalizedSegment !== text) {
+                                        updatedMsg.finalizedText = (updatedMsg.finalizedText ? updatedMsg.finalizedText + " " : "") + text;
+                                        updatedMsg.lastFinalizedSegment = text;
+                                    }
+                                    updatedMsg.text = updatedMsg.finalizedText;
+                                } else {
+                                    // Append the current partial segment to the finalized portion for display
+                                    updatedMsg.text = (updatedMsg.finalizedText ? updatedMsg.finalizedText + " " : "") + text;
+                                }
+
+                                updatedMsg.isFinal = isFinal;
+                                newTranscripts[lastIndex] = updatedMsg;
+                                return newTranscripts;
+                            }
                         }
-                        return [...prev, { role, text }];
+
+                        // Otherwise, append a new message bubble (new role turn)
+                        return [...prev, {
+                            role,
+                            text,
+                            isFinal,
+                            finalizedText: isFinal ? text : "",
+                            lastFinalizedSegment: isFinal ? text : ""
+                        }];
                     });
                 }
             });
