@@ -81,7 +81,7 @@ function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
             if (response && response.phoneNumbers) {
                 setPhoneNumbers(response.phoneNumbers);
                 if (response.phoneNumbers.length > 0) {
-                    setSelectedPhoneNumber(response.phoneNumbers[0].id);
+                    setSelectedPhoneNumber(response.phoneNumbers[0].vapiId);
                 }
             }
         } catch (error) {
@@ -236,7 +236,7 @@ function CustomerAssignAgent({ onClose, onSuccess }: CustomerAssignAgentProps) {
                                         <SelectContent>
                                             {phoneNumbers && phoneNumbers.length > 0 ? (
                                                 phoneNumbers.map((number: any) => (
-                                                    <SelectItem key={number.id} value={number.id}>
+                                                    <SelectItem key={number.id} value={number.vapiId}>
                                                         {number.number}
                                                     </SelectItem>
                                                 ))
