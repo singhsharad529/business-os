@@ -22,6 +22,8 @@ const adminAgentService = {
     apiService.get(`admin/phone-numbers`, config),
   getHistoryTestCalls: (config: AxiosRequestConfig) =>
     apiService.get(`admin/test-calls`, config),
+  getActiveAgentDashboard: (id: string, config: AxiosRequestConfig) =>
+    apiService.get(`admin/assistants/${id}/stats`, config),
   // assignAssistantToUser: (data: any, config: AxiosRequestConfig) =>
   //   apiService.post(`admin/assistants/assign`, data, config),
   setCallId: (callId: string, config: AxiosRequestConfig) =>

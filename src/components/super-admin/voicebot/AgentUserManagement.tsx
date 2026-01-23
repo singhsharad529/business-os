@@ -55,7 +55,9 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
             // console.log('response', response);
             if (response && response.phoneNumbers) {
                 setPhoneNumbers(response.phoneNumbers);
-                setSelectedPhoneNumber(response.phoneNumbers[0].id);
+                if (response.phoneNumbers.length > 0) {
+                    setSelectedPhoneNumber(response.phoneNumbers[0].vapiId);
+                }
             }
         } catch (error) {
             toast.danger("Failed to load phone numbers")
@@ -79,11 +81,9 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
             toast.danger("Please select both a user and a phone number");
             return;
         }
-
-
-        console.log("agent", agent);
-        console.log("selectedUser", selectedUser);
-        console.log("selectedPhoneNumber", selectedPhoneNumber);
+        // console.log("agent", agent);
+        // console.log("selectedUser", selectedUser);
+        // console.log("selectedPhoneNumber", selectedPhoneNumber);
 
 
         try {
@@ -258,7 +258,7 @@ export default function AgentUserManagement({ agent, onClose }: AgentUserManagem
                                         <SelectContent>
                                             {phoneNumbers && phoneNumbers.length > 0 ? (
                                                 phoneNumbers.map((number: any) => (
-                                                    <SelectItem key={number.id} value={number.id}>
+                                                    <SelectItem key={number.id} value={number.vapiId}>
                                                         {number.number}
                                                     </SelectItem>
                                                 ))
