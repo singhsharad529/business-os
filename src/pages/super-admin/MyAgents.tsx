@@ -875,12 +875,12 @@ function MyAgents() {
                                     <BotMessageSquare className="w-5 h-5 text-primary" />
                                     Agent Configuration
                                 </h3>
-                                <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
+                                {/* <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
                                     onClick={unAssignUser}
                                 >
                                     <UserX className="w-4 h-4" />
                                     {unAssignLoader ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unassign"}
-                                </button>
+                                </button> */}
                             </div>
                             <EditAdminAgent
                                 agent={selectedActiveAgent}
@@ -889,6 +889,10 @@ function MyAgents() {
                                 onSuccess={() => {
                                     setIsEditSheetOpen(false);
                                     fetchAllActiveAgents();
+                                }}
+                                deleteFile={() => {
+                                    fetchAllActiveAgents();
+
                                 }}
                             />
                         </div>

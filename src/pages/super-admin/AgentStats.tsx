@@ -24,6 +24,7 @@ import EditAdminAgent from '@/components/super-admin/voicebot/EditAdminAgent'
 import adminAgentService from '@/api/adminAgentService'
 import { toast } from '@/hooks/useToast'
 import DashboardLoader from '@/components/common/DashboardLoader'
+import { AxiosRequestConfig } from 'axios'
 
 
 
@@ -386,6 +387,8 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
     const [isCallDetailSheetOpen, setIsCallDetailSheetOpen] = useState(false);
     const [selectedCallForDetail, setSelectedCallForDetail] = useState<any>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [inboundCalls, setInboundCalls] = useState<any>([]);
+    const [inboundCallsLoader, setInboundCallsLoader] = useState(false)
     const inboundPageSize = 10;
 
     const navigate = useNavigate()
@@ -491,8 +494,35 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
         }
     }
 
+
+    // const inboundPageSize = 10;
+    const fetchAgentCalls = async (page: number = 1, pageSize: number = inboundPageSize) => {
+        try {
+            setInboundCallsLoader(true);
+            const config: AxiosRequestConfig = {
+                params: {
+                    assistantId: agent?.vapiId,
+                    page: page,
+                    page_size: pageSize,
+                }
+            }
+            const response = await adminAgentService.getActiveAgentCalls(config);
+            console.log(response);
+            if (response) {
+                setInboundCalls(response)
+            }
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to fetch agent stats")
+        } finally {
+            setInboundCallsLoader(false);
+
+        }
+    }
+
     useEffect(() => {
-        fetchAgentStats()
+        fetchAgentStats();
+        fetchAgentCalls();
     }, [])
 
     return (

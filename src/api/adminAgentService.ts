@@ -67,6 +67,36 @@ const adminAgentService = {
       `admin/assistants/${assistantId}`,
       config as AxiosRequestConfig,
     ),
+  getActiveAgentCalls: (config: AxiosRequestConfig) =>
+    apiService.get(`vapi/calls/reports`, config),
+  deleteFileFromAgent: (
+    userId: string,
+    assistantId: string,
+    fileId: string,
+    config?: AxiosRequestConfig,
+  ) =>
+    apiService.delete(
+      `admin/users/${userId}/assistants/${assistantId}/files/local/${fileId}`,
+      config as AxiosRequestConfig,
+    ),
+  uploadFileToAgent: (
+    user_id: string,
+    assistantId: string,
+    formData: FormData,
+    config: AxiosRequestConfig,
+  ) => {
+    return apiService.post(
+      `admin/users/${user_id}/assistants/${assistantId}/attach-local-files`,
+      formData,
+      {
+        ...config,
+        headers: {
+          ...config.headers,
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+  },
 };
 
 export default adminAgentService;
