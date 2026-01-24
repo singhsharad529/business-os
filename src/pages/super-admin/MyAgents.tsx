@@ -696,6 +696,8 @@ function MyAgents() {
                                                             <tr className="border-b border-border-subtle">
                                                                 <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider text-center">Sr. No.</th>
                                                                 <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Agent Name</th>
+                                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone Number</th>
+
                                                                 <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Client Name</th>
                                                                 <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assigned Date</th>
                                                                 {/* <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th> */}
@@ -709,6 +711,8 @@ function MyAgents() {
                                                                         {(activateAgentsPagination?.page - 1) * (activateAgentsPagination?.pageSize || agentPageSize) + i + 1}
                                                                     </td>
                                                                     <td className="py-4 px-3 text-sm text-text-main font-medium">{agent.name}</td>
+                                                                    <td className="py-4 px-3 text-sm text-text-main font-medium">{agent.phoneNumbers && agent.phoneNumbers.length > 0 ? agent.phoneNumbers[0].formattedNumber : ""}</td>
+
                                                                     <td className="py-4 px-3 text-sm text-text-muted">{agent.clientName}</td>
                                                                     <td className="py-4 px-3 text-sm text-text-muted">{new Date(agent.createdAt).toLocaleString("en-IN", {
                                                                         day: "2-digit",

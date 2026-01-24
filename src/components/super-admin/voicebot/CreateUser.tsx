@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Mail, Lock, Building2, Loader2 } from "lucide-react"
+import { Mail, Lock, Building2, Loader2, User } from "lucide-react"
 import voiceBotService from "@/api/voicebotService"
 import { toast } from "@/hooks/useToast"
 import adminCustomerService from "@/api/adminCustomerService";
@@ -16,6 +16,7 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
         email: "",
         password: "",
         companyName: "",
+        salesRepName: "",
         sendCredentials: false
     });
 
@@ -30,7 +31,7 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.email || !formData.password || !formData.companyName) {
+        if (!formData.email || !formData.password || !formData.companyName || !formData.salesRepName) {
             toast.danger("Please fill all the fields");
             return;
         }
@@ -42,6 +43,7 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
                 email: formData.email,
                 password: formData.password,
                 companyName: formData.companyName,
+                repName: formData.salesRepName,
                 // send_credentials: formData.sendCredentials
             };
             const response = await adminCustomerService.addCustomer(payload, {});
@@ -74,7 +76,7 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
                                 type="text"
                                 name="name"
                                 // required
-                                placeholder="John Doe"
+                                placeholder="Allen Smith"
                                 className="input w-full pl-10"
                                 value={formData.name}
                                 onChange={handleChange}
@@ -116,6 +118,25 @@ function CreateUser({ onClose, onSuccess }: CreateUserProps) {
                                 placeholder="••••••••"
                                 className="input w-full pl-10"
                                 value={formData.password}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Sales Rep Name */}
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-text-main block">
+                            Sales Representative <span className="text-danger">*</span>
+                        </label>
+                        <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                            <input
+                                type="text"
+                                name="salesRepName"
+                                // required
+                                placeholder="John Doe"
+                                className="input w-full pl-10"
+                                value={formData.salesRepName}
                                 onChange={handleChange}
                             />
                         </div>
