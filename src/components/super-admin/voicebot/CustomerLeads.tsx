@@ -146,7 +146,7 @@ function CustomerLeads({ isImportModalOpen, setIsImportModalOpen, isAddLeadSheet
                                                 {lead.lastCalledAt ? new Date(lead.lastCalledAt).toLocaleString() : 'N/A'}
                                             </td>
                                             <td className="py-4 px-3 text-sm text-text-muted">
-                                                <button className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                                <button className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
                                                     onClick={() => {
                                                         setSelectedLeadId(lead.id);
                                                         setIsDetailSheetOpen(true);

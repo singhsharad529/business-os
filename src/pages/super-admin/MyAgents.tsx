@@ -490,7 +490,7 @@ function MyAgents() {
                                                                                     </td>
                                                                                     <td className="py-4 px-3 text-right">
                                                                                         <button
-                                                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary"
+                                                                                            className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all hover:text-primary"
                                                                                             onClick={(e) => {
                                                                                                 e.stopPropagation();
                                                                                                 fetchAgents(cat, 1, agentPageSize);
@@ -730,14 +730,14 @@ function MyAgents() {
                                                                                 setSelectedActiveAgent(agent);
                                                                                 setView("stats");
                                                                             }}
-                                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
+                                                                            className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all cursor-pointer hover:text-primary"
                                                                             title="View Stats"
                                                                         >
                                                                             <BarChart3 className="w-4 h-4" />
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleViewActiveDetails(agent)}
-                                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
+                                                                            className="p-2 text-success hover:bg-success/10 rounded-lg transition-all cursor-pointer hover:text-success"
                                                                             title="View Details"
                                                                         >
                                                                             <Edit2 className="w-4 h-4" />
