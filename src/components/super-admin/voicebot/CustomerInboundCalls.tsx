@@ -249,7 +249,7 @@ function CustomerInboundCalls() {
                                             <td className="py-4 px-3 text-sm text-text-muted">
                                                 <button
                                                     onClick={() => handleViewDetails(call)}
-                                                    className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                                    className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </button>

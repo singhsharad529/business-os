@@ -34,6 +34,7 @@ interface EditAdminAgentProps {
     onClose: () => void;
     onSuccess?: () => void;
     isActive?: boolean;
+    deleteFile?: () => void;
 }
 
 
@@ -80,7 +81,7 @@ const DEFAULT_FORM_DATA = {
     }
 };
 
-function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentProps) {
+function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: EditAdminAgentProps) {
     const [activeTab, setActiveTab] = useState<"model" | "voice" | "transcriber" | "advanced">("model");
     const [formData, setFormData] = useState<any>(DEFAULT_FORM_DATA);
     const [modelsData, setModelsData] = useState<any>(null);
@@ -92,6 +93,9 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
     const [selectedPhoneNumber, setSelectedPhoneNumber] = useState<any>(null);
     const [phoneNumbersLoading, setPhoneNumbersLoading] = useState<boolean>(false);
     const [phoneNumbers, setPhoneNumbers] = useState<any>(null);
+    const [allFiles, setAllFiles] = useState<any>([]);
+    const [deleteFileId, setDeleteFileId] = useState<string>("");
+    const [fileUploaderLoader, setFileUploaderLoader] = useState<boolean>(false);
 
     const handleTogglePlay = (voice: any, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -133,9 +137,22 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
             const response = await adminAgentService.getAllPhoneNumbers({});
             // console.log('response', response);
             if (response && response.phoneNumbers) {
-                setPhoneNumbers(response.phoneNumbers);
-                if (response.phoneNumbers.length > 0) {
-                    setSelectedPhoneNumber(response.phoneNumbers[0].vapiId);
+                let allNumbers = [...response.phoneNumbers];
+
+                // If agent has assigned numbers, ensure they are in the list
+                if (agent?.phoneNumbers && agent.phoneNumbers.length > 0) {
+                    const existingIds = new Set(allNumbers.map((n: any) => n.vapiId));
+                    agent.phoneNumbers.forEach((agentNum: any) => {
+                        if (!existingIds.has(agentNum.vapiId)) {
+                            allNumbers.unshift(agentNum);
+                        }
+                    });
+                }
+
+                setPhoneNumbers(allNumbers);
+
+                if (allNumbers.length > 0 && (!agent?.phoneNumbers || agent.phoneNumbers.length === 0)) {
+                    setSelectedPhoneNumber(allNumbers[0].vapiId);
                 }
             }
         } catch (error) {
@@ -212,6 +229,14 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
                     endCallPhrases: agent.endCallPhrases || []
                 }
             });
+
+            if (agent.localFiles) {
+                setAllFiles(agent.localFiles);
+            }
+
+            if (agent.phoneNumbers && agent.phoneNumbers.length > 0) {
+                setSelectedPhoneNumber(agent.phoneNumbers[0].vapiId);
+            }
         }
     }, [agent]);
 
@@ -305,6 +330,12 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
                 }
             };
 
+            // Only include phoneNumberId if it has changed
+            const currentPhoneNumberId = agent.phoneNumbers?.[0]?.vapiId;
+            if (selectedPhoneNumber && selectedPhoneNumber !== currentPhoneNumberId) {
+                (apiPayload as any).phoneNumberId = selectedPhoneNumber;
+            }
+
             // Since we can't edit adminAgentService.ts, we use apiService directly
             // We assume the endpoint is PATCH admin/assistants/:id
             await apiService.patch(`admin/assistants/${agent.vapiAssistantId || agent.vapiId}`, apiPayload, {});
@@ -324,6 +355,45 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
             setIsSaving(false);
         }
     };
+
+    const deleteFileHandler = async (fileId: string) => {
+        try {
+            setDeleteFileId(fileId);
+            await adminAgentService.deleteFileFromAgent(agent.userId, agent.vapiId, fileId);
+            setAllFiles((prev: any) => prev.filter((file: any) => file.vapiFileId !== fileId));
+            toast.success("File deleted successfully!");
+            if (deleteFile) {
+                deleteFile();
+            }
+        } catch (error) {
+            console.error("Error deleting file:", error);
+            toast.danger("Failed to delete file");
+        } finally {
+            setDeleteFileId("");
+        }
+    }
+
+    const uploadFileHandler = async (file: File) => {
+        try {
+            setFileUploaderLoader(true);
+            const formData = new FormData();
+            formData.append("files", file);
+
+            const response = await adminAgentService.uploadFileToAgent(agent.userId, agent.vapiId, formData, {});
+            if (response.uploadedFiles && response.uploadedFiles.length > 0) {
+                setAllFiles((prev: any) => [...prev, ...response.uploadedFiles]);
+            }
+            toast.success("File uploaded successfully!");
+            if (deleteFile) {
+                deleteFile();
+            }
+        } catch (error) {
+
+            toast.danger("Failed to upload file");
+        } finally {
+            setFileUploaderLoader(false);
+        }
+    }
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
@@ -811,8 +881,41 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
                                     </div>
 
 
-                                    <div className="space-y-2">
+                                    <div className="max-h-[160px] overflow-y-auto space-y-2">
                                         <label className="text-xs font-semibold text-text-main">Upload Knowledge Base</label>
+
+                                        {allFiles.map((doc: any, index: number) => (
+                                            <div key={index} className="flex items-center justify-between p-3 bg-bg-muted/30 rounded-lg border border-border-subtle">
+                                                <div className="flex flex-col gap-1">
+                                                    {/* <div className="w-8 h-8 bg-white rounded flex items-center justify-center border border-border-subtle font-bold text-[10px] text-primary uppercase">
+                                                    {doc.documentType}
+                                                </div> */}
+                                                    <p className="text-sm font-medium text-text-main">{doc.fileName}</p>
+                                                    <p className="text-[10px] font-semibold text-text-muted ">  {doc?.uploadedAt
+                                                        ? new Date(doc.uploadedAt).toLocaleString("en-IN", {
+                                                            dateStyle: "medium",
+                                                            timeStyle: "short",
+                                                        })
+                                                        : "-"}</p>
+
+                                                </div>
+                                                <button
+                                                    onClick={() => deleteFileHandler(doc.vapiFileId)}
+                                                    className="p-1.5 hover:bg-danger-soft text-text-muted hover:text-danger rounded-md transition-colors"
+                                                >
+                                                    {deleteFileId === doc.vapiFileId ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <X className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        ))}
+
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        {/* <label className="text-xs font-semibold text-text-main">Upload Knowledge Base</label> */}
 
                                         <div className="flex flex-col items-center justify-center border-2 border-dashed border-border-subtle rounded-2xl p-4 bg-bg-alt/20 hover:bg-bg-alt/40 transition-all group cursor-pointer relative">
 
@@ -822,14 +925,17 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive }: EditAdminAgentP
                                                 className="absolute inset-0 opacity-0 cursor-pointer"
                                                 onChange={(e) => {
                                                     if (e.target.files && e.target.files[0]) {
-                                                        // setInvoiceFile(e.target.files[0]);
+                                                        uploadFileHandler(e.target.files[0]);
                                                     }
                                                 }}
-                                                required
                                             />
-                                            <div className="w-12 h-12 bg-primary-soft rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform mb-4">
-                                                <Upload className="w-5 h-5" />
-                                            </div>
+                                            {fileUploaderLoader ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <div className="w-12 h-12 bg-primary-soft rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform mb-4">
+                                                    <Upload className="w-5 h-5" />
+                                                </div>
+                                            )}
                                             <div className="text-sm font-bold text-text-main">Click to upload or drag & drop</div>
                                             <div className="text-xs text-text-muted mt-1">PDF (max. 5MB)</div>
                                         </div>

@@ -201,9 +201,13 @@ function Customers() {
                                 <thead>
                                     <tr className="border-b border-border-subtle">
                                         <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider text-center">Sr.No.</th>
-                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>
-                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Company</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Full Name</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Email</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sales Representative</th>
+
+
+
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assigned Agent</th>
                                         {/* <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th> */}
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Actions</th>
@@ -215,9 +219,11 @@ function Customers() {
                                             <td className="py-4 px-3 text-center text-xs text-text-muted">
                                                 {(usersPagination?.page - 1) * (usersPagination?.pageSize || userPageSize) + i + 1}
                                             </td>
-                                            <td className="py-4 px-3 text-sm text-text-main font-medium">{user.email}</td>
+                                            <td className="py-4 px-3 text-sm text-text-main font-medium">{user.companyName}</td>
                                             <td className="py-4 px-3 text-sm text-text-muted">{user.name}</td>
-                                            <td className="py-4 px-3 text-sm text-text-muted">{user.companyName}</td>
+                                            <td className="py-4 px-3 text-sm text-text-main font-medium">{user.email}</td>
+                                            <td className="py-4 px-3 text-sm text-text-muted">{user.repName}</td>
+
                                             <td className="py-4 px-3 text-sm text-text-muted">{user.assistantsCount}</td>
                                             {/* <td className="py-4 px-3">
                                                 <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-success/10 text-success`}>
@@ -231,7 +237,7 @@ function Customers() {
                                                 </button> */}
                                                     <button
                                                         onClick={() => navigate(`/app/super-admin/clients/${user.id}`)}
-                                                        className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
+                                                        className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </button>

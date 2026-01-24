@@ -12,7 +12,8 @@ import {
     Search,
     Filter,
     UserX,
-    Loader2
+    Loader2,
+    Phone
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { SideSheet } from "@/components/SideSheet";
@@ -148,6 +149,7 @@ function CustomerAgents({
             const payload: any = {
                 assistantId: assistant.vapiId,
                 userId: id,
+                phoneNumberVapiId: assistant.phoneNumbers[0].vapiId
             }
             setAgentToUnassign(assistant);
 
@@ -221,6 +223,11 @@ function CustomerAgents({
                                                         checked={agent.status === true}
                                                         onCheckedChange={() => handleStatusChange(agent.vapiId)}
                                                     />
+                                                    <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20 py-1.5 px-3" title="Unassign"
+                                                        onClick={() => unAssignUser(agent)}
+                                                    >
+                                                        {unAssignLoader && agentToUnassign?.vapiId === agent.vapiId ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
+                                                    </button>
 
                                                     {/* <button className="btn btn-secondary text-xs"
                                                         onClick={() => handleTestCall(agent)}
@@ -265,6 +272,14 @@ function CustomerAgents({
                                                         {new Date(agent.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                                     </span>
                                                 </div>
+
+                                                <div className="flex items-center justify-between text-text-main">
+                                                    <div className="flex items-center gap-2">
+                                                        <Phone className="w-3.5 h-3.5 text-text-muted" />
+                                                        <span className="text-xs">Phone Number</span>
+                                                    </div>
+                                                    <span className="text-xs font-semibold">{agent?.phoneNumbers[0]?.formattedNumber}</span>
+                                                </div>
                                             </div>
 
                                             <div className="flex gap-2">
@@ -285,20 +300,16 @@ function CustomerAgents({
                                                 {/* <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-primary" title="Duplicate">
                                                     <Copy className="w-3.5 h-3.5" />
                                                 </button> */}
-                                                {/* <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete"
+                                                <button className="btn btn-secondary flex items-center justify-center py-1.5 px-3 border-border-subtle hover:text-danger hover:bg-danger/5" title="Delete"
                                                     onClick={() => {
                                                         setAgentToDelete(agent);
                                                         setIsDeleteAlertOpen(true)
                                                     }}
                                                 >
                                                     <Trash className="w-3.5 h-3.5 text-danger" />
-                                                </button> */}
-
-                                                <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20 py-1.5 px-3" title="Unassign"
-                                                    onClick={() => unAssignUser(agent)}
-                                                >
-                                                    {unAssignLoader && agentToUnassign?.vapiId === agent.vapiId ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
                                                 </button>
+
+
                                             </div>
                                         </div>
                                     ))

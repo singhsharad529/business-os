@@ -490,7 +490,7 @@ function MyAgents() {
                                                                                     </td>
                                                                                     <td className="py-4 px-3 text-right">
                                                                                         <button
-                                                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all text-text-muted hover:text-primary"
+                                                                                            className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all hover:text-primary"
                                                                                             onClick={(e) => {
                                                                                                 e.stopPropagation();
                                                                                                 fetchAgents(cat, 1, agentPageSize);
@@ -696,6 +696,8 @@ function MyAgents() {
                                                             <tr className="border-b border-border-subtle">
                                                                 <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider text-center">Sr. No.</th>
                                                                 <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Agent Name</th>
+                                                                <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Phone Number</th>
+
                                                                 <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Client Name</th>
                                                                 <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assigned Date</th>
                                                                 {/* <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th> */}
@@ -709,6 +711,8 @@ function MyAgents() {
                                                                         {(activateAgentsPagination?.page - 1) * (activateAgentsPagination?.pageSize || agentPageSize) + i + 1}
                                                                     </td>
                                                                     <td className="py-4 px-3 text-sm text-text-main font-medium">{agent.name}</td>
+                                                                    <td className="py-4 px-3 text-sm text-text-main font-medium">{agent.phoneNumbers && agent.phoneNumbers.length > 0 ? agent.phoneNumbers[0].formattedNumber : ""}</td>
+
                                                                     <td className="py-4 px-3 text-sm text-text-muted">{agent.clientName}</td>
                                                                     <td className="py-4 px-3 text-sm text-text-muted">{new Date(agent.createdAt).toLocaleString("en-IN", {
                                                                         day: "2-digit",
@@ -730,14 +734,14 @@ function MyAgents() {
                                                                                 setSelectedActiveAgent(agent);
                                                                                 setView("stats");
                                                                             }}
-                                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
+                                                                            className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-all cursor-pointer hover:text-primary"
                                                                             title="View Stats"
                                                                         >
                                                                             <BarChart3 className="w-4 h-4" />
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleViewActiveDetails(agent)}
-                                                                            className="p-2 hover:bg-primary/10 rounded-lg transition-all cursor-pointer text-text-muted hover:text-primary"
+                                                                            className="p-2 text-success hover:bg-success/10 rounded-lg transition-all cursor-pointer hover:text-success"
                                                                             title="View Details"
                                                                         >
                                                                             <Edit2 className="w-4 h-4" />
@@ -875,12 +879,12 @@ function MyAgents() {
                                     <BotMessageSquare className="w-5 h-5 text-primary" />
                                     Agent Configuration
                                 </h3>
-                                <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
+                                {/* <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
                                     onClick={unAssignUser}
                                 >
                                     <UserX className="w-4 h-4" />
                                     {unAssignLoader ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unassign"}
-                                </button>
+                                </button> */}
                             </div>
                             <EditAdminAgent
                                 agent={selectedActiveAgent}
@@ -889,6 +893,10 @@ function MyAgents() {
                                 onSuccess={() => {
                                     setIsEditSheetOpen(false);
                                     fetchAllActiveAgents();
+                                }}
+                                deleteFile={() => {
+                                    fetchAllActiveAgents();
+
                                 }}
                             />
                         </div>

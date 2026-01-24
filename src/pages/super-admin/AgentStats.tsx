@@ -24,6 +24,7 @@ import EditAdminAgent from '@/components/super-admin/voicebot/EditAdminAgent'
 import adminAgentService from '@/api/adminAgentService'
 import { toast } from '@/hooks/useToast'
 import DashboardLoader from '@/components/common/DashboardLoader'
+import { AxiosRequestConfig } from 'axios'
 
 
 
@@ -386,6 +387,9 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
     const [isCallDetailSheetOpen, setIsCallDetailSheetOpen] = useState(false);
     const [selectedCallForDetail, setSelectedCallForDetail] = useState<any>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [inboundCalls, setInboundCalls] = useState<any>([]);
+    const [inboundCallPagination, setInboundCallPagination] = useState<any>(null)
+    const [inboundCallsLoader, setInboundCallsLoader] = useState(false)
     const inboundPageSize = 10;
 
     const navigate = useNavigate()
@@ -445,8 +449,8 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
     ], [dashboardData]);
 
     const filteredInboundCalls = useMemo(() => {
-        if (!searchTerm) return dummyCalls;
-        return dummyCalls.filter(call =>
+        if (!searchTerm) return inboundCalls;
+        return inboundCalls?.filter((call: any) =>
             call.customerNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             call.assistantName?.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -491,8 +495,43 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
         }
     }
 
+
+    // const inboundPageSize = 10;
+    const fetchAgentCalls = async (page: number = 1, pageSize: number = inboundPageSize) => {
+        try {
+            setInboundCallsLoader(true);
+            const config: AxiosRequestConfig = {
+                params: {
+                    assistantId: agent?.vapiId,
+                    page: page,
+                    page_size: pageSize,
+                }
+            }
+            const response = await adminAgentService.getActiveAgentCalls(config);
+            console.log(response);
+            if (response.report) {
+                setInboundCalls(response.report)
+
+            }
+            if (response.pagination) {
+                setInboundCallPagination(response.pagination)
+            }
+        } catch (error) {
+            // console.log(error);
+            toast.danger("Failed to fetch agent stats")
+        } finally {
+            setInboundCallsLoader(false);
+
+        }
+    }
+
+    const handleInboundPageChange = (page: number) => {
+        fetchAgentCalls(page);
+    }
+
     useEffect(() => {
-        fetchAgentStats()
+        fetchAgentStats();
+        fetchAgentCalls();
     }, [])
 
     return (
@@ -682,7 +721,7 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
                 {
                     agentStatsTab === "calls" && (
                         <div>
-                            {loading ? (
+                            {inboundCallsLoader ? (
                                 <TableLoader rows={10} columns={8} />
                             ) : (
                                 <div className="card p-4">
@@ -746,14 +785,19 @@ function AgentStats({ agent, onBack }: AgentStatsProps) {
                                                 ))}
                                             </tbody>
                                         </table>
+                                        {filteredInboundCalls && filteredInboundCalls.length === 0 && !inboundCallsLoader && (
+                                            <div className="py-8 text-center text-text-muted">
+                                                No calls found for this agent.
+                                            </div>
+                                        )}
                                     </div>
-                                    {pagination && (
+                                    {inboundCallPagination && (
                                         <Pagination
-                                            currentPage={pagination.page}
-                                            totalPages={pagination.totalPages}
-                                            pageSize={pagination.pageSize}
-                                            totalCount={pagination.total}
-                                            onPageChange={handlePageChange}
+                                            currentPage={inboundCallPagination.page}
+                                            totalPages={inboundCallPagination.totalPages}
+                                            pageSize={inboundCallPagination.pageSize}
+                                            totalCount={inboundCallPagination.total}
+                                            onPageChange={handleInboundPageChange}
                                         />
                                     )}
                                 </div>
