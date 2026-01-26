@@ -148,8 +148,9 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                     ...prev,
                     contactInfo: {
                         ...prev.contactInfo,
-                        email: response.user.email || ''
-                    }
+                        email: response.user.email || '',
+                    },
+                    password: response.user.password || '',
                 }));
                 setCustomerName(response.user.name || '');
             }
@@ -458,9 +459,9 @@ const CustomerCompany: FC<CustomerCompanyProps> = ({ isEditSheetOpen, setIsEditS
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
                             </div>
-                            <p className="text-[10px] text-text-muted mt-1.5 ml-1 italic">
+                            {/* <p className="text-[10px] text-text-muted mt-1.5 ml-1 italic">
                                 Leave blank if you don't wish to change the user's password.
-                            </p>
+                            </p> */}
                         </div>
                         <div>
                             <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Physical Address</label>
