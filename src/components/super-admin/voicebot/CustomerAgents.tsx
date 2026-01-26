@@ -223,11 +223,15 @@ function CustomerAgents({
                                                         checked={agent.status === true}
                                                         onCheckedChange={() => handleStatusChange(agent.vapiId)}
                                                     />
-                                                    <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20 py-1.5 px-3" title="Unassign"
-                                                        onClick={() => unAssignUser(agent)}
-                                                    >
-                                                        {unAssignLoader && agentToUnassign?.vapiId === agent.vapiId ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
-                                                    </button>
+                                                    {
+                                                        agent.phoneNumbers && agent.phoneNumbers.length > 0 && (
+                                                            <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20 py-1.5 px-3" title="Unassign"
+                                                                onClick={() => unAssignUser(agent)}
+                                                            >
+                                                                {unAssignLoader && agentToUnassign?.vapiId === agent.vapiId ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
+                                                            </button>
+                                                        )
+                                                    }
 
                                                     {/* <button className="btn btn-secondary text-xs"
                                                         onClick={() => handleTestCall(agent)}

@@ -1,3 +1,4 @@
+import { toast } from "@/hooks/useToast";
 import axios from "axios";
 
 // Determine the baseURL based on the environment
@@ -35,9 +36,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      toast.danger("Session expired");
       localStorage.removeItem("businessos_access_token");
       localStorage.removeItem("businessos_user");
-      window.location.href = "/login";
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
     }
     return Promise.reject(error);
   },

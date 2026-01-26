@@ -180,15 +180,16 @@ function MyAgents() {
             const payload: any = {
                 assistantId: selectedActiveAgent.vapiId,
                 userId: selectedActiveAgent.userId,
-                phoneNumberVapiId: selectedActiveAgent.phoneNumberVapiId
+                phoneNumberVapiId: selectedActiveAgent?.phoneNumbers[0]?.vapiId
             }
 
             const response = await adminAgentService.unassignAssistantToUser(payload);
             if (response) {
-                toast.success("Agent unassigned successfully")
+                toast.success("Agent unassigned successfully");
+                setIsActiveDetailsOpen(false);
+                fetchAllActiveAgents();
+
             }
-            setIsActiveDetailsOpen(false);
-            fetchAllActiveAgents();
 
         } catch (error) {
             toast.danger("Failed to unassign agent")
@@ -879,12 +880,12 @@ function MyAgents() {
                                     <BotMessageSquare className="w-5 h-5 text-primary" />
                                     Agent Configuration
                                 </h3>
-                                {/* <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
+                                <button className="btn btn-error btn-sm bg-danger/20 text-danger text-xs border border-danger/20"
                                     onClick={unAssignUser}
                                 >
                                     <UserX className="w-4 h-4" />
                                     {unAssignLoader ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unassign"}
-                                </button> */}
+                                </button>
                             </div>
                             <EditAdminAgent
                                 agent={selectedActiveAgent}

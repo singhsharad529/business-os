@@ -96,6 +96,8 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
     const [allFiles, setAllFiles] = useState<any>([]);
     const [deleteFileId, setDeleteFileId] = useState<string>("");
     const [fileUploaderLoader, setFileUploaderLoader] = useState<boolean>(false);
+    const [phoneNumberLoader, setPhoneNumberLoader] = useState<boolean>(false);
+    const [agentPhoneNumber, setAgentPhoneNumber] = useState<any>(null);
 
     const handleTogglePlay = (voice: any, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -135,24 +137,10 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
         try {
             setPhoneNumbersLoading(true);
             const response = await adminAgentService.getAllPhoneNumbers({});
-            // console.log('response', response);
             if (response && response.phoneNumbers) {
-                let allNumbers = [...response.phoneNumbers];
-
-                // If agent has assigned numbers, ensure they are in the list
-                if (agent?.phoneNumbers && agent.phoneNumbers.length > 0) {
-                    const existingIds = new Set(allNumbers.map((n: any) => n.vapiId));
-                    agent.phoneNumbers.forEach((agentNum: any) => {
-                        if (!existingIds.has(agentNum.vapiId)) {
-                            allNumbers.unshift(agentNum);
-                        }
-                    });
-                }
-
-                setPhoneNumbers(allNumbers);
-
-                if (allNumbers.length > 0 && (!agent?.phoneNumbers || agent.phoneNumbers.length === 0)) {
-                    setSelectedPhoneNumber(allNumbers[0].vapiId);
+                setPhoneNumbers(response.phoneNumbers);
+                if (response.phoneNumbers.length > 0) {
+                    setSelectedPhoneNumber(response.phoneNumbers[0].vapiId);
                 }
             }
         } catch (error) {
@@ -235,7 +223,7 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
             }
 
             if (agent.phoneNumbers && agent.phoneNumbers.length > 0) {
-                setSelectedPhoneNumber(agent.phoneNumbers[0].vapiId);
+                setAgentPhoneNumber(agent.phoneNumbers[0]);
             }
         }
     }, [agent]);
@@ -330,11 +318,6 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
                 }
             };
 
-            // Only include phoneNumberId if it has changed
-            const currentPhoneNumberId = agent.phoneNumbers?.[0]?.vapiId;
-            if (selectedPhoneNumber && selectedPhoneNumber !== currentPhoneNumberId) {
-                (apiPayload as any).phoneNumberId = selectedPhoneNumber;
-            }
 
             // Since we can't edit adminAgentService.ts, we use apiService directly
             // We assume the endpoint is PATCH admin/assistants/:id
@@ -392,6 +375,31 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
             toast.danger("Failed to upload file");
         } finally {
             setFileUploaderLoader(false);
+        }
+    }
+
+    const updatePhoneNumber = async () => {
+        try {
+            setPhoneNumberLoader(true);
+            const apiPayload: any = {
+                phoneNumberId: selectedPhoneNumber
+            }
+            const response = await apiService.patch(`admin/assistants/${agent.vapiAssistantId || agent.vapiId}`, apiPayload, {});
+            toast.success("Phone number updated successfully!");
+
+            // Update the local state with the new phone number details if found in the list
+            const newNumber = phoneNumbers.find((p: any) => p.vapiId === selectedPhoneNumber);
+            if (newNumber) {
+                setAgentPhoneNumber(newNumber);
+            }
+
+            if (response && onSuccess) {
+                onSuccess();
+            }
+        } catch (error) {
+            toast.danger("Failed to update phone number");
+        } finally {
+            setPhoneNumberLoader(false);
         }
     }
 
@@ -854,30 +862,60 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
                                         Connectivity & Knowledge Base
                                     </h3>
 
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-semibold text-text-main">Change Phone Number</label>
-
-                                        <Select
-                                            onValueChange={(value) => setSelectedPhoneNumber(value)}
-                                            value={selectedPhoneNumber}
-                                        >
-                                            <SelectTrigger className="w-full bg-background border-border-subtle">
-                                                <SelectValue placeholder="Select a number to link..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {phoneNumbers && phoneNumbers.length > 0 ? (
-                                                    phoneNumbers.map((number: any) => (
-                                                        <SelectItem key={number.id} value={number.vapiId}>
-                                                            {number.formattedNumber}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    <div className="p-2 text-xs text-center text-text-muted">
-                                                        No unassigned numbers available
+                                    <div className="space-y-4">
+                                        {agentPhoneNumber && (
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-semibold text-text-main">Current Phone Number</label>
+                                                <div className="p-3 bg-bg-muted/30 rounded-lg border border-border-subtle flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm font-bold text-text-main">{agentPhoneNumber.formattedNumber}</p>
+                                                        <p className="text-xs text-text-muted">{agentPhoneNumber.name || "Assigned Number"}</p>
                                                     </div>
-                                                )}
-                                            </SelectContent>
-                                        </Select>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-text-main">
+                                                {agentPhoneNumber ? "Change Phone Number" : "Assign Phone Number"}
+                                            </label>
+                                            <div className="flex gap-2">
+                                                <div className="flex-1">
+                                                    <Select
+                                                        onValueChange={(value) => setSelectedPhoneNumber(value)}
+                                                        value={selectedPhoneNumber}
+                                                    >
+                                                        <SelectTrigger className="w-full bg-background border-border-subtle">
+                                                            <SelectValue placeholder="Select a number to link..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {phoneNumbers && phoneNumbers.length > 0 ? (
+                                                                phoneNumbers.map((number: any) => (
+                                                                    <SelectItem key={number.id} value={number.vapiId}>
+                                                                        {number.formattedNumber}
+                                                                    </SelectItem>
+                                                                ))
+                                                            ) : (
+                                                                <div className="p-2 text-xs text-center text-text-muted">
+                                                                    No unassigned numbers available
+                                                                </div>
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <button
+                                                    onClick={updatePhoneNumber}
+                                                    disabled={phoneNumberLoader || !selectedPhoneNumber}
+                                                    className="btn btn-primary px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    {phoneNumberLoader ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Save className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
 
 
