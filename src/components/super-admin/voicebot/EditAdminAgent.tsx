@@ -94,6 +94,7 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
     const [phoneNumbersLoading, setPhoneNumbersLoading] = useState<boolean>(false);
     const [phoneNumbers, setPhoneNumbers] = useState<any>(null);
     const [allFiles, setAllFiles] = useState<any>([]);
+    const [globalFiles, setGlobalFiles] = useState<any>([]);
     const [deleteFileId, setDeleteFileId] = useState<string>("");
     const [fileUploaderLoader, setFileUploaderLoader] = useState<boolean>(false);
     const [phoneNumberLoader, setPhoneNumberLoader] = useState<boolean>(false);
@@ -220,6 +221,9 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
 
             if (agent.localFiles) {
                 setAllFiles(agent.localFiles);
+            }
+            if (agent.files && agent.files.global) {
+                setGlobalFiles(agent.files.global);
             }
 
             if (agent.phoneNumbers && agent.phoneNumbers.length > 0) {
@@ -923,7 +927,7 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
                                         <label className="text-xs font-semibold text-text-main">Upload Knowledge Base</label>
 
                                         {allFiles.map((doc: any, index: number) => (
-                                            <div key={index} className="flex items-center justify-between p-3 bg-bg-muted/30 rounded-lg border border-border-subtle">
+                                            <div key={index} className="flex items-center justify-between p-2 px-4 bg-bg-muted/30 rounded-lg border border-primary/50">
                                                 <div className="flex flex-col gap-1">
                                                     {/* <div className="w-8 h-8 bg-white rounded flex items-center justify-center border border-border-subtle font-bold text-[10px] text-primary uppercase">
                                                     {doc.documentType}
@@ -977,6 +981,42 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
                                             <div className="text-sm font-bold text-text-main">Click to upload or drag & drop</div>
                                             <div className="text-xs text-text-muted mt-1">PDF (max. 5MB)</div>
                                         </div>
+                                    </div>
+
+
+
+                                    <div className="mt-4">
+                                        <label className="text-xs font-semibold text-text-main">Global Knowledge Base</label>
+                                    </div>
+                                    <div className="max-h-[160px] overflow-y-auto">
+                                        {globalFiles.map((doc: any, index: number) => (
+                                            <div key={index} className="flex items-center my-2 justify-between p-2 px-4 bg-bg-muted/30 rounded-lg border border-primary/50">
+                                                <div className="flex flex-col gap-1">
+                                                    {/* <div className="w-8 h-8 bg-white rounded flex items-center justify-center border border-border-subtle font-bold text-[10px] text-primary uppercase">
+                                                    {doc.documentType}
+                                                </div> */}
+                                                    <p className="text-sm font-medium text-text-main">{doc.name}</p>
+                                                    <p className="text-[10px] font-semibold text-text-muted ">  {doc?.createdAt
+                                                        ? new Date(doc.createdAt).toLocaleString("en-IN", {
+                                                            dateStyle: "medium",
+                                                            timeStyle: "short",
+                                                        })
+                                                        : "-"}</p>
+
+                                                </div>
+                                                {/* <button
+                                                    onClick={() => deleteFileHandler(doc.vapiFileId)}
+                                                    className="p-1.5 hover:bg-danger-soft text-text-muted hover:text-danger rounded-md transition-colors"
+                                                >
+                                                    {deleteFileId === doc.vapiFileId ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <X className="w-4 h-4" />
+                                                    )}
+                                                </button> */}
+                                            </div>
+                                        ))}
+
                                     </div>
 
                                 </section>
