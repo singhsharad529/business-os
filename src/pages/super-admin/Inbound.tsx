@@ -154,6 +154,8 @@ function Inbound() {
                                         <th className="py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Sr.No.</th>
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">User Name</th>
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Customer Number</th>
+                                        <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Client Name</th>
+
 
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Assistant</th>
                                         <th className="text-left py-4 px-3 text-xs font-semibold text-text-muted tracking-wider">Status</th>
@@ -171,6 +173,8 @@ function Inbound() {
                                             </td>
                                             <td className="py-4 px-3 text-sm text-text-main font-medium">{call.userName}</td>
                                             <td className="py-4 px-3 text-sm text-text-main font-medium">{call.customerNumber}</td>
+                                            <td className="py-4 px-3 text-sm text-text-main font-medium">{call?.clientName}</td>
+
                                             <td className="py-4 px-3 text-sm text-text-muted">{call.assistantName || 'N/A'}</td>
                                             <td className="py-4 px-3">
                                                 <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${call.status?.includes('ended') || call.status === 'completed' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
