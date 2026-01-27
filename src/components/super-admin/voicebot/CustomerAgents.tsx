@@ -222,6 +222,7 @@ function CustomerAgents({
                                                     <Switch
                                                         checked={agent.status === true}
                                                         onCheckedChange={() => handleStatusChange(agent.vapiId)}
+                                                        disabled={!agent.phoneNumbers || agent.phoneNumbers.length === 0}
                                                     />
                                                     {
                                                         agent.phoneNumbers && agent.phoneNumbers.length > 0 && (
@@ -278,11 +279,17 @@ function CustomerAgents({
                                                 </div>
 
                                                 <div className="flex items-center justify-between text-text-main">
-                                                    <div className="flex items-center gap-2">
-                                                        <Phone className="w-3.5 h-3.5 text-text-muted" />
-                                                        <span className="text-xs">Phone Number</span>
-                                                    </div>
-                                                    <span className="text-xs font-semibold">{agent?.phoneNumbers[0]?.formattedNumber}</span>
+                                                    {agent?.phoneNumbers?.length > 0 ? (
+                                                        <> <div className="flex items-center gap-2">
+                                                            <Phone className="w-3.5 h-3.5 text-text-muted" />
+                                                            <span className="text-xs">Phone Number</span>
+                                                        </div>
+                                                            <span className="text-xs font-semibold">{agent?.phoneNumbers[0]?.formattedNumber}</span></>
+                                                    ) : (
+                                                        <div className="text-xs font-semibold text-danger flex items-center gap-2">
+                                                            <Phone className="w-3.5 h-3.5 text-text-danger" />  Number not assigned
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 
