@@ -222,6 +222,7 @@ function CustomerAgents({
                                                     <Switch
                                                         checked={agent.status === true}
                                                         onCheckedChange={() => handleStatusChange(agent.vapiId)}
+                                                        disabled={!agent.phoneNumbers || agent.phoneNumbers.length === 0}
                                                     />
                                                     {
                                                         agent.phoneNumbers && agent.phoneNumbers.length > 0 && (
