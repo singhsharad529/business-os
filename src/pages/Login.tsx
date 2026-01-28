@@ -180,7 +180,7 @@ export function Login() {
           <div className="mt-6 pt-6 border-t border-border-subtle">
             <p className="text-xs text-text-muted text-center">
               Demo credentials:<br />
-              Super Admin: admin@businessos.com / admin123<br />
+              Super Admin: user@example.com / string<br />
               Company User: user@example.com / string
             </p>
           </div>

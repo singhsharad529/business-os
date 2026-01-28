@@ -873,7 +873,7 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
                                                 <div className="p-3 bg-bg-muted/30 rounded-lg border border-border-subtle flex items-center justify-between">
                                                     <div>
                                                         <p className="text-sm font-bold text-text-main">{agentPhoneNumber.formattedNumber}</p>
-                                                        <p className="text-xs text-text-muted">{agentPhoneNumber.name || "Assigned Number"}</p>
+                                                        {/* <p className="text-xs text-text-muted">{agentPhoneNumber.name || "Assigned Number"}</p> */}
                                                     </div>
                                                 </div>
                                             </div>
@@ -987,6 +987,7 @@ function EditAdminAgent({ agent, onClose, onSuccess, isActive, deleteFile }: Edi
 
                                     <div className="mt-4">
                                         <label className="text-xs font-semibold text-text-main">Global Knowledge Base</label>
+                                        <p className="text-[10px] text-text-muted">To update the Global Knowledge Base, navigate to the client's profile.</p>
                                     </div>
                                     <div className="max-h-[160px] overflow-y-auto">
                                         {globalFiles.map((doc: any, index: number) => (
